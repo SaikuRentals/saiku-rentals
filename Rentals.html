@@ -7500,16 +7500,36 @@ function updateRentalCrop(){
  stage.addEventListener('pointermove',e=>{if(!rentalCropPosition.dragging)return;rentalCropPosition.x=rentalCropPosition.originX+e.clientX-rentalCropPosition.startX;rentalCropPosition.y=rentalCropPosition.originY+e.clientY-rentalCropPosition.startY;updateRentalCrop();});
  ['pointerup','pointercancel'].forEach(ev=>stage.addEventListener(ev,()=>rentalCropPosition.dragging=false));
 })();
+function createRentalCropBlob(){
+ return new Promise((resolve,reject)=>{
+  if(!rentalLicenseSourceImage) return reject(new Error('Please upload a licence photo first.'));
+  const stage=document.getElementById('rentalCropStage');
+  if(!stage || !rentalCropImageRect.base) return reject(new Error('The photo crop is not ready. Please wait for the photo to load and try again.'));
+  const rect=stage.getBoundingClientRect();
+  const canvas=document.createElement('canvas');canvas.width=400;canvas.height=400;
+  const ctx=canvas.getContext('2d');
+  if(!ctx) return reject(new Error('Could not prepare the customer photo.'));
+  const base=rentalCropImageRect.base,scale=Number(rentalCropPosition.scale)||1;
+  const renderW=rentalCropImageRect.width*base*scale,renderH=rentalCropImageRect.height*base*scale;
+  const left=(rect.width-renderW)/2+rentalCropPosition.x,top=(rect.height-renderH)/2+rentalCropPosition.y;
+  const cropInset=rect.width*.12,cropSize=rect.width*.76;
+  const sx=Math.max(0,(cropInset-left)/(base*scale)),sy=Math.max(0,(cropInset-top)/(base*scale));
+  const sw=Math.min(cropSize/(base*scale),rentalLicenseSourceImage.naturalWidth-sx);
+  const sh=Math.min(cropSize/(base*scale),rentalLicenseSourceImage.naturalHeight-sy);
+  if(sw<=0||sh<=0) return reject(new Error('Please adjust the crop so the photo is inside the frame.'));
+  try{ctx.drawImage(rentalLicenseSourceImage,sx,sy,sw,sh,0,0,400,400);}catch(err){return reject(err);}
+  canvas.toBlob(blob=>{
+   if(!blob)return reject(new Error('Could not generate the cropped photo. Please try again.'));
+   rentalLicenseCroppedBlob=blob;
+   const preview=document.getElementById('rentalCropResultImage');
+   if(preview){if(preview.dataset.objectUrl)URL.revokeObjectURL(preview.dataset.objectUrl);preview.dataset.objectUrl=URL.createObjectURL(blob);preview.src=preview.dataset.objectUrl;}
+   const result=document.getElementById('rentalCropResult');if(result)result.hidden=false;
+   resolve(blob);
+  },'image/jpeg',.9);
+ });
+}
 function useRentalCrop(){
- if(!rentalLicenseSourceImage)return;
- const stage=document.getElementById('rentalCropStage'),rect=stage.getBoundingClientRect(),img=document.getElementById('rentalCropImage');
- const canvas=document.createElement('canvas');canvas.width=400;canvas.height=400;const ctx=canvas.getContext('2d');
- const base=rentalCropImageRect.base,scale=rentalCropPosition.scale,renderW=rentalCropImageRect.width*base*scale,renderH=rentalCropImageRect.height*base*scale;
- const left=(rect.width-renderW)/2+rentalCropPosition.x,top=(rect.height-renderH)/2+rentalCropPosition.y;
- const cropInset=rect.width*.12,cropSize=rect.width*.76;
- const sx=Math.max(0,(cropInset-left)/(base*scale)),sy=Math.max(0,(cropInset-top)/(base*scale)),sw=cropSize/(base*scale),sh=cropSize/(base*scale);
- ctx.drawImage(rentalLicenseSourceImage,sx,sy,Math.min(sw,rentalLicenseSourceImage.naturalWidth-sx),Math.min(sh,rentalLicenseSourceImage.naturalHeight-sy),0,0,400,400);
- canvas.toBlob(blob=>{if(!blob)return;rentalLicenseCroppedBlob=blob;document.getElementById('rentalCropResultImage').src=URL.createObjectURL(blob);document.getElementById('rentalCropResult').hidden=false;},'image/jpeg',.9);
+ createRentalCropBlob().catch(err=>setRentalLicenseStatus(err.message||'Could not crop the photo.','error'));
 }
 async function saveRentalLicenseCustomer(){
  const name=document.getElementById('rentalLicenseName').value.trim(),nid=document.getElementById('rentalLicenseNid').value.trim(),phone=document.getElementById('rentalLicensePhone').value.trim();
@@ -7518,6 +7538,11 @@ async function saveRentalLicenseCustomer(){
  const btn=document.getElementById('rentalSaveCustomerBtn');btn.disabled=true;btn.textContent='Saving…';
  try{
    let photoUrl=null;
+   // Automatically create the crop when the user forgets to press 'Use cropped photo'.
+   if(!rentalLicenseCroppedBlob && rentalLicenseSourceImage){
+     setRentalLicenseStatus('Preparing customer photo…');
+     await createRentalCropBlob();
+   }
    if(rentalLicenseCroppedBlob){
      const path='customers/'+(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2))+'.jpg';
      const {error:upErr}=await supabaseClient.storage.from('customer-photos').upload(path,rentalLicenseCroppedBlob,{upsert:false,contentType:'image/jpeg',cacheControl:'3600'});
