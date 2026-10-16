@@ -1,0 +1,283 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Settings | Saiku Rentals</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        .settings-wrap {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .settings-card {
+            background: var(--card-bg, #ffffff);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+            margin-top: 20px;
+        }
+
+        .settings-card h2 {
+            margin-top: 0;
+        }
+
+        .settings-card .form-group {
+            margin-bottom: 20px;
+        }
+
+        .settings-card label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .settings-card input {
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 46px;
+            padding: 12px;
+            border: 1px solid #d7dce2;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .settings-note {
+            background: #f2f6fb;
+            padding: 14px;
+            border-radius: 10px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .settings-status {
+            margin-top: 14px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .settings-wrap {
+                padding: 16px;
+            }
+
+            .settings-card {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-layout">
+
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Saiku Rentals</h2>
+                <p>Management System</p>
+            </div>
+
+            <nav class="navigation">
+                <a href="dashboard.html" class="nav-item">Dashboard</a>
+                <a href="customers.html" class="nav-item">Customers</a>
+                <a href="cycles.html" class="nav-item">Cycles</a>
+                <a href="rentals.html" class="nav-item">Rentals</a>
+                <a href="loans.html" class="nav-item">Loans</a>
+                <a href="settings.html" class="nav-item active">Company Settings</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+
+            <header class="topbar">
+                <h1>Company Settings</h1>
+            </header>
+
+            <section class="page-content">
+                <div class="settings-wrap">
+
+                    <h2>Opening Bank Balance</h2>
+                    <p>Set the starting point for your company finances.</p>
+
+                    <div class="settings-card">
+
+                        <h2>Finance Setup</h2>
+
+                        <div class="settings-note">
+                            Your opening balance is the money already
+                            in your bank account on the system start date.
+                            It is a starting figure, not new income.
+                        </div>
+
+                        <form id="settingsForm">
+
+                            <div class="form-group">
+                                <label for="systemStartDate">
+                                    System Start Date
+                                </label>
+
+                                <input
+                                    type="date"
+                                    id="systemStartDate"
+                                    required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="openingBankBalance">
+                                    Opening Bank Balance (MVR)
+                                </label>
+
+                                <input
+                                    type="number"
+                                    id="openingBankBalance"
+                                    min="0"
+                                    step="0.01"
+                                    placeholder="Enter bank balance"
+                                    required>
+                            </div>
+
+                            <button
+                                type="submit"
+                                class="primary-button"
+                                id="saveSettingsButton">
+                                Save Settings
+                            </button>
+
+                            <p
+                                id="settingsStatus"
+                                class="settings-status">
+                            </p>
+
+                        </form>
+
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+
+    <script>
+        const supabaseClient =
+            supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const settingsForm =
+            document.getElementById("settingsForm");
+
+        const statusMessage =
+            document.getElementById("settingsStatus");
+
+
+        async function checkAuth() {
+            const { data, error } =
+                await supabaseClient.auth.getSession();
+
+            if (error || !data.session) {
+                window.location.href = "login.html";
+                return false;
+            }
+
+            return true;
+        }
+
+
+        async function loadSettings() {
+            const { data, error } =
+                await supabaseClient
+                    .from("company_settings")
+                    .select("*")
+                    .eq("id", 1)
+                    .maybeSingle();
+
+            if (error) {
+                console.error(error);
+                statusMessage.textContent =
+                    "Could not load settings. Please refresh.";
+                return;
+            }
+
+            if (data) {
+                document.getElementById("systemStartDate").value =
+                    data.system_start_date || "";
+
+                document.getElementById("openingBankBalance").value =
+                    data.opening_bank_balance ?? 0;
+            } else {
+                document.getElementById("systemStartDate").value =
+                    new Date().toISOString().split("T")[0];
+
+                document.getElementById("openingBankBalance").value = "";
+            }
+        }
+
+
+        settingsForm.addEventListener("submit", async function(event) {
+            event.preventDefault();
+
+            const startDate =
+                document.getElementById("systemStartDate").value;
+
+            const balance =
+                Number(document.getElementById("openingBankBalance").value);
+
+            if (!startDate || !Number.isFinite(balance) || balance < 0) {
+                statusMessage.textContent =
+                    "Enter a valid date and non-negative bank balance.";
+                return;
+            }
+
+            const saveButton =
+                document.getElementById("saveSettingsButton");
+
+            saveButton.disabled = true;
+            statusMessage.textContent = "Saving settings...";
+
+            const { error } =
+                await supabaseClient
+                    .from("company_settings")
+                    .upsert({
+                        id: 1,
+                        system_start_date: startDate,
+                        opening_bank_balance: balance,
+                        updated_at: new Date().toISOString()
+                    }, {
+                        onConflict: "id"
+                    });
+
+            saveButton.disabled = false;
+
+            if (error) {
+                console.error(error);
+                statusMessage.textContent =
+                    "Could not save settings. Please try again.";
+                return;
+            }
+
+            statusMessage.textContent =
+                "Settings saved successfully.";
+        });
+
+
+        async function init() {
+            const authenticated = await checkAuth();
+
+            if (authenticated) {
+                await loadSettings();
+            }
+        }
+
+        init();
+    </script>
+
+</body>
+</html>

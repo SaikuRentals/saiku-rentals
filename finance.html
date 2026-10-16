@@ -1,0 +1,1698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard | Saiku Rentals</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/liquid-glass-theme.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <style>
+    .finance-section { margin-top: 22px; }
+    .finance-section-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:14px; }
+    .finance-section-heading h2 { margin:0 0 5px; }
+    .finance-section-heading p, .muted-note { color:var(--text-muted, #64748b); font-size:.9rem; margin:0; }
+    .finance-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+    .finance-card { background:var(--card-bg,#fff); border:1px solid var(--border-color,#e5e7eb); border-radius:16px; padding:19px; min-width:0; box-shadow:0 2px 8px rgba(15,23,42,.03); }
+    .finance-card .finance-label { display:block; color:var(--text-muted,#64748b); font-size:.88rem; margin-bottom:10px; }
+    .finance-card strong { display:block; font-size:clamp(1.1rem,2vw,1.55rem); line-height:1.25; overflow-wrap:anywhere; }
+    .finance-card small { display:block; color:var(--text-muted,#64748b); margin-top:8px; line-height:1.4; }
+    .notice { border:1px solid #f4d28a; background:#fff8e6; color:#744b00; border-radius:12px; padding:12px 14px; margin:14px 0; font-size:.9rem; line-height:1.45; }
+    .notice[hidden] { display:none; }
+    .table-wrap { width:100%; overflow-x:auto; }
+    .dashboard-table { width:100%; border-collapse:collapse; min-width:540px; }
+    .dashboard-table th,.dashboard-table td { text-align:left; padding:12px 13px; border-bottom:1px solid var(--border-color,#e5e7eb); vertical-align:middle; }
+    .dashboard-table th { color:var(--text-muted,#64748b); font-size:.8rem; font-weight:600; white-space:nowrap; }
+    .dashboard-table td { font-size:.92rem; }
+    .dashboard-table tr:last-child td { border-bottom:0; }
+    .status-pill { display:inline-block; padding:4px 9px; border-radius:999px; font-size:.78rem; background:#eef2f7; color:#334155; }
+    .status-pill.active,.status-pill.available { background:#e8f7ee; color:#166534; }
+    .status-pill.overdue { background:#fff0f0; color:#b91c1c; }
+    .status-pill.maintenance { background:#fff7e6; color:#92400e; }
+    .section-actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .secondary-action { border:1px solid var(--border-color,#dbe1ea); background:#fff; color:var(--text-color,#172033); border-radius:10px; padding:9px 12px; cursor:pointer; font:inherit; font-size:.88rem; }
+    .secondary-action:disabled { opacity:.6; cursor:wait; }
+    .loan-summary-list { display:grid; gap:10px; }
+    .loan-summary-item { display:flex; justify-content:space-between; align-items:center; gap:16px; border:1px solid var(--border-color,#e5e7eb); padding:13px 14px; border-radius:12px; }
+    .loan-summary-item strong { display:block; margin-bottom:4px; }
+    .loan-summary-item small { color:var(--text-muted,#64748b); }
+    .loan-summary-amount { text-align:right; white-space:nowrap; }
+    .empty-state { padding:24px 14px; text-align:center; color:var(--text-muted,#64748b); }
+    .dashboard-card { min-width:0; }
+    .formula-note { margin-top:12px; font-size:.85rem; line-height:1.5; color:var(--text-muted,#64748b); }
+
+    .historical-category-section { margin-top:24px; }
+    .historical-category-section h3 { margin:0 0 5px; }
+    .historical-category-table { width:100%; border-collapse:collapse; background:var(--card-bg,#fff); border:1px solid var(--border-color,#e5e7eb); border-radius:12px; overflow:hidden; }
+    .historical-category-table th,.historical-category-table td { padding:11px 13px; border-bottom:1px solid var(--border-color,#e5e7eb); text-align:left; }
+    .historical-category-table th { color:var(--text-muted,#64748b); font-size:.82rem; }
+    .historical-category-table td:last-child,.historical-category-table th:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+    .historical-category-table tr:last-child td { border-bottom:0; }
+    .historical-modal-backdrop[hidden] { display:none !important; }
+    .historical-modal-backdrop { position:fixed; inset:0; z-index:1000; background:rgba(15,23,42,.58); display:flex; align-items:center; justify-content:center; padding:18px; overflow-y:auto; }
+    .historical-modal-panel { background:var(--card-bg,#fff); color:var(--text-color,#172033); border:1px solid var(--border-color,#e5e7eb); border-radius:18px; width:min(760px,100%); max-height:calc(100vh - 36px); overflow-y:auto; padding:24px; box-shadow:0 22px 70px rgba(15,23,42,.24); }
+    .historical-modal-heading,.historical-category-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
+    .historical-modal-heading { margin-bottom:18px; }
+    .historical-modal-heading h2,.historical-category-heading h3 { margin:0 0 6px; }
+    .historical-modal-heading p,.historical-category-heading p,.historical-help-text { margin:0; color:var(--text-muted,#64748b); line-height:1.5; font-size:.9rem; }
+    .historical-input-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:22px; }
+    .historical-input-grid label { display:grid; gap:7px; font-size:.88rem; font-weight:600; min-width:0; }
+    .historical-input-grid input,.historical-category-row input { width:100%; box-sizing:border-box; min-width:0; border:1px solid var(--border-color,#dbe1ea); border-radius:10px; padding:11px 12px; font:inherit; color:var(--text-color,#172033); background:var(--card-bg,#fff); }
+    .historical-derived { border:1px solid var(--border-color,#e5e7eb); background:var(--page-bg,#f8fafc); padding:12px; border-radius:10px; display:flex; flex-direction:column; gap:7px; justify-content:center; }
+    .historical-derived span { color:var(--text-muted,#64748b); font-size:.82rem; }
+    .historical-derived strong { font-size:1.12rem; }
+    .historical-category-heading { align-items:center; margin-bottom:12px; }
+    .historical-category-rows { display:grid; gap:8px; }
+    .historical-category-row { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(120px,1fr) auto; gap:8px; align-items:center; }
+    .historical-category-row button { border:1px solid #f0caca; background:#fff8f8; color:#a52828; border-radius:10px; padding:10px 12px; cursor:pointer; font:inherit; }
+    .historical-help-text { margin-top:12px; }
+    .historical-modal-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:9px; margin-top:22px; }
+    .historical-form-message { padding:11px 13px; border-radius:10px; margin-bottom:14px; background:#eff6ff; color:#1d4ed8; font-size:.9rem; line-height:1.45; }
+    .historical-form-message.error { background:#fff1f2; color:#9f1239; }
+    .historical-form-message.success { background:#ecfdf5; color:#166534; }
+    @media (max-width:1100px) { .finance-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+
+    @media (max-width:650px) {
+      .finance-grid { grid-template-columns:1fr; gap:10px; }
+      .finance-card { padding:15px; }
+      .finance-section-heading { flex-direction:column; }
+      .loan-summary-item { align-items:flex-start; }
+      .loan-summary-amount { white-space:normal; }
+    }
+  
+    .cash-metrics-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
+    .deposit-panel { margin-top:16px; }
+    .deposit-panel .card-header { gap:12px; flex-wrap:wrap; }
+    .deposit-table { width:100%; border-collapse:collapse; min-width:560px; }
+    .deposit-table th,.deposit-table td { text-align:left; padding:12px 14px; border-bottom:1px solid var(--border-color,#e5e7eb); font-size:.88rem; }
+    .deposit-table th { color:var(--text-muted,#64748b); font-size:.78rem; white-space:nowrap; }
+    .deposit-table td.amount { white-space:nowrap; font-weight:700; }
+    .deposit-actions { display:flex; gap:6px; white-space:nowrap; }
+    .deposit-actions button { border:1px solid var(--border-color,#dbe1ea); background:#fff; border-radius:8px; padding:6px 9px; cursor:pointer; font:inherit; font-size:.8rem; }
+    .deposit-actions .delete { color:#b91c1c; }
+    .deposit-modal-backdrop { display:none; position:fixed; inset:0; background:rgba(15,23,42,.48); z-index:9999; padding:18px; align-items:center; justify-content:center; }
+    .deposit-modal-backdrop.show { display:flex; }
+    .deposit-modal { background:#fff; color:#172033; border-radius:16px; width:min(100%,480px); max-height:calc(100vh - 36px); overflow:auto; box-shadow:0 22px 70px rgba(0,0,0,.2); }
+    .deposit-modal-head { display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid #e5e7eb; gap:12px; }
+    .deposit-modal-head h2 { margin:0; font-size:1.12rem; }
+    .deposit-modal-head button { border:0; background:transparent; font-size:1.5rem; cursor:pointer; }
+    .deposit-form { padding:20px; display:grid; gap:14px; }
+    .deposit-form label { display:block; margin-bottom:6px; font-size:.86rem; font-weight:650; }
+    .deposit-form input,.deposit-form textarea { width:100%; box-sizing:border-box; padding:11px 12px; border:1px solid #d7dde7; border-radius:9px; font:inherit; background:#fff; color:#172033; }
+    .deposit-form textarea { resize:vertical; min-height:74px; }
+    .deposit-form-actions { display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap; margin-top:4px; }
+    .deposit-form-actions button { border:1px solid #d7dde7; border-radius:9px; padding:10px 13px; background:#fff; cursor:pointer; font:inherit; font-size:.88rem; }
+    .deposit-form-actions .save { background:#172c4d; color:#fff; border-color:#172c4d; }
+    .deposit-form-actions button:disabled { opacity:.55; cursor:wait; }
+    .deposit-note { margin-top:12px; color:var(--text-muted,#64748b); font-size:.82rem; line-height:1.5; }
+    @media (max-width:1100px) { .cash-metrics-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+    @media (max-width:650px) { .cash-metrics-grid { grid-template-columns:1fr; } .deposit-panel .card-header { align-items:flex-start; } }
+
+  
+
+    /* Active rental cards */
+    .active-rentals-dashboard { margin-top:22px; }
+    .active-rentals-dashboard .active-rentals-heading { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
+    .active-rentals-dashboard .active-rentals-heading h2 { margin:0 0 5px; }
+    .active-rentals-dashboard .active-rentals-heading p { margin:0; color:var(--text-muted,#64748b); font-size:.9rem; line-height:1.45; }
+    .active-rental-card-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .active-rental-dashboard-card { min-width:0; border:1px solid var(--border-color,#e2e8f0); border-radius:16px; padding:16px; background:var(--card-bg,#fff); box-shadow:0 5px 18px rgba(15,23,42,.055); }
+    .active-rental-dashboard-card.is-overdue { border-color:#fecaca; background:linear-gradient(180deg,#fff 0%,#fffafa 100%); }
+    .active-rental-card-top { display:flex; align-items:flex-start; gap:12px; }
+    .active-rental-avatar { position:relative; width:66px; height:66px; flex:0 0 66px; overflow:hidden; border-radius:50%; display:grid; place-items:center; background:#eaf0f8; color:#173657; font-size:21px; font-weight:800; }
+    .active-rental-avatar img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+    .active-rental-person { min-width:0; flex:1; }
+    .active-rental-person h3 { margin:0 0 4px; font-size:1.02rem; line-height:1.3; overflow-wrap:anywhere; }
+    .active-rental-person .active-rental-phone { font-size:.84rem; color:var(--text-muted,#64748b); overflow-wrap:anywhere; }
+    .active-rental-status { display:inline-flex; align-items:center; border-radius:999px; padding:5px 9px; margin-top:7px; font-size:.72rem; font-weight:800; letter-spacing:.03em; text-transform:uppercase; background:#e8f7ee; color:#166534; }
+    .active-rental-status.overdue { background:#fff0f0; color:#b91c1c; }
+    .active-rental-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:15px; }
+    .active-rental-detail { min-width:0; border:1px solid var(--border-color,#e5e7eb); background:var(--page-bg,#f8fafc); border-radius:11px; padding:10px 11px; }
+    .active-rental-detail span { display:block; color:var(--text-muted,#64748b); font-size:.72rem; margin-bottom:5px; }
+    .active-rental-detail strong { display:block; font-size:.85rem; line-height:1.4; overflow-wrap:anywhere; }
+    .active-rental-countdown { margin-top:12px; border-radius:11px; padding:11px 12px; background:#eff6ff; color:#1e40af; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .active-rental-countdown.overdue { background:#fff0f0; color:#b91c1c; }
+    .active-rental-countdown span { font-size:.8rem; font-weight:700; }
+    .active-rental-countdown strong { font-size:.96rem; text-align:right; }
+    .active-rental-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:13px; }
+    .active-rental-actions button { display:flex; align-items:center; justify-content:center; gap:6px; min-width:0; min-height:40px; padding:9px 8px; border:1px solid transparent; border-radius:10px; font:inherit; font-size:.79rem; font-weight:750; cursor:pointer; line-height:1.15; }
+    .active-rental-actions button:focus-visible { outline:3px solid rgba(59,130,246,.35); outline-offset:2px; }
+    .active-rental-actions .extend { background:#172c4d; color:#fff; }
+    .active-rental-actions .payment-reminder { background:#fff7e6; color:#92400e; border-color:#f6d28b; }
+    .active-rental-actions .expired-reminder { background:#fff0f0; color:#b91c1c; border-color:#fecaca; }
+    .active-rental-actions button:hover { filter:brightness(.97); transform:translateY(-1px); }
+    .active-rental-actions button:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+    .active-rental-id { margin-top:9px; color:var(--text-muted,#64748b); font-size:.75rem; overflow-wrap:anywhere; }
+    @media(max-width:900px) { .active-rental-card-grid { grid-template-columns:1fr; } }
+    @media(max-width:560px) {
+      .active-rental-dashboard-card { padding:13px; }
+      .active-rental-avatar { width:56px;height:56px;flex-basis:56px;font-size:18px; }
+      .active-rental-detail-grid { grid-template-columns:1fr; gap:7px; }
+      .active-rental-actions { grid-template-columns:1fr; }
+      .active-rental-actions button { width:100%; min-height:42px; font-size:.85rem; }
+      .active-rental-countdown { align-items:flex-start; flex-direction:column; }
+      .active-rental-countdown strong { text-align:left; }
+    }
+
+
+    /* Compact monthly summary cards, especially on phones */
+    .monthly-summary-section { margin-bottom: 18px; }
+    .monthly-summary-section .finance-section-heading { margin-bottom: 10px; }
+    .monthly-summary-section .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .monthly-summary-section .stat-card {
+      min-width: 0;
+      padding: 13px 14px;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .monthly-summary-section .stat-top { gap: 8px; margin-bottom: 7px; }
+    .monthly-summary-section .stat-label { font-size: .78rem; line-height: 1.25; }
+    .monthly-summary-section .stat-icon { width: 30px; height: 30px; min-width: 30px; font-size: .9rem; }
+    .monthly-summary-section .stat-card strong {
+      display: block;
+      min-width: 0;
+      font-size: clamp(1rem, 1.45vw, 1.38rem);
+      line-height: 1.2;
+      overflow-wrap: anywhere;
+      font-variant-numeric: tabular-nums;
+    }
+    .monthly-summary-section .stat-card small {
+      display: block;
+      margin-top: 5px;
+      font-size: .72rem;
+      line-height: 1.3;
+    }
+    @media (max-width: 900px) {
+      .monthly-summary-section .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+      .monthly-summary-section .stat-card { padding: 11px 12px; }
+      .monthly-summary-section .stat-card strong { font-size: clamp(1rem, 2.6vw, 1.22rem); }
+    }
+    @media (max-width: 420px) {
+      .monthly-summary-section .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+      .monthly-summary-section .stat-card { padding: 10px; border-radius: 12px; }
+      .monthly-summary-section .stat-top { gap: 5px; align-items: center; }
+      .monthly-summary-section .stat-label { font-size: .72rem; }
+      .monthly-summary-section .stat-icon { width: 25px; height: 25px; min-width: 25px; }
+      .monthly-summary-section .stat-card strong { font-size: clamp(.92rem, 4vw, 1.08rem); }
+      .monthly-summary-section .stat-card small { font-size: .66rem; }
+    }
+
+    .dashboard-shortcuts { display:flex; justify-content:flex-end; margin:-3px 0 10px; }
+    .dashboard-shortcuts .primary-button { padding:9px 14px; border-radius:11px; }
+    @media(max-width:650px) { .dashboard-shortcuts { margin-bottom:9px; } .dashboard-shortcuts .primary-button { width:100%; } }
+
+    /* Reference-style dashboard summary cards */
+    .dashboard-key-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:0 0 18px; }
+    .key-metric-card { min-width:0; border:1px solid #e2e8f0; border-radius:17px; padding:15px 16px; background:rgba(255,255,255,.94); box-shadow:0 7px 22px rgba(15,23,42,.055); }
+    .key-metric-card span { display:block; color:#64748b; font-size:.78rem; line-height:1.25; margin-bottom:7px; }
+    .key-metric-card strong { display:block; color:#152a43; font-size:clamp(1.02rem,1.8vw,1.45rem); line-height:1.2; font-weight:850; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+    .key-metric-card small { display:block; color:#7b8797; margin-top:6px; font-size:.68rem; line-height:1.3; }
+    .key-metric-card:has(#currentBankBalance) { background:linear-gradient(135deg,rgba(230,247,255,.94),rgba(255,255,255,.88)); border-color:rgba(56,189,248,.35); box-shadow:0 8px 24px rgba(14,116,144,.09); }
+    .key-metric-card:has(#currentBankBalance) strong { color:#087e8b; }
+    .key-metric-card.is-warning { border-color:#f2d7d7; background:linear-gradient(140deg,#fff7f7 0%,#fff 100%); }
+    .key-metric-card.is-warning strong { color:#a72a32; }
+    .key-metric-card.is-danger { border-color:#efbfc2; background:linear-gradient(140deg,#fff0f1 0%,#fff 100%); }
+    .key-metric-card.is-danger strong { color:#a91f2b; }
+    .page-heading { margin-bottom:12px; }
+    .page-heading h1 { font-size:1.35rem; margin-bottom:4px; }
+    .page-heading p { font-size:.86rem; }
+
+    /* Active rentals appear as wide readable rows, as in the reference */
+    .active-rental-card-grid { grid-template-columns:minmax(0,1fr); gap:9px; }
+    .active-rental-dashboard-card { display:grid; grid-template-columns:minmax(0,1fr) minmax(210px,.58fr); grid-template-areas:"person countdown" "details countdown" "identity actions"; gap:8px 16px; align-items:center; border-radius:16px; padding:13px 16px; box-shadow:0 3px 14px rgba(15,23,42,.035); }
+    .active-rental-card-top { grid-area:person; align-items:center; }
+    .active-rental-detail-grid { grid-area:details; margin-top:0; gap:6px 8px; }
+    .active-rental-detail { padding:7px 9px; border-radius:9px; }
+    .active-rental-detail span { margin-bottom:3px; }
+    .active-rental-countdown { grid-area:countdown; margin-top:0; min-height:54px; }
+    .active-rental-id { grid-area:identity; margin-top:0; }
+    .active-rental-actions { grid-area:actions; grid-template-columns:repeat(3,minmax(0,1fr)); margin-top:0; gap:6px; }
+    .active-rental-actions button { min-height:34px; padding:7px 6px; font-size:.72rem; border-radius:9px; }
+    @media(max-width:1000px) { .dashboard-key-metrics { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+    @media(max-width:760px) {
+      .dashboard-key-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+      .key-metric-card { padding:11px 12px; border-radius:13px; }
+      .key-metric-card span { font-size:.72rem; margin-bottom:6px; }
+      .key-metric-card strong { font-size:clamp(.95rem,4vw,1.13rem); }
+      .key-metric-card small { font-size:.63rem; margin-top:4px; }
+      .page-heading { align-items:flex-start; gap:10px; flex-direction:column; }
+      .page-heading .section-actions { width:100%; }
+      .active-rental-dashboard-card { grid-template-columns:minmax(0,1fr); grid-template-areas:"person" "details" "identity" "countdown" "actions"; gap:9px; padding:12px; }
+      .active-rental-avatar { width:48px; height:48px; flex-basis:48px; }
+      .active-rental-detail-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .active-rental-actions { grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .active-rental-actions button { min-height:35px; font-size:.69rem; }
+      .active-rental-countdown { flex-direction:row; align-items:center; }
+      .active-rental-countdown strong { text-align:right; }
+    }
+    @media(max-width:390px) {
+      .dashboard-key-metrics { gap:6px; }
+      .key-metric-card { padding:10px; }
+      .key-metric-card strong { font-size:.92rem; }
+      .key-metric-card small { font-size:.6rem; }
+      .active-rental-detail-grid { grid-template-columns:1fr; }
+      .active-rental-actions { grid-template-columns:1fr; }
+      .active-rental-actions button { font-size:.8rem; }
+    }
+
+
+
+    /* Clean liquid-glass live fleet panel */
+    .active-rentals-dashboard.liquid-glass-panel {
+      position: relative;
+      margin-top: 18px;
+      padding: clamp(14px, 2.1vw, 24px);
+      border: 1px solid rgba(255,255,255,.78);
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(255,255,255,.79), rgba(246,250,255,.68));
+      box-shadow: 0 18px 44px rgba(34, 61, 97, .09), inset 0 1px 0 rgba(255,255,255,.95);
+      backdrop-filter: blur(22px) saturate(155%);
+      -webkit-backdrop-filter: blur(22px) saturate(155%);
+      overflow: hidden;
+    }
+    .active-rentals-dashboard.liquid-glass-panel::before {
+      content: ""; position:absolute; pointer-events:none; right:-90px; top:-120px; width:280px; height:250px;
+      background:radial-gradient(ellipse, rgba(138,183,255,.17), transparent 68%); filter:blur(8px);
+    }
+    .active-rentals-dashboard .active-rentals-heading { position:relative; z-index:1; align-items:center; margin-bottom:19px; }
+    .active-rentals-dashboard .active-rentals-heading h2 { font-size:clamp(1.15rem,2vw,1.45rem); letter-spacing:-.025em; color:#172b45; margin:5px 0 5px; }
+    .active-rentals-dashboard .active-rentals-heading p { max-width:640px; color:#64748b; font-size:.88rem; }
+    .live-section-eyebrow { display:flex; align-items:center; gap:7px; color:#61728b; letter-spacing:.13em; font-size:.67rem; font-weight:850; }
+    .live-status-dot { width:7px; height:7px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 4px rgba(34,197,94,.12); }
+    .live-section-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:8px; }
+    .live-section-actions .secondary-action { border:1px solid rgba(196,210,229,.75); background:rgba(255,255,255,.7); color:#263951; border-radius:12px; padding:9px 12px; box-shadow:0 4px 12px rgba(31,52,79,.045); }
+    .live-section-actions .secondary-action:hover { background:rgba(255,255,255,.96); }
+    .live-rentals-content { position:relative; z-index:1; display:grid; gap:22px; }
+    .live-rental-group { min-width:0; }
+    .live-group-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:11px; }
+    .live-group-title { display:flex; align-items:center; gap:9px; color:#1e314a; font-weight:850; font-size:.94rem; }
+    .live-group-icon { display:grid; place-items:center; width:31px; height:31px; flex:0 0 31px; border-radius:10px; color:#285c9b; background:rgba(221,235,255,.8); border:1px solid rgba(197,219,249,.9); }
+    .live-group-icon.available { color:#17784b; background:rgba(220,252,231,.8); border-color:rgba(187,247,208,.9); }
+    .live-group-count { flex:0 0 auto; border-radius:999px; padding:5px 9px; background:rgba(226,232,240,.65); color:#506078; font-size:.72rem; font-weight:800; font-variant-numeric:tabular-nums; }
+    .active-rental-card-grid { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; }
+    .active-rental-dashboard-card {
+      display:grid; grid-template-columns:minmax(0,1fr) minmax(240px,.58fr);
+      grid-template-areas:"person countdown" "details countdown" "identity actions";
+      gap:10px 19px; align-items:center; min-width:0; padding:14px 16px;
+      border:1px solid rgba(215,226,239,.88); border-radius:17px;
+      background:linear-gradient(115deg,rgba(255,255,255,.83),rgba(248,251,255,.68));
+      box-shadow:0 7px 20px rgba(28,52,84,.045), inset 0 1px 0 rgba(255,255,255,.95);
+      backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .active-rental-dashboard-card:hover { transform:translateY(-1px); box-shadow:0 11px 25px rgba(28,52,84,.075); }
+    .active-rental-dashboard-card.is-overdue { border-color:rgba(239,170,176,.95); background:linear-gradient(115deg,rgba(255,247,248,.96),rgba(255,255,255,.78)); }
+    .active-rental-card-top { grid-area:person; align-items:center; gap:12px; }
+    .active-rental-avatar { width:53px; height:53px; flex:0 0 53px; border:2px solid rgba(255,255,255,.95); box-shadow:0 3px 10px rgba(28,52,84,.12); }
+    .active-rental-person h3 { color:#1b2e46; font-size:.98rem; font-weight:850; }
+    .active-rental-person .active-rental-phone { margin-top:3px; font-size:.79rem; }
+    .active-rental-status { padding:4px 8px; margin-top:6px; letter-spacing:.035em; }
+    .active-rental-detail-grid { grid-area:details; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:0; }
+    .active-rental-detail { padding:8px 10px; border:1px solid rgba(221,229,239,.78); border-radius:10px; background:rgba(244,248,253,.72); }
+    .active-rental-detail span { font-size:.68rem; }
+    .active-rental-detail strong { color:#273951; font-size:.79rem; }
+    .active-rental-countdown {
+      grid-area:countdown; display:block; align-self:stretch; margin-top:0; padding:13px 13px 11px;
+      border:1px solid rgba(197,220,250,.78); border-radius:14px;
+      background:linear-gradient(145deg,rgba(239,247,255,.88),rgba(255,255,255,.77)); color:#204d81;
+      min-height:0; box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    .active-rental-countdown.overdue { color:#a3202d; border-color:rgba(249,190,196,.95); background:linear-gradient(145deg,rgba(255,239,241,.96),rgba(255,255,255,.82)); }
+    .rental-time-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:16px; }
+    .active-rental-countdown span { display:block; font-size:.74rem; font-weight:750; color:inherit; }
+    .active-rental-countdown strong { display:block; text-align:right; font-size:clamp(.84rem,1.2vw,.99rem); letter-spacing:-.02em; line-height:1.4; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+    .rental-time-track { height:9px; width:100%; overflow:hidden; border-radius:999px; background:rgba(182,199,221,.32); box-shadow:inset 0 1px 2px rgba(22,46,75,.11); }
+    .rental-time-fill { display:block; width:100%; height:100%; border-radius:inherit; background:linear-gradient(90deg,#68a4ff 0%,#3c82e8 58%,#71b1ff 100%); box-shadow:0 0 11px rgba(59,130,246,.19); transition:width .95s linear,background .25s ease; }
+    .rental-time-fill.is-low { background:linear-gradient(90deg,#fbbf24,#ea8b22); box-shadow:0 0 10px rgba(234,139,34,.15); }
+    .rental-time-fill.is-overdue { background:linear-gradient(90deg,#fb7185,#dc3545); box-shadow:0 0 10px rgba(220,53,69,.15); }
+    .rental-time-meta { display:flex; justify-content:space-between; gap:10px; margin-top:8px; color:#7b8ba1; font-size:.65rem; line-height:1.35; }
+    .active-rental-countdown.overdue .rental-time-meta { color:#b06a72; }
+    .active-rental-id { grid-area:identity; margin-top:0; font-size:.7rem; }
+    .active-rental-actions { grid-area:actions; display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; margin-top:0; }
+    .active-rental-actions button { min-height:33px; padding:7px 10px; border-radius:9px; font-size:.72rem; box-shadow:0 2px 5px rgba(23,44,77,.04); }
+    .available-cycle-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    .available-cycle-card {
+      position:relative; min-width:0; display:flex; flex-direction:column; gap:10px; padding:13px;
+      border:1px solid rgba(187,232,207,.9); border-radius:15px;
+      background:linear-gradient(145deg,rgba(236,253,243,.78),rgba(255,255,255,.76));
+      box-shadow:0 6px 18px rgba(30,80,54,.04), inset 0 1px 0 rgba(255,255,255,.94);
+      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+      transition:transform .18s ease, box-shadow .18s ease;
+    }
+    .available-cycle-card:hover { transform:translateY(-2px); box-shadow:0 10px 22px rgba(30,80,54,.08); }
+    .available-cycle-top { display:flex; align-items:flex-start; gap:10px; min-width:0; }
+    .available-cycle-icon { display:grid; place-items:center; flex:0 0 37px; width:37px; height:37px; border-radius:12px; color:#1b7d4e; background:rgba(207,250,221,.82); border:1px solid rgba(177,238,199,.88); font-size:1.05rem; }
+    .available-cycle-info { min-width:0; flex:1; }
+    .available-cycle-plate { color:#1c3445; font-size:.91rem; font-weight:900; overflow-wrap:anywhere; line-height:1.25; }
+    .available-cycle-type { margin-top:4px; color:#708174; font-size:.72rem; line-height:1.3; overflow-wrap:anywhere; }
+    .available-cycle-status { display:inline-flex; align-self:flex-start; align-items:center; gap:6px; padding:4px 7px; border-radius:999px; color:#177246; background:rgba(220,252,231,.86); font-size:.64rem; font-weight:850; text-transform:uppercase; letter-spacing:.04em; }
+    .available-cycle-status::before { content:""; width:6px; height:6px; border-radius:50%; background:#22a765; box-shadow:0 0 0 3px rgba(34,167,101,.11); }
+    .available-cycle-note { color:#6e7d75; font-size:.73rem; line-height:1.4; }
+    .available-cycle-cta { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; box-sizing:border-box; margin-top:auto; min-height:34px; padding:7px 9px; border:1px solid rgba(184,224,198,.9); border-radius:9px; color:#176840; background:rgba(255,255,255,.72); text-decoration:none; font-size:.72rem; font-weight:800; transition:background .15s ease,transform .15s ease; }
+    .available-cycle-cta:hover { background:#fff; transform:translateY(-1px); }
+    .live-group-empty { padding:17px; border:1px dashed rgba(194,207,224,.9); border-radius:13px; color:#75849a; text-align:center; font-size:.84rem; background:rgba(255,255,255,.42); }
+    .available-cycle-grid .live-group-empty, .available-cycle-grid .live-fleet-warning { grid-column:1 / -1; }
+    .active-rental-countdown .rental-time-meta span { font-size:inherit; font-weight:500; }
+    .live-fleet-warning { padding:12px 14px; border:1px solid #f5d58c; border-radius:12px; background:rgba(255,249,230,.85); color:#805711; font-size:.83rem; line-height:1.5; }
+    .live-rentals-separator { height:1px; background:linear-gradient(90deg,transparent,rgba(192,205,222,.8),transparent); }
+    @media(max-width:900px) {
+      .active-rentals-dashboard.liquid-glass-panel { border-radius:20px; }
+      .active-rental-dashboard-card { grid-template-columns:minmax(0,1fr) minmax(205px,.56fr); gap:9px 12px; }
+      .available-cycle-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    }
+    @media(max-width:760px) {
+      .active-rentals-dashboard.liquid-glass-panel { padding:13px; border-radius:18px; }
+      .active-rentals-dashboard .active-rentals-heading { align-items:flex-start; flex-direction:column; margin-bottom:16px; }
+      .live-section-actions { width:100%; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .live-section-actions .secondary-action { justify-content:center; padding:9px 8px; font-size:.79rem; }
+      .live-rentals-content { gap:19px; }
+      .active-rental-dashboard-card { grid-template-columns:minmax(0,1fr); grid-template-areas:"person" "details" "countdown" "identity" "actions"; gap:10px; padding:12px; border-radius:15px; }
+      .active-rental-card-top { align-items:center; }
+      .active-rental-avatar { width:46px; height:46px; flex-basis:46px; }
+      .active-rental-detail-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .active-rental-countdown { padding:12px; }
+      .rental-time-top { margin-bottom:12px; }
+      .active-rental-countdown strong { text-align:right; }
+      .active-rental-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
+      .active-rental-actions button { min-height:35px; padding:7px 5px; font-size:.66rem; }
+      .available-cycle-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+      .available-cycle-card { padding:10px; border-radius:13px; }
+      .available-cycle-top { align-items:center; gap:8px; }
+      .available-cycle-icon { width:31px; height:31px; flex-basis:31px; border-radius:10px; font-size:.9rem; }
+      .available-cycle-plate { font-size:.84rem; }
+      .available-cycle-type { font-size:.68rem; }
+      .available-cycle-note { font-size:.68rem; }
+      .available-cycle-cta { min-height:32px; font-size:.68rem; }
+    }
+    @media(max-width:390px) {
+      .active-rental-detail-grid { grid-template-columns:1fr; }
+      .active-rental-actions { grid-template-columns:1fr; }
+      .active-rental-actions button { font-size:.79rem; }
+      .active-rental-countdown strong { font-size:.81rem; }
+      .available-cycle-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+      .available-cycle-card { padding:9px; }
+      .available-cycle-top { align-items:flex-start; flex-direction:column; }
+      .available-cycle-plate { font-size:.77rem; }
+      .available-cycle-note { font-size:.64rem; }
+    }
+
+  
+    /* Refined active-rental cards: one clear information hierarchy, no duplicate time panel */
+    .active-rental-dashboard-card {
+      grid-template-columns:minmax(0,1fr) minmax(190px,.42fr) !important;
+      grid-template-areas:"person countdown" "details countdown" "identity actions" !important;
+      gap:10px 18px !important; padding:15px 17px !important;
+      border:1px solid rgba(210,222,238,.78) !important;
+      background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(245,249,255,.67)) !important;
+      backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    }
+    .active-rental-detail-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:6px 8px !important; }
+    .active-rental-detail { display:flex; align-items:baseline; justify-content:space-between; gap:8px; padding:5px 0 !important; border:0 !important; border-bottom:1px solid rgba(210,222,238,.62) !important; border-radius:0 !important; background:transparent !important; min-width:0; }
+    .active-rental-detail span { margin:0 !important; color:#77869a !important; font-size:.68rem !important; white-space:nowrap; }
+    .active-rental-detail strong { text-align:right; font-size:.76rem !important; overflow-wrap:anywhere; }
+    .active-rental-countdown {
+      align-self:center !important; min-height:0 !important; padding:2px 0 2px 14px !important;
+      border:0 !important; border-left:1px solid rgba(200,215,234,.78) !important;
+      border-radius:0 !important; background:transparent !important; box-shadow:none !important;
+      color:#315d91 !important;
+    }
+    .active-rental-countdown.overdue { border-left-color:rgba(231,112,124,.55) !important; color:#b42335 !important; }
+    .rental-time-top { align-items:center !important; margin-bottom:9px !important; }
+    .active-rental-countdown .rental-time-top span { font-size:.72rem !important; font-weight:700 !important; color:#75849a !important; }
+    .active-rental-countdown strong { font-size:1rem !important; }
+    .rental-time-track { height:8px !important; background:rgba(179,195,216,.32) !important; }
+    .active-rental-id { color:#738197 !important; }
+    .active-rental-card-top { gap:12px; }
+    .active-rental-person h3 { margin-bottom:2px; }
+    @media(max-width:760px) {
+      .active-rental-dashboard-card { grid-template-columns:minmax(0,1fr) !important; grid-template-areas:"person" "details" "countdown" "identity" "actions" !important; gap:8px !important; padding:12px !important; }
+      .active-rental-detail-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+      .active-rental-countdown { border-left:0 !important; border-top:1px solid rgba(200,215,234,.68) !important; padding:9px 0 1px !important; }
+      .rental-time-top { margin-bottom:7px !important; }
+      .active-rental-actions { justify-content:stretch; }
+    }
+    @media(max-width:390px) {
+      .active-rental-detail-grid { grid-template-columns:1fr !important; }
+      .active-rental-detail strong { max-width:65%; }
+    }
+
+    /* Unified six-cycle fleet grid: rented and available cards share one layout. */
+    .active-rental-card-grid.fleet-unified-grid { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:12px !important; align-items:stretch; }
+    .fleet-rental-card { display:flex !important; flex-direction:column; grid-template-areas:none !important; grid-template-columns:minmax(0,1fr) !important; gap:10px !important; min-width:0; padding:13px !important; border-radius:16px !important; background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(245,249,255,.76)) !important; border:1px solid rgba(210,223,239,.88) !important; box-shadow:0 7px 20px rgba(25,50,80,.055),inset 0 1px 0 rgba(255,255,255,.96) !important; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
+    .fleet-rental-card.is-overdue { background:linear-gradient(145deg,rgba(255,240,242,.96),rgba(255,255,255,.83)) !important; border-color:rgba(241,183,190,.95) !important; }
+    .fleet-card-heading { display:flex; align-items:center; justify-content:space-between; gap:6px; min-width:0; }
+    .fleet-cycle-plate { font-size:1rem; font-weight:950; letter-spacing:-.025em; line-height:1.2; color:#142b45; overflow-wrap:anywhere; }
+    .fleet-pill { flex:0 0 auto; padding:4px 7px; border-radius:999px; font-size:.59rem; font-weight:900; text-transform:uppercase; letter-spacing:.035em; white-space:nowrap; color:#2054a1; background:#e5efff; }
+    .fleet-pill.available { color:#176b43; background:#dcfce7; }
+    .fleet-pill.rented { color:#2054a1; background:#e5efff; }
+    .fleet-pill.expired { color:#a61f2b; background:#ffe0e3; }
+    .fleet-pill.maintenance,.fleet-pill.unavailable { color:#8a5b0b; background:#fff0c7; }
+    .fleet-customer-row { display:flex; align-items:center; gap:9px; min-width:0; }
+    .fleet-customer-row .active-rental-avatar { width:39px; height:39px; flex:0 0 39px; }
+    .fleet-customer-row .active-rental-person h3 { margin:0 0 2px; font-size:.8rem; line-height:1.25; font-weight:850; color:#24374f; overflow-wrap:anywhere; }
+    .fleet-customer-row .active-rental-phone { font-size:.69rem !important; line-height:1.25; overflow-wrap:anywhere; }
+    .fleet-customer-id { margin-top:3px; color:#66768d; font-size:.65rem; line-height:1.25; overflow-wrap:anywhere; }
+    .fleet-rental-meta { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:8px; }
+    .fleet-rental-meta>div { min-width:0; padding:7px 8px; border-radius:9px; background:rgba(236,242,250,.68); border:1px solid rgba(218,228,241,.7); }
+    .fleet-rental-meta span,.fleet-payment span { display:block; margin-bottom:3px; color:#75849a; font-size:.62rem; font-weight:750; }
+    .fleet-rental-meta strong { display:block; color:#2d4058; font-size:.68rem; line-height:1.3; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+    .fleet-time-line { margin-top:0; padding:1px 1px 0; }
+    .fleet-time-label { display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:6px; }
+    .fleet-time-label span { color:#74839a; font-size:.65rem; font-weight:750; }
+    .fleet-time-label strong { color:#24538a; font-size:.68rem; font-weight:850; text-align:right; font-variant-numeric:tabular-nums; }
+    .fleet-rental-card.is-overdue .fleet-time-label strong { color:#b42335; }
+    .fleet-time-line .rental-time-track { height:7px !important; }
+    .fleet-payment { padding-top:7px; border-top:1px solid rgba(214,225,239,.7); }
+    .fleet-payment strong { display:block; font-size:.7rem; color:#31445b; line-height:1.3; overflow-wrap:anywhere; }
+    .fleet-card-actions { display:grid !important; grid-template-columns:repeat(3,minmax(0,1fr)); gap:5px !important; margin-top:auto !important; }
+    .fleet-card-actions button { min-width:0; min-height:31px !important; padding:6px 3px !important; font-size:.63rem !important; white-space:normal; line-height:1.15; }
+    .fleet-available-card { background:linear-gradient(145deg,rgba(234,251,241,.91),rgba(255,255,255,.8)) !important; border-color:rgba(190,229,207,.95) !important; }
+    .fleet-available-card.is-unavailable { background:linear-gradient(145deg,rgba(255,248,230,.9),rgba(255,255,255,.82)) !important; border-color:rgba(240,220,174,.9) !important; }
+    .fleet-available-message { display:flex; gap:8px; align-items:flex-start; padding:10px 0; min-height:55px; }
+    .fleet-ready-icon { display:grid; place-items:center; flex:0 0 27px; width:27px; height:27px; border-radius:9px; background:#d7f8e3; color:#147746; font-weight:950; }
+    .fleet-available-card.is-unavailable .fleet-ready-icon { background:#fff0c7; color:#8a5b0b; }
+    .fleet-available-message strong { display:block; color:#215b3d; font-size:.76rem; line-height:1.3; }
+    .fleet-available-card.is-unavailable .fleet-available-message strong { color:#795719; }
+    .fleet-available-message p { margin:4px 0 0; color:#718174; font-size:.67rem; line-height:1.35; }
+    .fleet-available-card .available-cycle-cta { margin-top:auto; }
+    .fleet-summary-row { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 12px; }
+    .fleet-summary-row span { padding:6px 10px; border:1px solid rgba(214,225,239,.85); border-radius:999px; background:rgba(255,255,255,.62); color:#63738a; font-size:.72rem; }
+    .fleet-summary-row b { color:#1c3049; }
+    @media(max-width:900px) { .active-rental-card-grid.fleet-unified-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; } }
+    @media(max-width:760px) {
+      .active-rental-card-grid.fleet-unified-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px !important; }
+      .fleet-rental-card { padding:10px !important; gap:8px !important; border-radius:14px !important; }
+      .fleet-cycle-plate { font-size:.86rem; }
+      .fleet-pill { font-size:.53rem; padding:4px 6px; }
+      .fleet-customer-row { gap:7px; align-items:flex-start; }
+      .fleet-customer-row .active-rental-avatar { width:32px; height:32px; flex-basis:32px; }
+      .fleet-customer-row .active-rental-person h3 { font-size:.72rem; }
+      .fleet-customer-row .active-rental-phone { font-size:.63rem !important; }
+      .fleet-customer-id { font-size:.6rem; }
+      .fleet-rental-meta { gap:5px; }
+      .fleet-rental-meta>div { padding:6px; }
+      .fleet-rental-meta span,.fleet-payment span { font-size:.58rem; }
+      .fleet-rental-meta strong { font-size:.61rem; }
+      .fleet-time-label span,.fleet-time-label strong { font-size:.6rem; }
+      .fleet-payment strong { font-size:.63rem; }
+      .fleet-card-actions { grid-template-columns:1fr !important; gap:4px !important; }
+      .fleet-card-actions button { min-height:28px !important; font-size:.63rem !important; }
+      .fleet-available-message { min-height:85px; }
+      .fleet-available-message strong { font-size:.7rem; }
+      .fleet-available-message p { font-size:.62rem; }
+      .fleet-summary-row { gap:5px; }
+      .fleet-summary-row span { font-size:.64rem; padding:5px 8px; }
+    }
+    @media(max-width:360px) {
+      .active-rental-card-grid.fleet-unified-grid { gap:6px !important; }
+      .fleet-rental-card { padding:8px !important; }
+      .fleet-cycle-plate { font-size:.78rem; }
+      .fleet-pill { font-size:.48rem; }
+      .fleet-customer-row .active-rental-avatar { display:none; }
+    }
+
+
+    /* Dedicated Finance page: show Finance Overview and Bank Deposit History here. */
+    .dashboard-content > :not(#financeOverview):not(#cashManagement) { display:none !important; }
+    #financeOverview, #cashManagement { display:block !important; margin-top:0 !important; }
+    #cashManagement { margin-top:22px !important; }
+    .dashboard-content { padding-top:22px; }
+</style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-box">SR</div>
+        <div><h2>Saiku Rentals</h2><span>Management</span></div>
+      </div>
+      <nav class="navigation">
+        <a href="dashboard.html" class="nav-item"><span>⌂</span><span>Dashboard</span></a>
+        <a href="rentals.html" class="nav-item"><span>📋</span><span>Rentals</span></a>
+        <a href="customers.html" class="nav-item"><span>👥</span><span>Customers</span></a>
+        <a href="cycles.html" class="nav-item"><span>🛵</span><span>Cycles</span></a>
+        <a href="loans.html" class="nav-item"><span>💰</span><span>Loans &amp; Finance</span></a>
+        <a href="expenses.html" class="nav-item"><span>🧾</span><span>Expenses</span></a>
+        <a href="reports.html" class="nav-item"><span>📈</span><span>Monthly Reports</span></a>
+        <a href="finance.html" class="nav-item active"><span>📊</span><span>Finance Overview</span></a>
+        <a href="#cashManagement" class="nav-item"><span>🏦</span><span>Bank Deposits</span></a>
+        <a href="settings.html" class="nav-item"><span>⚙️</span><span>Company Settings</span></a>
+      </nav>
+      <div class="sidebar-bottom"><button class="logout-button" onclick="logout()"><span>↪</span> Logout</button></div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <button class="menu-button" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+        <div class="topbar-title"><h2>Finance Overview</h2><p>Business financial position, expenses, income and loan repayments</p></div>
+        <div class="topbar-right">
+          <button class="secondary-action" id="refreshButton" type="button" onclick="loadDashboard()">↻ Refresh</button>
+          <div class="user-avatar">A</div>
+        </div>
+      </header>
+
+      <main class="dashboard-content">
+        <div class="dashboard-shortcuts"><button class="primary-button" type="button" onclick="window.location.href='rentals.html'">+ New Rental</button></div>
+
+        <div id="dashboardNotice" class="notice" role="status" hidden></div>
+
+        <section class="dashboard-key-metrics" aria-label="Business summary">
+          <article class="key-metric-card"><span>Total Income</span><strong id="dashboardTotalIncome">—</strong><small>Historical income + receipts</small></article>
+          <article class="key-metric-card"><span>Total Expenses</span><strong id="dashboardTotalExpenses">—</strong><small>Business expenses, excluding loan principal</small></article>
+          <article class="key-metric-card"><span>Net Profit</span><strong id="dashboardNetProfit">—</strong><small>Income minus business expenses</small></article>
+          <article class="key-metric-card"><span>Current Bank Balance</span><strong id="currentBankBalance">—</strong><small>Estimated balance after bank receipts and outflows</small></article>
+          <article class="key-metric-card is-warning"><span>Pending Payments</span><strong id="dashboardPendingPayments">—</strong><small>Balance on active rentals</small></article>
+          <article class="key-metric-card is-warning"><span>Unpaid Rentals</span><strong id="dashboardUnpaidRentals">—</strong><small>Rentals with a balance due</small></article>
+          <article class="key-metric-card is-warning"><span>Outstanding Invoices</span><strong id="dashboardOutstandingInvoices">—</strong><small>All unpaid rental balances</small></article>
+          <article class="key-metric-card is-danger"><span>Overdue Invoices</span><strong id="dashboardOverdueInvoices">—</strong><small>Unpaid balance past return time</small></article>
+        </section>
+
+
+
+        <section class="active-rentals-dashboard liquid-glass-panel" aria-labelledby="activeRentalCardsHeading">
+          <div class="active-rentals-heading">
+            <div>
+              <div class="live-section-eyebrow"><span class="live-status-dot"></span> LIVE FLEET</div>
+              <h2 id="activeRentalCardsHeading">Active Rentals</h2>
+              <p>Every cycle in one place — rented, available, or expired.</p>
+            </div>
+            <div class="live-section-actions">
+              <button class="secondary-action" type="button" onclick="window.location.href='rentals.html'">View rentals <span aria-hidden="true">↗</span></button>
+              <button class="secondary-action" type="button" onclick="window.location.href='cycles.html'">Manage cycles <span aria-hidden="true">↗</span></button>
+            </div>
+          </div>
+          <div id="activeRentalCards" class="live-rentals-content"><div class="empty-state">Loading active rentals and available cycles…</div></div>
+        </section>
+
+        <section class="monthly-summary-section" aria-labelledby="monthHeading">
+          <div class="finance-section-heading"><div><h2 id="monthHeading">Monthly Performance</h2><p id="monthRangeLabel">Current month totals so you can compare this month with the full business picture.</p></div><span class="muted-note" id="lastUpdated">Loading data…</span></div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-top"><span class="stat-label">Monthly Income</span><div class="stat-icon income">+</div></div><strong id="monthIncome">—</strong><small>Paid rental income received this month</small></div>
+            <div class="stat-card"><div class="stat-top"><span class="stat-label">Monthly Expenses</span><div class="stat-icon expense">−</div></div><strong id="monthExpenses">—</strong><small>Business expenses recorded this month</small></div>
+            <div class="stat-card"><div class="stat-top"><span class="stat-label">Monthly Profit</span><div class="stat-icon profit">✓</div></div><strong id="monthProfit">—</strong><small>Monthly income minus business expenses</small></div>
+            <div class="stat-card"><div class="stat-top"><span class="stat-label">Active Rentals</span><div class="stat-icon rentals">🛵</div></div><strong id="activeRentals">—</strong><small>Rentals currently marked active</small></div>
+          </div>
+        </section>
+
+        <section class="finance-section" id="financeOverview" aria-labelledby="financeHeading">
+          <div class="finance-section-heading"><div><h2 id="financeHeading">Finance Overview</h2><p>Total income includes your historical figure; profit and bank movements are calculated since system start.</p></div><div class="section-actions"><button class="secondary-action" type="button" onclick="openHistoricalFiguresModal()">Edit Historical Figures</button><button class="secondary-action" type="button" onclick="window.location.href='settings.html'">Opening Balance Settings</button></div></div>
+          <div class="finance-grid">
+            <div class="finance-card"><span class="finance-label">Opening Bank Balance</span><strong id="openingBalance">—</strong><small id="systemStartLabel">Set your start date and opening bank balance in Settings.</small></div>
+            <div class="finance-card"><span class="finance-label">Total Income Received</span><strong id="totalIncomeReceived">—</strong><small id="incomeBreakdown">Historical income plus new rental payments</small></div>
+            <div class="finance-card"><span class="finance-label">Total Business Expenses</span><strong id="expensesSinceStart">—</strong><small>Historical business expenses plus new expenses</small></div>
+            <div class="finance-card"><span class="finance-label">Total Loan Payments</span><strong id="loanPaymentsSinceStart">—</strong><small>Historical repayments plus new repayments</small></div>
+            <div class="finance-card"><span class="finance-label">Overall Net Profit</span><strong id="netProfitSinceStart">—</strong><small>Total income minus business expenses, excluding loan principal</small></div>
+          </div>
+          <p class="formula-note">Historical figures are saved separately as a starting summary. New rental payments and expenses recorded on or after the system start date are added automatically. The opening bank balance is separate, so historical income is not counted again as money currently in the bank.</p><section class="historical-category-section"><div class="finance-section-heading"><div><h3>Expense Breakdown by Category</h3><p>Saved historical category amounts combined with new expenses recorded since the system start date.</p></div></div><div id="historicalCategoryBreakdown"><div class="empty-state">Loading category totals…</div></div></section>
+        </section>
+
+        <section class="finance-section" id="cashManagement" aria-labelledby="cashManagementHeading">
+          <div class="finance-section-heading">
+            <div><h2 id="cashManagementHeading">Cash Flow &amp; Bank Deposits</h2><p>Track cash collected by staff, expenses paid from cash, and deposits into the company bank account.</p></div>
+            <div class="section-actions"><button class="primary-button" type="button" onclick="startCashDepositAdd()">+ Record Bank Deposit</button></div>
+          </div>
+          <div class="finance-grid cash-metrics-grid">
+            <div class="finance-card"><span class="finance-label">Cash Rental Payments</span><strong id="cashIncomeSinceStart">—</strong><small>Cash received since system start</small></div>
+            <div class="finance-card"><span class="finance-label">Cash Business Expenses</span><strong id="cashExpensesSinceStart">—</strong><small>Expenses paid from collected cash</small></div>
+            <div class="finance-card"><span class="finance-label">Cash Loan Payments</span><strong id="cashLoanPaymentsSinceStart">—</strong><small>Loan repayments paid using cash</small></div>
+            <div class="finance-card"><span class="finance-label">Deposited to Bank</span><strong id="cashDepositsSinceStart">—</strong><small>Transfers from cash into bank</small></div>
+            <div class="finance-card"><span class="finance-label">Cash Remaining from Tracked Activity</span><strong id="cashTrackedBalance">—</strong><small>Cash receipts − cash outflows − deposits</small></div>
+          </div>
+          <p class="deposit-note">A bank deposit is a transfer, not new income. The cash remaining figure only includes tracked movements since the system start date; opening cash held before that date has not been provided.</p>
+          <section class="dashboard-card deposit-panel" aria-labelledby="cashDepositsHeading">
+            <div class="card-header"><div><h2 id="cashDepositsHeading">Bank Deposit History</h2><p id="depositRecordCount">Loading deposits…</p></div><button class="text-button" type="button" onclick="startCashDepositAdd()">+ Add Deposit</button></div>
+            <div class="table-wrap"><table class="deposit-table"><thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="cashDepositRows"><tr><td colspan="4">Loading bank deposits…</td></tr></tbody></table></div>
+          </section>
+        </section>
+
+        <div class="dashboard-grid finance-section">
+          <section class="dashboard-card" aria-labelledby="recentRentalsHeading">
+            <div class="card-header"><div><h2 id="recentRentalsHeading">Recent Rentals</h2><p>Latest rental activity</p></div><button class="text-button" type="button" onclick="window.location.href='rentals.html'">View all</button></div>
+            <div class="table-wrap"><table class="dashboard-table"><thead><tr><th>Customer</th><th>Cycle</th><th>Started</th><th>Status</th></tr></thead><tbody id="recentRentalsBody"><tr><td colspan="4">Loading rentals…</td></tr></tbody></table></div>
+          </section>
+          <section class="dashboard-card" aria-labelledby="cycleStatusHeading">
+            <div class="card-header"><div><h2 id="cycleStatusHeading">Cycle Status</h2><p>Current fleet overview</p></div><button class="text-button" type="button" onclick="window.location.href='cycles.html'">Manage cycles</button></div>
+            <div class="cycle-status">
+              <div class="status-row"><div class="status-name"><span class="status-dot available"></span>Available</div><strong id="availableCycles">—</strong></div>
+              <div class="status-row"><div class="status-name"><span class="status-dot rented"></span>Rented</div><strong id="rentedCycles">—</strong></div>
+              <div class="status-row"><div class="status-name"><span class="status-dot overdue"></span>Overdue</div><strong id="overdueCycles">—</strong></div>
+              <div class="status-row"><div class="status-name"><span class="status-dot maintenance"></span>Maintenance</div><strong id="maintenanceCycles">—</strong></div>
+            </div>
+          </section>
+        </div>
+
+        <section class="dashboard-card finance-section" aria-labelledby="loanSummaryHeading">
+          <div class="card-header"><div><h2 id="loanSummaryHeading">Company Loans</h2><p>Payment totals and confirmed remaining balances</p></div><button class="text-button" type="button" onclick="window.location.href='loans.html'">View loans &amp; history</button></div>
+          <div id="loanSummaryList" class="loan-summary-list"><div class="empty-state">Loading loan information…</div></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+
+
+  <div class="deposit-modal-backdrop" id="cashDepositModal" role="dialog" aria-modal="true" aria-labelledby="cashDepositModalTitle">
+    <div class="deposit-modal">
+      <div class="deposit-modal-head"><h2 id="cashDepositModalTitle">Record Bank Deposit</h2><button type="button" aria-label="Close" onclick="closeCashDepositModal()">×</button></div>
+      <form class="deposit-form" id="cashDepositForm">
+        <input type="hidden" id="cashDepositId">
+        <div><label for="cashDepositDate">Deposit Date *</label><input type="date" id="cashDepositDate" required></div>
+        <div><label for="cashDepositAmount">Amount (MVR) *</label><input type="number" id="cashDepositAmount" min="0.01" step="0.01" placeholder="0.00" required></div>
+        <div><label for="cashDepositDescription">Description</label><textarea id="cashDepositDescription" maxlength="500" placeholder="Example: Cash collected by staff and deposited"></textarea></div>
+        <p class="deposit-note" style="margin:0">Record a deposit only when cash is physically transferred into the company bank account. This is a transfer, not new income.</p>
+        <div class="deposit-form-actions"><button type="button" onclick="closeCashDepositModal()">Cancel</button><button class="save" type="submit" id="saveCashDepositButton">Save Deposit</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="historical-modal-backdrop" id="historicalFiguresModal" hidden onclick="if(event.target===this) closeHistoricalFiguresModal()">
+    <section class="historical-modal-panel" role="dialog" aria-modal="true" aria-labelledby="historicalFiguresTitle">
+      <div class="historical-modal-heading">
+        <div><h2 id="historicalFiguresTitle">Historical Financial Figures</h2><p>Enter the totals accumulated before your system start date. New transactions will be added automatically.</p></div>
+        <button class="secondary-action" type="button" onclick="closeHistoricalFiguresModal()" aria-label="Close historical figures form">✕</button>
+      </div>
+      <div id="historicalFiguresMessage" class="historical-form-message" role="status" hidden></div>
+      <form id="historicalFiguresForm" onsubmit="saveHistoricalFigures(event)">
+        <div class="historical-input-grid">
+          <label>Historical total income received (MVR)
+            <input id="historicalIncomeInput" type="number" min="0" step="0.01" required inputmode="decimal" placeholder="e.g. 355922.00">
+          </label>
+          <label>Historical total expenditure, including loan repayments (MVR)
+            <input id="historicalExpenditureInput" type="number" min="0" step="0.01" required inputmode="decimal" placeholder="e.g. 308174.00" oninput="updateHistoricalDerived()">
+          </label>
+          <label>Historical loan repayments (MVR)
+            <input id="historicalLoanRepaymentsInput" type="number" min="0" step="0.01" required inputmode="decimal" placeholder="e.g. 88791.00" oninput="updateHistoricalDerived()">
+          </label>
+          <div class="historical-derived"><span>Historical business expenses, excluding loan repayments</span><strong id="historicalBusinessExpensesPreview">—</strong></div>
+        </div>
+        <div class="historical-category-heading"><div><h3>Historical Expense Categories</h3><p>Add totals such as Facebook Ads, Petrol, Maintenance, Salary and Phone Bill. These are summary figures, not individual transactions.</p></div><button class="secondary-action" type="button" onclick="addHistoricalCategoryRow()">+ Add category</button></div>
+        <div id="historicalCategoryRows" class="historical-category-rows"></div>
+        <p class="historical-help-text">For the complete breakdown to reconcile, the category amounts should add up to the historical business expenses shown above. You can save the main figures now and complete categories later. Saving here will not create duplicate expense transactions.</p>
+        <div class="historical-modal-actions">
+          <button class="secondary-action" type="button" onclick="closeHistoricalFiguresModal()">Cancel</button>
+          <button class="primary-button" id="saveHistoricalFiguresButton" type="submit">Save Historical Figures</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
+  <script>
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let historicalFiguresCache = null;
+
+    const money = value => Number.isFinite(Number(value))
+      ? `MVR ${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+      : 'Not available';
+
+    function localDateKey(value = new Date()) {
+      const d = value instanceof Date ? value : new Date(value);
+      if (Number.isNaN(d.getTime())) return '';
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function asDateKey(record, keys) {
+      for (const key of keys) {
+        if (record && record[key]) {
+          const dateKey = localDateKey(record[key]);
+          if (dateKey) return dateKey;
+        }
+      }
+      return '';
+    }
+
+    function readAmount(record, keys) {
+      for (const key of keys) {
+        if (record && record[key] !== null && record[key] !== undefined && record[key] !== '') {
+          const value = Number(record[key]);
+          if (Number.isFinite(value)) return value;
+        }
+      }
+      return null;
+    }
+
+    function sumRecords(records, dateKeys, amountKeys, startDate = null, endDate = null) {
+      return (records || []).reduce((total, record) => {
+        const date = asDateKey(record, dateKeys);
+        const amount = readAmount(record, amountKeys);
+        if (amount === null || !date) return total;
+        if (startDate && date < startDate) return total;
+        if (endDate && date > endDate) return total;
+        return total + amount;
+      }, 0);
+    }
+
+    function hasAmountField(records, amountKeys) {
+      if (!records || records.length === 0) return true;
+      return records.some(record => readAmount(record, amountKeys) !== null);
+    }
+
+    // Some versions of the Rentals form store payment_status='paid' directly on rentals,
+    // without inserting a corresponding rental_payments row. Include those paid rentals
+    // as a fallback, but only when that rental has no payment row at all, to avoid double-counting.
+    function sumRentalIncome(rentals, payments, dateKeys, amountKeys, startDate = null, endDate = null) {
+      const paymentTotal = sumRecords(payments, dateKeys, amountKeys, startDate, endDate);
+      const rentalsWithPaymentRows = new Set((payments || [])
+        .filter(p => p && p.rental_id !== null && p.rental_id !== undefined && p.rental_id !== '')
+        .map(p => String(p.rental_id)));
+      const paidRentalTotal = (rentals || []).reduce((total, rental) => {
+        if (String(rental?.payment_status || '').trim().toLowerCase() !== 'paid') return total;
+        if (rental?.id !== null && rental?.id !== undefined && rentalsWithPaymentRows.has(String(rental.id))) return total;
+        const date = asDateKey(rental, ['paid_at', 'payment_date', 'start_date', 'created_at', 'created_on']);
+        if (!date || (startDate && date < startDate) || (endDate && date > endDate)) return total;
+        const amount = readAmount(rental, ['total_amount', 'amount', 'rental_amount']);
+        return amount === null ? total : total + amount;
+      }, 0);
+      return paymentTotal + paidRentalTotal;
+    }
+
+
+
+    function normalizePaymentMethod(value) {
+      return String(value || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+    }
+    function isCashMethod(value) {
+      const method = normalizePaymentMethod(value);
+      return method === 'cash' || method.includes('cash');
+    }
+    function isBankMethod(value) {
+      const method = normalizePaymentMethod(value);
+      return ['bank', 'bank transfer', 'transfer', 'online transfer', 'internet banking', 'online banking', 'bank deposit', 'deposit to bank', 'card', 'debit card', 'credit card'].includes(method);
+    }
+    function isInDateRange(record, dateKeys, startDate, endDate) {
+      const date = asDateKey(record, dateKeys);
+      return Boolean(date && (!startDate || date >= startDate) && (!endDate || date <= endDate));
+    }
+
+    function isUnconfirmedLoan(loan) {
+      const notes = String(loan?.notes || '').toLowerCase();
+      return notes.includes('original mflc loan amount is not confirmed') ||
+        (String(loan?.name || '').toLowerCase().includes('mflc') && notes.includes('placeholder'));
+    }
+
+    function setText(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value;
+    }
+
+    function showNotice(messages) {
+      const notice = document.getElementById('dashboardNotice');
+      const unique = [...new Set(messages.filter(Boolean))];
+      notice.textContent = unique.join(' ');
+      notice.hidden = unique.length === 0;
+    }
+
+    async function fetchTable(tableName) {
+      const { data, error } = await supabaseClient.from(tableName).select('*');
+      return { data: data || [], error };
+    }
+
+    async function checkLogin() {
+      const { data: { session }, error } = await supabaseClient.auth.getSession();
+      if (error) console.error('Session check failed:', error);
+      if (!session) {
+        window.location.href = 'login.html';
+        return false;
+      }
+      return true;
+    }
+
+    let activeRentalCardState = null;
+    let activeRentalCountdownTimer = null;
+
+    function customerInitials(name) {
+      const parts = String(name || 'Customer').trim().split(/\s+/).filter(Boolean);
+      return (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : (parts[0] || 'C').slice(0, 2)).toUpperCase();
+    }
+
+    function customerPhotoUrl(customer) {
+      const candidates = ['photo_url','profile_photo_url','profile_image_url','image_url','avatar_url','customer_photo','profile_photo','photo','image','picture_url'];
+      for (const key of candidates) {
+        const value = customer && customer[key];
+        if (typeof value !== 'string') continue;
+        const trimmed = value.trim();
+        if (/^https?:\/\//i.test(trimmed) || /^data:image\//i.test(trimmed) || (trimmed.startsWith('/') && !trimmed.startsWith('//'))) return trimmed;
+      }
+      return '';
+    }
+
+    function formatActiveRentalDate(value) {
+      if (!value) return 'Not set';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return 'Not set';
+      return date.toLocaleString('en-MV', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    }
+
+    function durationLabel(endValue) {
+      if (!endValue) return { expired:false, label:'Return time not set' };
+      const end = new Date(endValue).getTime();
+      if (!Number.isFinite(end)) return { expired:false, label:'Return time not set' };
+      const delta = end - Date.now();
+      const absMinutes = Math.floor(Math.abs(delta) / 60000);
+      const days = Math.floor(absMinutes / 1440);
+      const hours = Math.floor((absMinutes % 1440) / 60);
+      const minutes = absMinutes % 60;
+      const span = days > 0 ? `${days}d ${hours}h` : `${hours}h ${minutes}m`;
+      return delta <= 0 ? { expired:true, label:`Overdue by ${span}` } : { expired:false, label:`${span} remaining` };
+    }
+
+    function liveCountdownDuration(endValue) {
+      if (!endValue) return { expired:false, label:'Return time not set' };
+      const end = new Date(endValue).getTime();
+      if (!Number.isFinite(end)) return { expired:false, label:'Return time not set' };
+      const delta = end - Date.now();
+      const seconds = Math.floor(Math.abs(delta) / 1000);
+      const days = Math.floor(seconds / 86400);
+      const hours = Math.floor((seconds % 86400) / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainingSeconds = seconds % 60;
+      const pad = value => String(value).padStart(2, '0');
+      const clock = `${pad(hours)}h ${pad(minutes)}m ${pad(remainingSeconds)}s`;
+      const span = days > 0 ? `${days}d ${clock}` : clock;
+      return delta <= 0 ? { expired:true, label:`Overdue by ${span}` } : { expired:false, label:span };
+    }
+
+    function rentalRemainingPercent(startValue, endValue) {
+      const start = startValue ? new Date(startValue).getTime() : NaN;
+      const end = endValue ? new Date(endValue).getTime() : NaN;
+      const now = Date.now();
+      if (!Number.isFinite(end)) return 0;
+      if (!Number.isFinite(start) || end <= start) return end > now ? 100 : 0;
+      return Math.max(0, Math.min(100, ((end - now) / (end - start)) * 100));
+    }
+
+    function shortActiveRentalDate(value) {
+      if (!value) return 'Not set';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return 'Not set';
+      return date.toLocaleString('en-MV', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+    }
+
+    function renderActiveRentalCards(rentals, customers, cycles, payments, extensions, rentalsError, paymentsError, extensionsError, cyclesError) {
+      const host = document.getElementById('activeRentalCards');
+      if (!host) return;
+
+      const active = (rentals || []).filter(r => ['active','overdue'].includes(String(r.status || '').toLowerCase()))
+        .sort((a,b) => new Date(a.expected_return || 8640000000000000) - new Date(b.expected_return || 8640000000000000));
+      const customerMap = new Map((customers || []).map(c => [String(c.id), c]));
+      const cycleMap = new Map((cycles || []).map(c => [String(c.id), c]));
+      activeRentalCardState = { rentals:active, customers:customerMap, cycles:cycleMap, payments:payments || [], extensions:extensions || [], paymentsError:Boolean(paymentsError), extensionsError:Boolean(extensionsError) };
+
+      const paymentTotals = new Map();
+      for (const payment of (payments || [])) {
+        const id = String(payment.rental_id || '');
+        const amount = readAmount(payment, ['amount','paid_amount','amount_paid','payment_amount','total_amount']);
+        if (id && amount !== null) paymentTotals.set(id, (paymentTotals.get(id) || 0) + amount);
+      }
+      const extensionTotals = new Map();
+      for (const extension of (extensions || [])) {
+        const id = String(extension.rental_id || '');
+        const amount = readAmount(extension, ['amount','extension_amount','total_amount']);
+        if (id && amount !== null) extensionTotals.set(id, (extensionTotals.get(id) || 0) + amount);
+      }
+
+      const rentalByCycle = new Map();
+      active.forEach(r => { if (r.cycle_id != null) rentalByCycle.set(String(r.cycle_id), r); });
+      const fleet = [...(cycles || [])];
+      // If a cycle is linked to a live rental but absent from the cycle list, still show it as rented.
+      active.forEach(r => {
+        const key = String(r.cycle_id || '');
+        if (key && !fleet.some(c => String(c.id) === key)) fleet.push({ id:key, plate_number:(r.cycles || {}).plate_number || (r.cycles || {}).name || 'Cycle', status:'rented' });
+      });
+
+      const cards = fleet.sort((a,b) => String(a.plate_number || a.name || '').localeCompare(String(b.plate_number || b.name || ''))).map(cycle => {
+        const cycleId = String(cycle.id || '');
+        const rental = rentalByCycle.get(cycleId);
+        const plate = String(cycle.plate_number || cycle.name || `Cycle ${cycleId.slice(0,6)}`);
+        if (rental) {
+          const id = String(rental.id);
+          const customer = customerMap.get(String(rental.customer_id)) || rental.customers || {};
+          const name = String(customer.name || customer.full_name || 'Customer');
+          const phone = String(customer.phone || customer.phone_number || customer.mobile || '');
+          const identity = customer.id_number || customer.national_id || customer.nid || customer.identity_number || customer.passport_number || customer.customer_id_number || '';
+          const photo = customerPhotoUrl(customer);
+          const end = rental.expected_return || '';
+          const duration = liveCountdownDuration(end);
+          const expired = String(rental.status || '').toLowerCase() === 'overdue' || duration.expired;
+          const percent = rentalRemainingPercent(rental.start_date, end);
+          const due = Number(rental.total_amount || 0) + (extensionTotals.get(id) || 0);
+          const paid = paymentTotals.get(id) || 0;
+          const balance = Math.max(due - paid, 0);
+          const avatar = `<div class="active-rental-avatar"><span>${escapeHtml(customerInitials(name))}</span>${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(name)} photo" loading="lazy" onerror="this.remove()">` : ''}</div>`;
+          const paymentText = activeRentalCardState.paymentsError || activeRentalCardState.extensionsError
+            ? String(rental.payment_status || 'Unavailable').replace(/^./, c => c.toUpperCase())
+            : `${String(rental.payment_status || 'unpaid').replace(/^./, c => c.toUpperCase())} · ${money(balance)} due`;
+          return `<article class="active-rental-dashboard-card fleet-rental-card${expired ? ' is-overdue' : ''}" data-active-rental-card="${escapeHtml(id)}">
+            <div class="fleet-card-heading"><strong class="fleet-cycle-plate">${escapeHtml(plate)}</strong><span class="fleet-pill ${expired ? 'expired' : 'rented'}">${expired ? 'Expired' : 'Rented'}</span></div>
+            <div class="fleet-customer-row">${avatar}<div class="active-rental-person"><h3>${escapeHtml(name)}</h3><div class="active-rental-phone">${escapeHtml(phone || 'Phone not recorded')}</div>${identity ? `<div class="fleet-customer-id">ID: ${escapeHtml(String(identity))}</div>` : ''}</div></div>
+            <div class="fleet-rental-meta"><div><span>Start</span><strong>${escapeHtml(shortActiveRentalDate(rental.start_date))}</strong></div><div><span>Return by</span><strong>${escapeHtml(shortActiveRentalDate(end))}</strong></div></div>
+            <div class="fleet-time-line" data-countdown-for="${escapeHtml(id)}" data-start-time="${escapeHtml(rental.start_date || '')}" data-end-time="${escapeHtml(end)}"><div class="fleet-time-label"><span>${expired ? 'Overdue' : 'Time left'}</span><strong data-countdown-label-for="${escapeHtml(id)}">${escapeHtml(duration.label)}</strong></div><div class="rental-time-track" role="progressbar" aria-label="Rental time remaining" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(percent)}"><span class="rental-time-fill${expired ? ' is-overdue' : (percent <= 20 ? ' is-low' : '')}" data-progress-fill-for="${escapeHtml(id)}" style="width:${percent}%"></span></div></div>
+            <div class="fleet-payment"><span>Payment</span><strong>${escapeHtml(paymentText)}</strong></div>
+            <div class="active-rental-actions fleet-card-actions"><button type="button" class="extend" data-active-action="extend" data-rental-id="${escapeHtml(id)}" title="Extend rental">Extend</button><button type="button" class="payment-reminder" data-active-action="payment" data-rental-id="${escapeHtml(id)}" title="Prepare payment reminder">Payment</button><button type="button" class="expired-reminder" data-active-action="expired" data-rental-id="${escapeHtml(id)}" title="Prepare expiry notice">Reminder</button></div>
+          </article>`;
+        }
+        const status = String(cycle.status || '').trim().toLowerCase();
+        const isAvailable = ['available','free'].includes(status);
+        const isMaintenance = ['maintenance','repair','under maintenance'].includes(status);
+        const label = isAvailable ? 'Available' : isMaintenance ? 'Maintenance' : (status ? status.replace(/^./, c => c.toUpperCase()) : 'Unavailable');
+        return `<article class="active-rental-dashboard-card fleet-rental-card fleet-available-card ${isAvailable ? 'is-available' : 'is-unavailable'}" data-cycle-card="${escapeHtml(cycleId)}">
+          <div class="fleet-card-heading"><strong class="fleet-cycle-plate">${escapeHtml(plate)}</strong><span class="fleet-pill ${isAvailable ? 'available' : isMaintenance ? 'maintenance' : 'unavailable'}">${escapeHtml(label)}</span></div>
+          <div class="fleet-available-message"><span class="fleet-ready-icon">${isAvailable ? '✓' : isMaintenance ? '⚒' : '•'}</span><div><strong>${isAvailable ? 'Ready to rent' : isMaintenance ? 'Not ready to rent' : 'Check cycle status'}</strong><p>${isAvailable ? 'This cycle is available now.' : isMaintenance ? 'Maintenance status is set for this cycle.' : 'This cycle is not currently marked available.'}</p></div></div>
+          ${isAvailable ? `<a class="available-cycle-cta" href="rentals.html">Create rental <span aria-hidden="true">↗</span></a>` : ''}
+        </article>`;
+      }).join('');
+
+      const activeCycleIds = new Set(active.map(r => String(r.cycle_id || '')).filter(Boolean));
+      const activeCount = active.length;
+      const availableCount = fleet.filter(c => ['available','free'].includes(String(c.status || '').trim().toLowerCase()) && !activeCycleIds.has(String(c.id || ''))).length;
+      const content = rentalsError ? '<div class="live-fleet-warning">Rental details could not be loaded. Refresh the dashboard to try again.</div>'
+        : cyclesError ? '<div class="live-fleet-warning">Cycle status could not be verified. Refresh the dashboard to try again.</div>'
+        : cards || '<div class="live-group-empty">No cycles found. Add cycles to see your fleet here.</div>';
+      host.innerHTML = `<div class="live-rentals-content"><div class="fleet-summary-row"><span><b>${activeCount}</b> rented</span><span><b>${availableCount}</b> available</span><span><b>${fleet.length}</b> total cycles</span></div><div class="active-rental-card-grid fleet-unified-grid">${content}</div></div>`;
+      host.onclick = handleActiveRentalCardAction;
+      updateRentalCountdowns();
+      if (!activeRentalCountdownTimer) activeRentalCountdownTimer = window.setInterval(updateRentalCountdowns, 1000);
+    }
+
+    async function copyReminderMessage(rentalId) {
+      const rental = activeRentalCardState?.rentals.find(item => String(item.id) === String(rentalId));
+      if (!rental) { alert('This rental is no longer active. Refresh the dashboard.'); return; }
+      const customer = activeRentalCardState.customers.get(String(rental.customer_id)) || rental.customers || {};
+      const cycle = activeRentalCardState.cycles.get(String(rental.cycle_id)) || rental.cycles || {};
+      const customerName = customer.name || customer.full_name || 'Customer';
+      const plate = cycle.plate_number || cycle.name || 'rented cycle';
+      const end = formatActiveRentalDate(rental.expected_return);
+      const message = `Hello ${customerName}, this is a reminder from Saiku Rentals. Your rental for cycle ${plate} is due to be returned at ${end}. Please return it on time or contact us if you need an extension. Thank you.`;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(message);
+        } else {
+          const textarea = document.createElement('textarea');
+          textarea.value = message; textarea.setAttribute('readonly', '');
+          textarea.style.position = 'fixed'; textarea.style.opacity = '0';
+          document.body.appendChild(textarea); textarea.select();
+          const copied = document.execCommand('copy'); textarea.remove();
+          if (!copied) throw new Error('Clipboard access was blocked');
+        }
+        alert('Reminder copied. You can paste it into WhatsApp or another message.');
+      } catch (error) {
+        prompt('Copy this reminder message:', message);
+      }
+    }
+
+    async function releaseCycleRental(rentalId) {
+      const rental = activeRentalCardState?.rentals.find(item => String(item.id) === String(rentalId));
+      if (!rental) { alert('This rental is no longer active. Refresh the dashboard.'); return; }
+      const customer = activeRentalCardState.customers.get(String(rental.customer_id)) || rental.customers || {};
+      const cycle = activeRentalCardState.cycles.get(String(rental.cycle_id)) || rental.cycles || {};
+      const customerName = customer.name || customer.full_name || 'this customer';
+      const plate = cycle.plate_number || cycle.name || 'this cycle';
+      if (!confirm(`Mark ${plate} as returned by ${customerName}? This will close the rental and set the cycle to Available.`)) return;
+      const { error: rentalError } = await supabaseClient.from('rentals').update({ status:'returned', actual_return:new Date().toISOString() }).eq('id', rental.id);
+      if (rentalError) { alert('Unable to release this rental: ' + rentalError.message); return; }
+      const { error: cycleError } = await supabaseClient.from('cycles').update({ status:'available' }).eq('id', rental.cycle_id);
+      if (cycleError) {
+        alert('The rental was marked as returned, but the cycle status could not be updated: ' + cycleError.message);
+      } else {
+        alert('Rental returned and cycle released successfully.');
+      }
+      await loadDashboard();
+    }
+
+    function updateRentalCountdowns() {
+      document.querySelectorAll('[data-countdown-for][data-end-time]').forEach(element => {
+        const endValue = element.getAttribute('data-end-time');
+        const duration = liveCountdownDuration(endValue);
+        const rentalId = element.getAttribute('data-countdown-for');
+        const rental = activeRentalCardState?.rentals.find(item => String(item.id) === String(rentalId));
+        const shouldBeOverdue = duration.expired || String(rental?.status || '').toLowerCase() === 'overdue';
+        element.classList.toggle('overdue', shouldBeOverdue);
+        const strong = element.querySelector('.rental-time-top strong, .fleet-time-label strong');
+        const label = element.querySelector('.rental-time-top span, .fleet-time-label span');
+        if (strong) strong.textContent = duration.label;
+        if (label) label.textContent = shouldBeOverdue ? 'Overdue time' : 'Time remaining';
+
+        const percent = rentalRemainingPercent(element.getAttribute('data-start-time'), endValue);
+        const progress = element.querySelector('[role="progressbar"]');
+        const fill = element.querySelector('[data-progress-fill-for]');
+        const urgent = !shouldBeOverdue && Number.isFinite(new Date(endValue).getTime()) && (new Date(endValue).getTime() - Date.now()) <= 60 * 60 * 1000;
+        if (progress) progress.setAttribute('aria-valuenow', String(Math.round(percent)));
+        if (fill) {
+          fill.style.width = `${percent}%`;
+          fill.classList.toggle('is-low', urgent || (!shouldBeOverdue && percent <= 20));
+          fill.classList.toggle('is-overdue', shouldBeOverdue);
+        }
+
+        const card = element.closest('.active-rental-dashboard-card');
+        if (card) {
+          card.classList.toggle('is-overdue', shouldBeOverdue);
+          const pill = card.querySelector('.active-rental-status, .fleet-pill.rented, .fleet-pill.expired');
+          if (pill) { pill.classList.toggle('overdue', shouldBeOverdue); pill.classList.toggle('expired', shouldBeOverdue); pill.classList.toggle('rented', !shouldBeOverdue); pill.textContent = shouldBeOverdue ? 'Expired' : 'Rented'; }
+          const timeLabel = card.querySelector('.fleet-time-label span');
+          if (timeLabel) timeLabel.textContent = shouldBeOverdue ? 'Overdue' : 'Time left';
+        }
+      });
+    }
+
+
+    function formatCustomerPhoneForWhatsApp(value) {
+      let digits = String(value || '').replace(/\D/g, '');
+      if (digits.startsWith('00')) digits = digits.slice(2);
+      if (digits.length === 7) digits = '960' + digits;
+      return digits;
+    }
+
+    function openWhatsAppDraft(phone, message) {
+      const digits = formatCustomerPhoneForWhatsApp(phone);
+      if (digits.length < 7) {
+        alert('This customer has no valid phone number. Update the customer record before sending a WhatsApp reminder.');
+        return;
+      }
+      const url = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    function handleActiveRentalCardAction(event) {
+      const button = event.target.closest('button[data-active-action]');
+      if (!button || !activeRentalCardState) return;
+      const id = button.getAttribute('data-rental-id');
+      const rental = activeRentalCardState.rentals.find(item => String(item.id) === String(id));
+      if (!rental) return;
+      const customer = activeRentalCardState.customers.get(String(rental.customer_id)) || rental.customers || {};
+      const customerName = customer.name || customer.full_name || 'Customer';
+      const phone = customer.phone || customer.phone_number || customer.mobile || '';
+      const action = button.getAttribute('data-active-action');
+      if (action === 'extend') {
+        window.location.href = `rentals.html?extend=${encodeURIComponent(String(rental.id))}`;
+        return;
+      }
+      const start = formatActiveRentalDate(rental.start_date);
+      const end = formatActiveRentalDate(rental.expected_return);
+      if (action === 'payment') {
+        if (activeRentalCardState.paymentsError || activeRentalCardState.extensionsError) {
+          alert('Payment or extension history could not be loaded. Open Rentals > Payments to verify the amount due before sending a reminder.');
+          return;
+        }
+        const payments = activeRentalCardState.payments.filter(p => String(p.rental_id) === String(rental.id));
+        const extensions = activeRentalCardState.extensions.filter(x => String(x.rental_id) === String(rental.id));
+        const paid = payments.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+        const extensionAmount = extensions.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+        const totalDue = Number(rental.total_amount || 0) + extensionAmount;
+        let balance = Math.max(totalDue - paid, 0);
+        if (String(rental.payment_status || '').toLowerCase() === 'paid' && payments.length === 0) balance = 0;
+        if (balance <= 0.009) {
+          alert('This rental has no outstanding balance to remind the customer about.');
+          return;
+        }
+        const message = `Hello ${customerName}, this is a friendly payment reminder from Saiku Rentals. Our records show an outstanding balance of ${money(balance)} for your rental. Rental period: ${start} to ${end}. Kindly arrange payment or contact us if you have already paid. Thank you.`;
+        openWhatsAppDraft(phone, message);
+        return;
+      }
+      if (action === 'expired') {
+        const expired = Boolean(rental.expected_return && new Date(rental.expected_return).getTime() <= Date.now()) || String(rental.status || '').toLowerCase() === 'overdue';
+        const message = expired
+          ? `Hello ${customerName}, your Saiku Rentals rental period ended at ${end}. Please return the cycle or contact us immediately to arrange an extension. Thank you.`
+          : `Hello ${customerName}, your Saiku Rentals rental is scheduled to end at ${end}. Please return the cycle on time or contact us in advance if you need an extension. Thank you.`;
+        openWhatsAppDraft(phone, message);
+      }
+    }
+
+    async function loadDashboard() {
+      const refreshButton = document.getElementById('refreshButton');
+      refreshButton.disabled = true;
+      setText('lastUpdated', 'Loading data…');
+      const warnings = [];
+
+      try {
+        const results = await Promise.all([
+          fetchTable('company_settings'),
+          fetchTable('historical_financial_summary'),
+          fetchTable('rentals'),
+          fetchTable('rental_payments'),
+          fetchTable('rental_extensions'),
+          fetchTable('expenses'),
+          fetchTable('loans'),
+          fetchTable('loan_payments'),
+          fetchTable('cash_deposits'),
+          fetchTable('cycles'),
+          fetchTable('customers')
+        ]);
+
+        const [settingsResult, historicalFiguresResult, rentalsResult, rentalPaymentsResult, rentalExtensionsResult, expensesResult,
+          loansResult, loanPaymentsResult, cashDepositsResult, cyclesResult, customersResult] = results;
+
+        const settings = settingsResult.data.find(row => Number(row.id) === 1) || settingsResult.data[0] || null;
+        const historicalFigures = historicalFiguresResult.data.find(row => Number(row.id) === 1) || historicalFiguresResult.data[0] || null;
+        historicalFiguresCache = historicalFigures;
+        const rentals = rentalsResult.data || [];
+        const rentalPayments = rentalPaymentsResult.data || [];
+        const rentalExtensions = rentalExtensionsResult.data || [];
+        const expenses = expensesResult.data || [];
+        const loans = loansResult.data || [];
+        const loanPayments = loanPaymentsResult.data || [];
+        const cashDeposits = cashDepositsResult.data || [];
+        const cycles = cyclesResult.data || [];
+        const customers = customersResult.data || [];
+
+        if (settingsResult.error) warnings.push('Company Settings could not be loaded. Check the company_settings table and its read policy.');
+        if (historicalFiguresResult.error || !historicalFigures) warnings.push('Historical figures are not configured yet. Run historical_figures_setup.sql in Supabase, then use Edit Historical Figures.');
+        if (rentalsResult.error) warnings.push('Rental records could not be loaded. Check the rentals table and its read policy.');
+        if (rentalPaymentsResult.error) warnings.push('Rental income could not be loaded from rental_payments. Finance totals may be incomplete.');
+        if (rentalExtensionsResult.error) warnings.push('Rental extension charges could not be loaded. Outstanding balances on active rental cards may be unavailable.');
+        if (expensesResult.error) warnings.push('The expenses table could not be loaded. Profit and bank-balance figures are unavailable until expenses are connected.');
+        if (loansResult.error) warnings.push('Loan records could not be loaded.');
+        if (loanPaymentsResult.error) warnings.push('Loan payment records could not be loaded.');
+        if (cashDepositsResult.error) warnings.push('Bank deposits could not be loaded. Run cash_bank_setup.sql to enable deposit tracking.');
+        if (cyclesResult.error) warnings.push('Cycle records could not be loaded.');
+        if (customersResult.error) warnings.push('Customer records could not be loaded.');
+
+        const expenseDateKeys = ['expense_date', 'date', 'transaction_date', 'created_at', 'payment_date'];
+        const expenseAmountKeys = ['amount', 'expense_amount', 'total_amount', 'cost', 'payment_amount'];
+        const incomeDateKeys = ['payment_date', 'paid_at', 'date', 'created_at', 'created_on'];
+        const incomeAmountKeys = ['amount', 'paid_amount', 'amount_paid', 'payment_amount', 'total_amount'];
+        const loanDateKeys = ['payment_date', 'paid_at', 'date', 'created_at'];
+        const loanAmountKeys = ['amount', 'payment_amount', 'paid_amount'];
+        const depositDateKeys = ['deposit_date', 'date', 'created_at'];
+        const depositAmountKeys = ['amount', 'deposit_amount', 'total_amount'];
+        const today = localDateKey();
+        const startDate = settings?.system_start_date ? localDateKey(settings.system_start_date) : '';
+        const openingBalance = settings?.opening_bank_balance !== null && settings?.opening_bank_balance !== undefined
+          ? Number(settings.opening_bank_balance) : null;
+        const incomeReady = !rentalPaymentsResult.error && hasAmountField(rentalPayments, incomeAmountKeys);
+        const expensesReady = !expensesResult.error && hasAmountField(expenses, expenseAmountKeys);
+        const loanPaymentsReady = !loanPaymentsResult.error && hasAmountField(loanPayments, loanAmountKeys);
+        const depositsReady = !cashDepositsResult.error && hasAmountField(cashDeposits, depositAmountKeys);
+        const settingsReady = Boolean(settings && startDate && openingBalance !== null && Number.isFinite(openingBalance));
+
+        const monthStart = `${today.slice(0, 7)}-01`;
+        setText('monthRangeLabel', `Income and expenses recorded from ${monthStart} through ${today}.`);
+        const monthlyIncome = incomeReady ? sumRentalIncome(rentals, rentalPayments, incomeDateKeys, incomeAmountKeys, monthStart, today) : null;
+        const monthlyExpenses = expensesReady ? sumRecords(expenses, expenseDateKeys, expenseAmountKeys, monthStart, today) : null;
+        setText('monthIncome', monthlyIncome === null ? 'Not available' : money(monthlyIncome));
+        setText('monthExpenses', monthlyExpenses === null ? 'Not available' : money(monthlyExpenses));
+        setText('monthProfit', monthlyIncome === null || monthlyExpenses === null ? 'Not available' : money(monthlyIncome - monthlyExpenses));
+
+        const activeRentals = rentals.filter(r => String(r.status || '').toLowerCase() === 'active');
+        setText('activeRentals', rentalsResult.error ? '—' : String(activeRentals.length));
+
+        setText('openingBalance', settingsReady ? money(openingBalance) : 'Not configured');
+        setText('systemStartLabel', startDate ? `System start date: ${startDate}` : 'Set the system start date in Company Settings.');
+
+        const incomeSinceStart = incomeReady && startDate
+          ? sumRentalIncome(rentals, rentalPayments, incomeDateKeys, incomeAmountKeys, startDate, today) : null;
+        // Keep bank movement based on actual payment rows only; rental status alone does not prove
+        // that the money was deposited into the bank.
+        const recordedIncomeSinceStart = incomeReady && startDate
+          ? sumRecords(rentalPayments, incomeDateKeys, incomeAmountKeys, startDate, today) : null;
+        const expensesSinceStart = expensesReady && startDate
+          ? sumRecords(expenses, expenseDateKeys, expenseAmountKeys, startDate, today) : null;
+        const loanPaymentsSinceStart = loanPaymentsReady && startDate
+          ? sumRecords(loanPayments, loanDateKeys, loanAmountKeys, startDate, today) : null;
+
+        const historicalIncome = readAmount(historicalFigures, ['historical_income']);
+        const historicalTotalExpenditure = readAmount(historicalFigures, ['historical_total_expenditure']);
+        const historicalLoanRepayments = readAmount(historicalFigures, ['historical_loan_repayments']);
+        const historicalSummaryReady = !historicalFiguresResult.error && historicalFigures && historicalIncome !== null &&
+          historicalTotalExpenditure !== null && historicalLoanRepayments !== null &&
+          historicalTotalExpenditure >= historicalLoanRepayments;
+        const historicalBusinessExpenses = historicalSummaryReady
+          ? historicalTotalExpenditure - historicalLoanRepayments : null;
+
+        const totalIncomeReceived = historicalSummaryReady && incomeSinceStart !== null
+          ? historicalIncome + incomeSinceStart : null;
+        const totalBusinessExpenses = historicalSummaryReady && expensesSinceStart !== null
+          ? historicalBusinessExpenses + expensesSinceStart : null;
+        const totalLoanPayments = historicalSummaryReady && loanPaymentsSinceStart !== null
+          ? historicalLoanRepayments + loanPaymentsSinceStart : null;
+        setText('totalIncomeReceived', totalIncomeReceived === null ? 'Not available' : money(totalIncomeReceived));
+        setText('incomeBreakdown', totalIncomeReceived === null ? 'Historical figures or new rental payments could not be loaded' : 'Saved historical total plus new rental payments');
+        setText('expensesSinceStart', totalBusinessExpenses === null ? 'Not available' : money(totalBusinessExpenses));
+        setText('loanPaymentsSinceStart', totalLoanPayments === null ? 'Not available' : money(totalLoanPayments));
+        setText('netProfitSinceStart', totalIncomeReceived === null || totalBusinessExpenses === null
+          ? 'Not available' : money(totalIncomeReceived - totalBusinessExpenses));
+
+        // Top dashboard metrics: keep loan principal separate from business expenses/profit.
+        setText('dashboardTotalIncome', totalIncomeReceived === null ? 'Not available' : money(totalIncomeReceived));
+        setText('dashboardTotalExpenses', totalBusinessExpenses === null ? 'Not available' : money(totalBusinessExpenses));
+        setText('dashboardNetProfit', totalIncomeReceived === null || totalBusinessExpenses === null
+          ? 'Not available' : money(totalIncomeReceived - totalBusinessExpenses));
+        setText('dashboardTotalCycles', cyclesResult.error ? '—' : String(cycles.length));
+        const activeForMetrics = (rentals || []).filter(row => ['active','overdue'].includes(String(row.status || '').toLowerCase()));
+        const activeCycleIds = new Set(activeForMetrics.map(row => String(row.cycle_id || '')).filter(Boolean));
+        const availableCycleCount = cyclesResult.error ? null : cycles.filter(c => {
+          const status = String(c.status || '').toLowerCase();
+          return !activeCycleIds.has(String(c.id)) && ['available','free'].includes(status);
+        }).length;
+        const rentedCycleIds = new Set(cycles.filter(c => String(c.status || '').toLowerCase() === 'rented').map(c => String(c.id)));
+        activeCycleIds.forEach(id => rentedCycleIds.add(id));
+        setText('dashboardAvailableCycles', availableCycleCount === null ? '—' : String(availableCycleCount));
+        setText('dashboardRentedCycles', cyclesResult.error || rentalsResult.error ? '—' : String(rentedCycleIds.size));
+
+        const metricsDataReady = !rentalsResult.error && !rentalPaymentsResult.error && !rentalExtensionsResult.error;
+        const metricPaidByRental = new Map();
+        for (const p of rentalPayments) {
+          const id = String(p.rental_id || '');
+          const amount = readAmount(p, incomeAmountKeys);
+          if (id && amount !== null) metricPaidByRental.set(id, (metricPaidByRental.get(id) || 0) + amount);
+        }
+        const metricExtensionByRental = new Map();
+        for (const x of rentalExtensions) {
+          const id = String(x.rental_id || '');
+          const amount = readAmount(x, ['amount','extension_amount','total_amount']);
+          if (id && amount !== null) metricExtensionByRental.set(id, (metricExtensionByRental.get(id) || 0) + amount);
+        }
+        let pendingPaymentAmount = 0;
+        let unpaidRentalCount = 0;
+        let outstandingInvoiceAmount = 0;
+        let overdueInvoiceAmount = 0;
+        for (const row of rentals) {
+          const status = String(row.status || '').toLowerCase();
+          if (['cancelled','canceled','void','deleted'].includes(status)) continue;
+          const id = String(row.id || '');
+          const paymentsForRental = rentalPayments.filter(p => String(p.rental_id || '') === id);
+          const totalDue = Math.max(Number(row.total_amount || 0) + (metricExtensionByRental.get(id) || 0), 0);
+          let balance = Math.max(totalDue - (metricPaidByRental.get(id) || 0), 0);
+          if (String(row.payment_status || '').toLowerCase() === 'paid' && paymentsForRental.length === 0) balance = 0;
+          if (balance > 0.009) {
+            outstandingInvoiceAmount += balance;
+            unpaidRentalCount += 1;
+            const expired = ['overdue','expired'].includes(status) || Boolean(row.expected_return && new Date(row.expected_return).getTime() <= Date.now());
+            if (expired) overdueInvoiceAmount += balance;
+            if (['active','overdue'].includes(status)) pendingPaymentAmount += balance;
+          }
+        }
+        setText('dashboardPendingPayments', metricsDataReady ? money(pendingPaymentAmount) : 'Not available');
+        setText('dashboardUnpaidRentals', metricsDataReady ? String(unpaidRentalCount) : '—');
+        setText('dashboardOutstandingInvoices', metricsDataReady ? money(outstandingInvoiceAmount) : 'Not available');
+        setText('dashboardOverdueInvoices', metricsDataReady ? money(overdueInvoiceAmount) : 'Not available');
+
+        // Split receipts and outflows by actual payment source. A deposit shifts cash to bank; it is not income.
+        const cashDepositsSinceStart = depositsReady && startDate
+          ? sumRecords(cashDeposits, depositDateKeys, depositAmountKeys, startDate, today) : null;
+        const bankIncomeSinceStart = incomeReady && startDate
+          ? sumRecords(rentalPayments.filter(row => isBankMethod(row.payment_method)), incomeDateKeys, incomeAmountKeys, startDate, today) : null;
+        const cashIncomeSinceStart = incomeReady && startDate
+          ? sumRecords(rentalPayments.filter(row => isCashMethod(row.payment_method)), incomeDateKeys, incomeAmountKeys, startDate, today) : null;
+        const bankExpensesSinceStart = expensesReady && startDate
+          ? sumRecords(expenses.filter(row => isBankMethod(row.payment_method)), expenseDateKeys, expenseAmountKeys, startDate, today) : null;
+        const cashExpensesSinceStart = expensesReady && startDate
+          ? sumRecords(expenses.filter(row => isCashMethod(row.payment_method)), expenseDateKeys, expenseAmountKeys, startDate, today) : null;
+        const bankLoanPaymentsSinceStart = loanPaymentsReady && startDate
+          ? sumRecords(loanPayments.filter(row => isBankMethod(row.payment_method)), loanDateKeys, loanAmountKeys, startDate, today) : null;
+        const cashLoanPaymentsSinceStart = loanPaymentsReady && startDate
+          ? sumRecords(loanPayments.filter(row => isCashMethod(row.payment_method)), loanDateKeys, loanAmountKeys, startDate, today) : null;
+
+        const unknownIncomeMethods = incomeReady && startDate
+          ? rentalPayments.filter(row => isInDateRange(row, incomeDateKeys, startDate, today) && !isBankMethod(row.payment_method) && !isCashMethod(row.payment_method)).length : 0;
+        const unknownExpenseMethods = expensesReady && startDate
+          ? expenses.filter(row => isInDateRange(row, expenseDateKeys, startDate, today) && !isBankMethod(row.payment_method) && !isCashMethod(row.payment_method)).length : 0;
+        const unknownLoanMethods = loanPaymentsReady && startDate
+          ? loanPayments.filter(row => isInDateRange(row, loanDateKeys, startDate, today) && !isBankMethod(row.payment_method) && !isCashMethod(row.payment_method)).length : 0;
+        const paymentRowsByRental = new Set(rentalPayments.map(p => String(p.rental_id || '')).filter(Boolean));
+        const unrecordedPaidRentals = (rentals || []).filter(row => {
+          const status = String(row.payment_status || '').toLowerCase();
+          return startDate && ['paid', 'partial'].includes(status) &&
+            isInDateRange(row, ['start_date', 'created_at', 'created_on'], startDate, today) &&
+            !paymentRowsByRental.has(String(row.id));
+        }).length;
+        const paymentMethodsKnown = unknownIncomeMethods === 0 && unknownExpenseMethods === 0 && unknownLoanMethods === 0 && unrecordedPaidRentals === 0;
+
+        setText('cashIncomeSinceStart', incomeReady && paymentMethodsKnown ? money(cashIncomeSinceStart) : 'Incomplete data');
+        setText('cashExpensesSinceStart', expensesReady && paymentMethodsKnown ? money(cashExpensesSinceStart) : 'Incomplete data');
+        setText('cashLoanPaymentsSinceStart', loanPaymentsReady && paymentMethodsKnown ? money(cashLoanPaymentsSinceStart) : 'Incomplete data');
+        setText('cashDepositsSinceStart', cashDepositsSinceStart === null ? 'Not available' : money(cashDepositsSinceStart));
+
+        const bankBalanceReady = settingsReady && bankIncomeSinceStart !== null && bankExpensesSinceStart !== null &&
+          bankLoanPaymentsSinceStart !== null && cashDepositsSinceStart !== null && paymentMethodsKnown;
+        setText('currentBankBalance', bankBalanceReady
+          ? money(openingBalance + bankIncomeSinceStart + cashDepositsSinceStart - bankExpensesSinceStart - bankLoanPaymentsSinceStart)
+          : 'Incomplete data');
+
+        const cashBalanceReady = incomeReady && expensesReady && loanPaymentsReady && depositsReady && Boolean(startDate) && paymentMethodsKnown;
+        setText('cashTrackedBalance', cashBalanceReady
+          ? money(cashIncomeSinceStart - cashExpensesSinceStart - cashLoanPaymentsSinceStart - cashDepositsSinceStart)
+          : 'Incomplete data');
+        renderCashDeposits(cashDeposits, cashDepositsResult.error);
+
+        if (!paymentMethodsKnown) {
+          warnings.push('Cash/bank balances need review: some payments or outflows since the system start have no recognized Cash/Bank source, or a rental is marked paid without a payment transaction. Record payments through the Rentals > Payments button and select the correct payment source; edit expenses and loan payments to choose Cash or Bank.');
+        }
+        if (!depositsReady) warnings.push('Bank deposit tracking is not available until cash_bank_setup.sql has been run in Supabase.');
+        if (!expensesReady && !expensesResult.error) warnings.push('The expenses table is available but its amount column was not recognized. Expected a column such as amount or expense_amount.');
+        if (!incomeReady && !rentalPaymentsResult.error) warnings.push('The rental_payments table was read, but no recognizable payment amount was found.');
+        if (!loanPaymentsReady && !loanPaymentsResult.error) warnings.push('The loan_payments table was read, but no recognizable payment amount was found.');
+        if (!settingsReady) warnings.push('Configure the system start date and opening bank balance in Company Settings to calculate the estimated current bank balance.');
+        if (!bankBalanceReady) warnings.push('Estimated bank balance is withheld rather than showing an incomplete or potentially misleading figure.');
+
+        renderHistoricalCategoryBreakdown(historicalFigures, expenses, expenseDateKeys, expenseAmountKeys, startDate, today, expensesReady);
+
+        if (!expensesReady && !expensesResult.error) warnings.push('The expenses table is available but its amount column was not recognized. Expected a column such as amount or expense_amount.');
+        if (!incomeReady && !rentalPaymentsResult.error) warnings.push('The rental_payments table was read, but no recognizable payment amount was found.');
+        if (!loanPaymentsReady && !loanPaymentsResult.error) warnings.push('The loan_payments table was read, but no recognizable payment amount was found.');
+        if (!settingsReady) warnings.push('Configure the system start date and opening bank balance in Company Settings to calculate the estimated current bank balance.');
+        if (!bankBalanceReady) warnings.push('Estimated bank balance is withheld rather than showing an incomplete or potentially misleading figure.');
+
+        // Cycle and rental operation summaries.
+        const cycleStatus = key => cycles.filter(c => String(c.status || '').toLowerCase() === key).length;
+        setText('availableCycles', cyclesResult.error ? '—' : String(cycleStatus('available')));
+        setText('rentedCycles', cyclesResult.error ? '—' : String(cycleStatus('rented')));
+        const overdueCycles = cycles.filter(c => String(c.status || '').toLowerCase() === 'overdue').length +
+          activeRentals.filter(r => r.expected_return && new Date(r.expected_return).getTime() < Date.now()).length;
+        setText('overdueCycles', rentalsResult.error || cyclesResult.error ? '—' : String(overdueCycles));
+        setText('maintenanceCycles', cyclesResult.error ? '—' : String(cycleStatus('maintenance')));
+
+        const customerMap = new Map(customers.map(c => [c.id, c]));
+        const cycleMap = new Map(cycles.map(c => [c.id, c]));
+        renderActiveRentalCards(rentals, customers, cycles, rentalPayments, rentalExtensions, rentalsResult.error, rentalPaymentsResult.error, rentalExtensionsResult.error, cyclesResult.error);
+        const recentBody = document.getElementById('recentRentalsBody');
+        if (rentalsResult.error) {
+          recentBody.innerHTML = '<tr><td colspan="4">Unable to load recent rentals.</td></tr>';
+        } else if (rentals.length === 0) {
+          recentBody.innerHTML = '<tr><td colspan="4">No rentals recorded yet.</td></tr>';
+        } else {
+          const recent = [...rentals].sort((a, b) => new Date(b.created_at || b.start_date || 0) - new Date(a.created_at || a.start_date || 0)).slice(0, 6);
+          recentBody.innerHTML = recent.map(r => {
+            const customer = customerMap.get(r.customer_id);
+            const cycle = cycleMap.get(r.cycle_id);
+            const status = String(r.status || 'unknown').toLowerCase();
+            const started = r.start_date ? new Date(r.start_date).toLocaleDateString() : '—';
+            return `<tr><td>${escapeHtml(customer?.name || 'Customer')}</td><td>${escapeHtml(cycle?.plate_number || 'Cycle')}</td><td>${escapeHtml(started)}</td><td><span class="status-pill ${escapeHtml(status)}">${escapeHtml(status.charAt(0).toUpperCase() + status.slice(1))}</span></td></tr>`;
+          }).join('');
+        }
+
+        // Loan summary: MFLC's placeholder amount must not be treated as confirmed.
+        const loanPaidById = {};
+        for (const payment of loanPayments) {
+          const id = payment.loan_id;
+          const amount = readAmount(payment, loanAmountKeys);
+          if (!id || amount === null) continue;
+          loanPaidById[id] = (loanPaidById[id] || 0) + amount;
+        }
+        const loanList = document.getElementById('loanSummaryList');
+        if (loansResult.error || loanPaymentsResult.error) {
+          loanList.innerHTML = '<div class="empty-state">Loan summary is unavailable. Open the Loans page to check the details.</div>';
+        } else if (loans.length === 0) {
+          loanList.innerHTML = '<div class="empty-state">No loans recorded yet.</div>';
+        } else {
+          loanList.innerHTML = [...loans].map(loan => {
+            const paid = loanPaidById[loan.id] || 0;
+            const unconfirmed = isUnconfirmedLoan(loan);
+            const remaining = unconfirmed ? 'Not confirmed' : money(Math.max(Number(loan.original_amount || 0) - paid, 0));
+            const original = unconfirmed ? 'Original amount not confirmed' : `Original: ${money(Number(loan.original_amount || 0))}`;
+            return `<div class="loan-summary-item"><div><strong>${escapeHtml(loan.name || 'Loan')}</strong><small>${escapeHtml(original)} · Paid: ${escapeHtml(money(paid))}</small></div><div class="loan-summary-amount"><strong>${escapeHtml(remaining)}</strong><small>Remaining balance</small></div></div>`;
+          }).join('');
+        }
+
+        showNotice(warnings);
+        setText('lastUpdated', `Updated ${new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}`);
+      } catch (error) {
+        console.error('Dashboard loading error:', error);
+        showNotice(['The dashboard could not finish loading. Open Developer Tools Console for details, or refresh the page.']);
+        setText('lastUpdated', 'Update failed');
+      } finally {
+        refreshButton.disabled = false;
+      }
+    }
+
+    function historicalCategoryObject(row) {
+      const raw = row?.historical_expenses_by_category;
+      if (raw && typeof raw === 'object' && !Array.isArray(raw)) return raw;
+      if (typeof raw === 'string') {
+        try { const parsed = JSON.parse(raw); return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}; }
+        catch { return {}; }
+      }
+      return {};
+    }
+
+    function renderHistoricalCategoryBreakdown(historicalFigures, expenses, expenseDateKeys, expenseAmountKeys, startDate, endDate, expensesReady) {
+      const host = document.getElementById('historicalCategoryBreakdown');
+      if (!host) return;
+      const totals = new Map();
+      const historicalCategories = historicalCategoryObject(historicalFigures);
+      Object.entries(historicalCategories).forEach(([name, amount]) => {
+        const value = Number(amount);
+        if (name.trim() && Number.isFinite(value) && value >= 0) totals.set(name.trim(), (totals.get(name.trim()) || 0) + value);
+      });
+      if (expensesReady && startDate) {
+        (expenses || []).forEach(expense => {
+          const date = asDateKey(expense, expenseDateKeys);
+          const amount = readAmount(expense, expenseAmountKeys);
+          const name = String(expense.category || expense.description || 'Uncategorised').trim() || 'Uncategorised';
+          if (!date || date < startDate || date > endDate || amount === null) return;
+          totals.set(name, (totals.get(name) || 0) + amount);
+        });
+      }
+      if (!totals.size) {
+        host.innerHTML = '<div class="empty-state">No category totals saved yet. Select “Edit Historical Figures” to add your historical category amounts. New expenses will appear here automatically.</div>';
+        return;
+      }
+      const rows = [...totals.entries()].sort((a,b) => a[0].localeCompare(b[0]));
+      host.innerHTML = `<div class="table-wrap"><table class="historical-category-table"><thead><tr><th>Expense category</th><th>Total amount</th></tr></thead><tbody>${rows.map(([name, amount]) => `<tr><td>${escapeHtml(name)}</td><td>${escapeHtml(money(amount))}</td></tr>`).join('')}<tr><td><strong>Total by category</strong></td><td><strong>${escapeHtml(money(rows.reduce((sum, [, amount]) => sum + amount, 0)))}</strong></td></tr></tbody></table></div>`;
+    }
+
+    function setHistoricalFiguresMessage(message, type = '') {
+      const box = document.getElementById('historicalFiguresMessage');
+      if (!box) return;
+      box.textContent = message;
+      box.className = `historical-form-message${type ? ' ' + type : ''}`;
+      box.hidden = !message;
+    }
+
+    function addHistoricalCategoryRow(name = '', amount = '') {
+      const container = document.getElementById('historicalCategoryRows');
+      if (!container) return;
+      const row = document.createElement('div');
+      row.className = 'historical-category-row';
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text'; nameInput.className = 'historical-category-name';
+      nameInput.placeholder = 'Category name (e.g. Facebook Ads)';
+      nameInput.value = name; nameInput.maxLength = 100; nameInput.setAttribute('aria-label','Historical expense category');
+      const amountInput = document.createElement('input');
+      amountInput.type = 'number'; amountInput.className = 'historical-category-amount';
+      amountInput.min = '0'; amountInput.step = '0.01'; amountInput.inputMode = 'decimal';
+      amountInput.placeholder = 'Amount (MVR)'; amountInput.value = amount;
+      amountInput.setAttribute('aria-label', 'Historical category amount in MVR');
+      const remove = document.createElement('button');
+      remove.type = 'button'; remove.textContent = 'Remove'; remove.setAttribute('aria-label','Remove historical expense category');
+      remove.addEventListener('click', () => { row.remove(); if (!container.children.length) addHistoricalCategoryRow(); });
+      row.append(nameInput, amountInput, remove);
+      container.appendChild(row);
+    }
+
+    async function openHistoricalFiguresModal() {
+      const modal = document.getElementById('historicalFiguresModal');
+      const form = document.getElementById('historicalFiguresForm');
+      form.reset();
+      document.getElementById('historicalCategoryRows').replaceChildren();
+      setHistoricalFiguresMessage('Loading saved figures…');
+      modal.hidden = false;
+      document.getElementById('historicalIncomeInput').focus();
+      const { data, error } = await supabaseClient.from('historical_financial_summary').select('*').eq('id', 1).maybeSingle();
+      if (error) {
+        setHistoricalFiguresMessage('Could not load historical figures. Please run historical_figures_setup.sql in Supabase SQL Editor, then reopen this form. Details: ' + error.message, 'error');
+        addHistoricalCategoryRow();
+        return;
+      }
+      historicalFiguresCache = data || null;
+      if (data) {
+        document.getElementById('historicalIncomeInput').value = data.historical_income ?? '';
+        document.getElementById('historicalExpenditureInput').value = data.historical_total_expenditure ?? '';
+        document.getElementById('historicalLoanRepaymentsInput').value = data.historical_loan_repayments ?? '';
+        Object.entries(historicalCategoryObject(data)).forEach(([name, amount]) => addHistoricalCategoryRow(name, amount));
+      }
+      if (!document.getElementById('historicalCategoryRows').children.length) addHistoricalCategoryRow();
+      updateHistoricalDerived();
+      setHistoricalFiguresMessage(data ? 'Edit the saved totals below. Saving updates the historical summary only; it does not create duplicate transactions.' : 'No saved figures were found. Run the setup SQL first to insert your starting totals.', data ? '' : 'error');
+    }
+
+    function closeHistoricalFiguresModal() {
+      document.getElementById('historicalFiguresModal').hidden = true;
+    }
+
+    function updateHistoricalDerived() {
+      const expenseInput = document.getElementById('historicalExpenditureInput');
+      const loanInput = document.getElementById('historicalLoanRepaymentsInput');
+      const expenseText = expenseInput?.value;
+      const loanText = loanInput?.value;
+      if (expenseText === '' || loanText === '') {
+        setText('historicalBusinessExpensesPreview', '—');
+        return;
+      }
+      const expense = Number(expenseText), loan = Number(loanText);
+      setText('historicalBusinessExpensesPreview', Number.isFinite(expense) && Number.isFinite(loan) && expense >= loan
+        ? money(expense - loan) : 'Check totals');
+    }
+
+    async function saveHistoricalFigures(event) {
+      event.preventDefault();
+      const income = Number(document.getElementById('historicalIncomeInput').value);
+      const expenditure = Number(document.getElementById('historicalExpenditureInput').value);
+      const loanRepayments = Number(document.getElementById('historicalLoanRepaymentsInput').value);
+      if (![income, expenditure, loanRepayments].every(value => Number.isFinite(value) && value >= 0)) {
+        setHistoricalFiguresMessage('Enter valid non-negative amounts in all three financial fields.', 'error');
+        return;
+      }
+      if (loanRepayments > expenditure) {
+        setHistoricalFiguresMessage('Historical loan repayments cannot be higher than total historical expenditure.', 'error');
+        return;
+      }
+      const categories = {};
+      for (const row of document.querySelectorAll('#historicalCategoryRows .historical-category-row')) {
+        const name = row.querySelector('.historical-category-name').value.trim();
+        const rawAmount = row.querySelector('.historical-category-amount').value.trim();
+        if (!name && !rawAmount) continue;
+        if (!name || rawAmount === '' || !Number.isFinite(Number(rawAmount)) || Number(rawAmount) < 0) {
+          setHistoricalFiguresMessage('For each category row, enter both a category name and a valid amount, or remove the empty row.', 'error');
+          return;
+        }
+        const key = name;
+        if (Object.prototype.hasOwnProperty.call(categories, key)) {
+          setHistoricalFiguresMessage(`The category “${key}” appears more than once. Combine its amounts into one row.`, 'error');
+          return;
+        }
+        categories[key] = Number(Number(rawAmount).toFixed(2));
+      }
+      const expectedCategoryTotal = expenditure - loanRepayments;
+      const enteredCategoryTotal = Object.values(categories).reduce((sum, value) => sum + value, 0);
+      const saveButton = document.getElementById('saveHistoricalFiguresButton');
+      saveButton.disabled = true;
+      saveButton.textContent = 'Saving…';
+      setHistoricalFiguresMessage('Saving your historical figures…');
+      try {
+        const payload = {
+          id: 1,
+          historical_income: Number(income.toFixed(2)),
+          historical_total_expenditure: Number(expenditure.toFixed(2)),
+          historical_loan_repayments: Number(loanRepayments.toFixed(2)),
+          historical_expenses_by_category: categories,
+          updated_at: new Date().toISOString()
+        };
+        const { error } = await supabaseClient.from('historical_financial_summary').upsert(payload, { onConflict: 'id' });
+        if (error) throw error;
+        historicalFiguresCache = payload;
+        const difference = Math.abs(enteredCategoryTotal - expectedCategoryTotal);
+        const mismatchNote = Object.keys(categories).length && difference > 0.01
+          ? ` Category amounts currently total ${money(enteredCategoryTotal)}, while historical business expenses are ${money(expectedCategoryTotal)}; you can edit categories later to reconcile them.`
+          : (!Object.keys(categories).length ? ' You can add the expense category breakdown later.' : '');
+        setHistoricalFiguresMessage('Historical figures saved successfully.' + mismatchNote, 'success');
+        await loadDashboard();
+      } catch (error) {
+        console.error('Save historical figures failed:', error);
+        setHistoricalFiguresMessage('Could not save historical figures. Check your Supabase table and authenticated insert/update policies. ' + (error?.message || ''), 'error');
+      } finally {
+        saveButton.disabled = false;
+        saveButton.textContent = 'Save Historical Figures';
+      }
+    }
+
+
+
+    function closeCashDepositModal() {
+      document.getElementById('cashDepositModal').classList.remove('show');
+    }
+
+    function startCashDepositAdd() {
+      document.getElementById('cashDepositForm').reset();
+      document.getElementById('cashDepositId').value = '';
+      document.getElementById('cashDepositDate').value = localDateKey();
+      document.getElementById('cashDepositModalTitle').textContent = 'Record Bank Deposit';
+      document.getElementById('saveCashDepositButton').textContent = 'Save Deposit';
+      document.getElementById('cashDepositModal').classList.add('show');
+    }
+
+    async function startCashDepositEdit(id) {
+      const { data, error } = await supabaseClient.from('cash_deposits').select('*').eq('id', id).single();
+      if (error || !data) { alert('Could not load this deposit. Refresh the dashboard and try again.'); return; }
+      document.getElementById('cashDepositId').value = data.id;
+      document.getElementById('cashDepositDate').value = data.deposit_date ? localDateKey(data.deposit_date) : localDateKey();
+      document.getElementById('cashDepositAmount').value = Number(data.amount || 0).toFixed(2);
+      document.getElementById('cashDepositDescription').value = data.description || '';
+      document.getElementById('cashDepositModalTitle').textContent = 'Edit Bank Deposit';
+      document.getElementById('saveCashDepositButton').textContent = 'Save Changes';
+      document.getElementById('cashDepositModal').classList.add('show');
+    }
+
+    async function saveCashDeposit(event) {
+      event.preventDefault();
+      const id = document.getElementById('cashDepositId').value;
+      const date = document.getElementById('cashDepositDate').value;
+      const amount = Number(document.getElementById('cashDepositAmount').value);
+      const description = document.getElementById('cashDepositDescription').value.trim();
+      const button = document.getElementById('saveCashDepositButton');
+      if (!date || !Number.isFinite(amount) || amount <= 0) { alert('Enter a valid date and deposit amount greater than zero.'); return; }
+      const payload = { deposit_date: date, amount, description: description || 'Cash deposited to bank' };
+      button.disabled = true;
+      try {
+        const result = id
+          ? await supabaseClient.from('cash_deposits').update(payload).eq('id', id)
+          : await supabaseClient.from('cash_deposits').insert(payload);
+        if (result.error) throw result.error;
+        closeCashDepositModal();
+        await loadDashboard();
+        alert(id ? 'Bank deposit updated.' : 'Bank deposit saved. It is counted as a transfer, not income.');
+      } catch (error) {
+        console.error('Save cash deposit failed:', error);
+        alert('Could not save the bank deposit. Check that cash_bank_setup.sql ran successfully in Supabase. Details: ' + (error?.message || 'Unknown error'));
+      } finally { button.disabled = false; }
+    }
+
+    async function deleteCashDeposit(id) {
+      const row = window.__saikuCashDeposits?.find(item => String(item.id) === String(id));
+      const label = row ? money(row.amount) : 'this deposit';
+      if (!confirm(`Delete ${label} bank deposit? This recalculates the tracked cash and bank balances.`)) return;
+      const { error } = await supabaseClient.from('cash_deposits').delete().eq('id', id);
+      if (error) { console.error(error); alert('Could not delete the bank deposit.'); return; }
+      await loadDashboard();
+    }
+
+    function renderCashDeposits(deposits, failed) {
+      window.__saikuCashDeposits = deposits || [];
+      const tbody = document.getElementById('cashDepositRows');
+      const count = document.getElementById('depositRecordCount');
+      if (failed) { count.textContent = 'Records unavailable'; tbody.innerHTML = '<tr><td colspan="4">Run the cash and bank setup SQL to enable deposits.</td></tr>'; return; }
+      const sorted = [...(deposits || [])].sort((a, b) => String(b.deposit_date || b.created_at || '').localeCompare(String(a.deposit_date || a.created_at || '')));
+      count.textContent = `${sorted.length} deposit record${sorted.length === 1 ? '' : 's'}`;
+      if (!sorted.length) { tbody.innerHTML = '<tr><td colspan="4">No bank deposits recorded yet.</td></tr>'; return; }
+      tbody.innerHTML = sorted.slice(0, 15).map(row => {
+        const d = row.deposit_date ? localDateKey(row.deposit_date) : '';
+        const dateLabel = d ? new Date(d + 'T00:00:00').toLocaleDateString() : '—';
+        return `<tr><td>${escapeHtml(dateLabel)}</td><td>${escapeHtml(row.description || 'Cash deposited to bank')}</td><td class="amount">${escapeHtml(money(row.amount))}</td><td><div class="deposit-actions"><button type="button" onclick="startCashDepositEdit('${escapeHtml(row.id)}')">Edit</button><button class="delete" type="button" onclick="deleteCashDeposit('${escapeHtml(row.id)}')">Delete</button></div></td></tr>`;
+      }).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[character]));
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('show');
+    }
+
+    async function logout() {
+      const { error } = await supabaseClient.auth.signOut();
+      if (error) console.error('Logout error:', error);
+      window.location.href = 'login.html';
+    }
+
+    document.getElementById('cashDepositForm').addEventListener('submit', saveCashDeposit);
+    document.getElementById('cashDepositModal').addEventListener('click', event => {
+      if (event.target.id === 'cashDepositModal') closeCashDepositModal();
+    });
+
+    (async function initDashboard() {
+      const loggedIn = await checkLogin();
+      if (loggedIn) await loadDashboard();
+    })();
+  </script>
+</body>
+</html>

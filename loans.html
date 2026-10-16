@@ -1,0 +1,2941 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+
+    <title>Loans - Saiku Rentals</title>
+
+
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+<style id="loans-dashboard-sidebar-match">
+.saiku-sidebar-brand{display:flex!important;align-items:center!important;gap:11px!important;padding:18px 20px!important;min-height:92px;box-sizing:border-box}
+.saiku-sidebar-logo{display:block!important;width:56px!important;height:43px!important;flex:0 0 56px!important;object-fit:contain!important;background:transparent!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.saiku-sidebar-caption{min-width:0!important}.saiku-sidebar-caption h2{font-size:15px!important;margin:0 0 3px!important;white-space:nowrap;color:#fff!important}.saiku-sidebar-caption span{font-size:11px!important;color:#b9d1f3!important}
+.sidebar .navigation{overflow-y:auto;min-height:0;padding:18px 12px!important}.sidebar .nav-item{display:flex!important;align-items:center!important;gap:12px!important;min-height:46px;padding:12px 14px!important;color:#d4e5ff!important;text-decoration:none!important;border-radius:12px!important;box-sizing:border-box}
+.sidebar .nav-item span:first-child{display:inline-flex!important;align-items:center;justify-content:center;flex:0 0 24px!important;width:24px!important;min-width:24px!important;font-size:18px!important;visibility:visible!important;opacity:1!important}.sidebar .nav-item span:last-child{display:inline-block!important;visibility:visible!important;opacity:1!important;color:inherit!important;white-space:nowrap}
+.sidebar .nav-item.active{background:linear-gradient(110deg,rgba(0,139,255,.48),rgba(0,217,255,.12))!important;border:1px solid rgba(55,191,255,.55)!important;color:#fff!important;box-shadow:0 0 22px rgba(0,139,255,.18),inset 0 1px 0 rgba(255,255,255,.15)!important}.sidebar .sidebar-bottom{padding:15px!important;border-top:1px solid rgba(112,178,244,.2)!important}
+.loans-page-banner{position:relative;display:flex;align-items:center;gap:14px}.loans-page-banner .saiku-banner-brand{display:flex;align-items:center;gap:12px;min-width:0}.loans-page-banner .saiku-banner-logo{width:95px;max-height:52px;object-fit:contain}.loans-page-banner .saiku-banner-copy h1{margin:0}.loans-page-banner .saiku-banner-copy p{margin:4px 0 0}.loans-page-banner .saiku-banner-kicker{font-size:9px;letter-spacing:1.5px;color:#9dcaff}.loans-page-banner .loans-banner-logout{margin-left:auto;flex:0 0 auto;min-height:40px;padding:0 16px;border:1px solid rgba(92,190,255,.35);border-radius:12px;background:#17243b;color:#eaf6ff;font-weight:600;cursor:pointer}.loans-page-banner .loans-banner-logout:hover{background:#20446c}.loans-page-banner .saiku-banner-menu{position:static;flex:0 0 40px}.app-layout.loans-sidebar-collapsed .sidebar{transform:translateX(-105%)!important}.app-layout.loans-sidebar-collapsed .main-content{margin-left:0!important;width:100%!important;max-width:none!important}.loans-page-banner .saiku-banner-menu{display:grid;align-items:center;justify-content:center;width:40px;height:40px;min-width:40px;background:rgba(12,48,91,.95);color:#eaf6ff;border:1px solid rgba(92,190,255,.5);border-radius:12px;cursor:pointer;font-size:21px}
+#saikuSidebarBackdrop{display:none;position:fixed;inset:0;background:rgba(1,10,25,.48);z-index:9998}#saikuSidebarBackdrop.show{display:block}
+@media(max-width:768px){.app-layout .sidebar{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:min(285px,86vw)!important;height:100dvh!important;min-height:0!important;z-index:9999!important;transform:translateX(-105%);transition:transform .25s ease!important;overflow-y:auto!important;box-shadow:18px 0 45px rgba(0,0,0,.3)!important}.app-layout .sidebar.show{transform:translateX(0)!important}.app-layout .main-content{margin-left:0!important;width:100%!important;min-width:0!important}.loans-page-banner{min-height:0!important;display:flex!important;flex-wrap:wrap!important;gap:10px!important;padding:14px!important;border-radius:0 0 17px 17px!important}.loans-page-banner .saiku-banner-menu{display:grid!important;position:static!important;left:auto!important;right:auto!important;top:auto!important;z-index:3!important;order:0}.loans-page-banner .loans-banner-logout{margin-left:auto;order:2}.loans-page-banner .saiku-banner-brand{order:1;flex:1 1 0!important;width:auto!important;padding-right:0!important}.loans-page-banner .saiku-banner-brand{width:auto!important;flex:1 1 0!important;padding-right:0!important;min-width:0!important}.loans-page-banner .saiku-banner-logo{width:70px!important;max-height:44px!important}.loans-page-banner .saiku-banner-copy h1{font-size:21px!important}.loans-page-banner .saiku-banner-copy p{font-size:11px!important}}
+
+
+/* Loans page polish: aligned header, financial status colours, and compact action buttons */
+.loans-page-banner{display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:12px!important;min-width:0!important}
+.loans-page-banner .saiku-banner-menu{order:0!important;flex:0 0 40px!important}
+.loans-page-banner .saiku-banner-brand{order:1!important;flex:1 1 auto!important;min-width:0!important;align-items:center!important}
+.loans-page-banner .saiku-banner-copy{min-width:0!important;text-align:left!important}
+.loans-page-banner .saiku-banner-copy h1{line-height:1.12!important;text-align:left!important;overflow-wrap:normal!important}
+.loans-page-banner .saiku-banner-copy p{line-height:1.35!important;text-align:left!important;max-width:100%!important}
+.loans-page-banner .saiku-banner-kicker{display:block!important;line-height:1.2!important;margin-bottom:4px!important}
+.loan-paid-value{color:#16803c!important}
+.loan-remaining-value{color:#c62828!important}
+.loan-card>.card-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.loan-card>.card-header>div:first-child{flex:1 1 220px;min-width:0}
+.loan-card .loan-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:0 1 auto;margin-left:auto}
+.loan-card .loan-actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:10px 14px;white-space:nowrap;line-height:1.2}
+.loan-card .loan-actions button span{font-size:15px;line-height:1}
+@media(max-width:768px){
+ .loans-page-banner{display:grid!important;grid-template-columns:40px minmax(0,1fr)!important;align-items:center!important;column-gap:10px!important;row-gap:0!important;padding:12px!important;min-height:0!important}
+ .loans-page-banner .saiku-banner-menu{grid-column:1;grid-row:1;align-self:center!important;width:40px!important;height:40px!important;min-width:40px!important}
+ .loans-page-banner .saiku-banner-brand{grid-column:2;grid-row:1;display:flex!important;align-items:center!important;gap:8px!important;width:auto!important;min-width:0!important;padding:0!important}
+ .loans-page-banner .saiku-banner-logo{width:62px!important;max-width:62px!important;height:auto!important;max-height:40px!important;flex:0 0 62px!important}
+ .loans-page-banner .saiku-banner-copy{min-width:0!important;flex:1 1 auto!important}
+ .loans-page-banner .saiku-banner-kicker{font-size:7px!important;letter-spacing:1px!important;line-height:1.1!important;margin-bottom:3px!important;white-space:nowrap!important}
+ .loans-page-banner .saiku-banner-copy h1{font-size:clamp(17px,4.8vw,21px)!important;line-height:1.12!important;margin:0!important;white-space:normal!important;overflow-wrap:normal!important}
+ .loans-page-banner .saiku-banner-copy p{font-size:10px!important;line-height:1.25!important;margin:4px 0 0!important;max-width:100%!important}
+ .loan-card>.card-header{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;align-items:start!important}
+ .loan-card>.card-header>div:first-child{width:100%;min-width:0}
+ .loan-card .loan-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;width:100%!important;margin:0!important}
+ .loan-card .loan-actions button{min-width:0!important;width:100%!important;min-height:48px!important;padding:9px 5px!important;font-size:13px!important;white-space:nowrap!important;gap:5px!important}
+ .loan-card .loan-actions button span{font-size:14px!important}
+}
+@media(max-width:380px){.loans-page-banner .saiku-banner-logo{width:54px!important;max-width:54px!important;flex-basis:54px!important}.loans-page-banner .saiku-banner-brand{gap:7px!important}.loans-page-banner .saiku-banner-copy h1{font-size:17px!important}.loan-card .loan-actions{gap:5px!important}.loan-card .loan-actions button{font-size:12px!important}}
+
+
+/* Loan summary: always show four cards as a compact 2-by-2 grid */
+.page-content > .dashboard-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:12px!important;
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  align-items:stretch!important;
+}
+.page-content > .dashboard-grid > .stat-card{
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  padding:16px!important;
+  overflow-wrap:anywhere!important;
+}
+.page-content > .dashboard-grid > .stat-card span{display:block;line-height:1.3!important;margin-bottom:8px!important}
+.page-content > .dashboard-grid > .stat-card strong{display:block;min-width:0!important;font-size:clamp(16px,2vw,23px)!important;line-height:1.3!important;overflow-wrap:anywhere!important;word-break:normal!important}
+@media(max-width:768px){
+ .page-content > .dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+ .page-content > .dashboard-grid > .stat-card{padding:14px!important;border-radius:16px!important}
+ .page-content > .dashboard-grid > .stat-card span{font-size:12px!important}
+ .page-content > .dashboard-grid > .stat-card strong{font-size:clamp(14px,3.8vw,18px)!important;line-height:1.3!important}
+}
+@media(max-width:360px){
+ .page-content > .dashboard-grid{gap:8px!important}
+ .page-content > .dashboard-grid > .stat-card{padding:11px!important}
+ .page-content > .dashboard-grid > .stat-card span{font-size:11px!important}
+ .page-content > .dashboard-grid > .stat-card strong{font-size:13px!important}
+}
+
+
+/* Payment history modal financial status colours */
+#historyTotalPaid{color:#16803c!important}
+#historyRemaining{color:#c62828!important}
+</style>
+
+</head>
+
+
+
+<body>
+
+
+
+<div id="saikuSidebarBackdrop" aria-hidden="true"></div>
+<div class="app-layout">
+
+
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo saiku-sidebar-brand">
+        <img src="assets/assets/saiku-rentals-logo.png" alt="Saiku Rentals" class="saiku-sidebar-logo">
+        <div class="saiku-sidebar-caption"><h2>Saiku Rentals</h2><span>Management</span></div>
+      </div>
+      <nav class="navigation">
+        <a href="dashboard.html" class="nav-item"><span>⌂</span><span>Dashboard</span></a>
+        <a href="rentals.html" class="nav-item"><span>📋</span><span>Rentals</span></a>
+        <a href="customers.html" class="nav-item"><span>👥</span><span>Customers</span></a>
+        <a href="cycles.html" class="nav-item"><span>🛵</span><span>Cycles</span></a>
+        <a href="staff.html" class="nav-item"><span>👥</span><span>Staff Management</span></a>
+        <a href="loans.html" class="nav-item active"><span>💰</span><span>Loans &amp; Finance</span></a>
+        <a href="expenses.html" class="nav-item"><span>🧾</span><span>Expenses</span></a>
+        <a href="reports.html" class="nav-item"><span>📈</span><span>Monthly Reports</span></a>
+        <a href="finance.html" class="nav-item"><span>📊</span><span>Finance Overview</span></a>
+        <a href="finance.html#cashManagement" class="nav-item"><span>🏦</span><span>Cash &amp; Deposits</span></a>
+        <a href="settings.html" class="nav-item"><span>⚙️</span><span>Company Settings</span></a>
+      </nav>
+      <div class="sidebar-bottom"><button class="logout-button" type="button" onclick="logout()"><span>↪</span> Logout</button></div>
+    </aside>
+
+
+
+
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main-content">
+
+
+
+        <header class="topbar saiku-main-banner loans-page-banner">
+            <button id="loansMenuButton" class="menu-button saiku-banner-menu" type="button" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+            <div class="saiku-banner-brand">
+                <img src="assets/assets/saiku-rentals-logo.png" alt="Saiku Rentals logo" class="saiku-banner-logo">
+                <div class="saiku-banner-copy">
+                    <span class="saiku-banner-kicker">RENTAL MANAGEMENT</span>
+                    <h1>Loans &amp; Finance</h1>
+                    <p>Manage company loans and payments.</p>
+                </div>
+            </div>
+        </header>
+
+
+
+
+
+        <section class="page-content">
+
+
+
+            <!-- LOAN SUMMARY -->
+
+            <div class="dashboard-grid">
+
+
+
+                <div class="stat-card">
+
+                    <span>Total Loans</span>
+
+                    <strong id="totalLoans">0</strong>
+
+                </div>
+
+
+
+                <div class="stat-card">
+
+                    <span>Total Loan Amount</span>
+
+                    <strong id="totalLoanAmount">MVR 0.00</strong>
+
+                </div>
+
+
+
+                <div class="stat-card">
+
+                    <span>Total Paid</span>
+
+                    <strong id="totalLoanPaid" class="loan-paid-value">MVR 0.00</strong>
+
+                </div>
+
+
+
+                <div class="stat-card">
+
+                    <span>Remaining Balance</span>
+
+                    <strong id="totalLoanRemaining" class="loan-remaining-value">MVR 0.00</strong>
+
+                </div>
+
+
+
+            </div>
+
+
+
+
+
+            <!-- ADD LOAN -->
+
+            <div class="content-card">
+
+
+
+                <div class="card-header">
+
+                    <div>
+
+                        <h2>Company Loans</h2>
+
+                        <p>Add and manage your loans</p>
+
+                    </div>
+
+
+
+                    <button
+
+    type="button"
+
+    class="primary-button"
+
+    id="addLoanButton"
+
+    onclick="openNewLoan()">
+
+    + Add Loan
+
+</button>
+
+                </div>
+
+
+
+
+
+                <div id="loansContainer">
+
+
+
+                    <p>Loading loans...</p>
+
+
+
+                </div>
+
+
+
+            </div>
+
+
+
+        </section>
+
+
+
+    </main>
+
+
+
+</div>
+
+
+
+
+
+<!-- ADD LOAN MODAL -->
+
+
+
+<div id="loanModal" class="modal">
+
+
+
+    <div class="modal-content">
+
+
+
+        <div class="modal-header">
+
+
+
+            <h2 id="loanModalTitle">Add Loan</h2>
+
+
+
+            <button
+
+                type="button"
+
+                class="close-modal"
+
+                onclick="closeModal('loanModal')">
+
+                ×
+
+            </button>
+
+
+
+        </div>
+
+
+
+
+
+        <form id="loanForm">
+
+
+
+            <input
+
+                type="hidden"
+
+                id="loanId">
+
+
+
+
+
+            <div class="form-group">
+
+
+
+                <label for="loanName">
+
+                    Loan Name *
+
+                </label>
+
+
+
+                <input
+
+                    type="text"
+
+                    id="loanName"
+
+                    placeholder="Example: Bank Loan 1"
+
+                    required>
+
+
+
+            </div>
+
+
+
+
+
+            <div class="form-group">
+
+
+
+                <label for="originalAmount">
+
+                    Original Loan Amount *
+
+                </label>
+
+
+
+                <input
+
+                    type="number"
+
+                    id="originalAmount"
+
+                    min="0.01"
+
+                    step="0.01"
+
+                    placeholder="0.00"
+
+                    required>
+
+
+
+            </div>
+
+
+
+
+
+            <div class="form-group">
+
+
+
+                <label for="loanStartDate">
+
+                    Loan Start Date
+
+                </label>
+
+
+
+                <input
+
+                    type="date"
+
+                    id="loanStartDate">
+
+
+
+            </div>
+
+
+
+
+
+            <div class="form-group">
+
+
+
+                <label for="loanNotes">
+
+                    Notes
+
+                </label>
+
+
+
+                <textarea
+
+                    id="loanNotes"
+
+                    rows="3"
+
+                    placeholder="Optional notes"></textarea>
+
+
+
+            </div>
+
+
+
+
+
+            <div class="modal-actions">
+
+
+
+                <button
+
+                    type="button"
+
+                    class="secondary-button"
+
+                    onclick="closeModal('loanModal')">
+
+                    Cancel
+
+                </button>
+
+
+
+                <button
+
+                    type="submit"
+
+                    class="primary-button">
+
+                    Save Loan
+
+                </button>
+
+
+
+            </div>
+
+
+
+        </form>
+
+
+
+    </div>
+
+
+
+</div>
+
+<!-- EDIT LOAN PAYMENT MODAL -->
+
+
+
+<div id="editPaymentModal" class="modal">
+
+
+
+    <div class="modal-content">
+
+
+
+        <div class="modal-header">
+
+
+
+            <h2>Edit Payment</h2>
+
+
+
+            <button
+
+                type="button"
+
+                class="close-modal"
+
+                onclick="closeModal('editPaymentModal')">
+
+                ×
+
+            </button>
+
+
+
+        </div>
+
+
+
+        <form id="editPaymentForm">
+
+
+
+            <input
+
+                type="hidden"
+
+                id="editPaymentId">
+
+
+
+            <div class="form-group">
+
+
+
+                <label for="editPaymentAmount">
+
+                    Payment Amount *
+
+                </label>
+
+
+
+                <input
+
+                    type="number"
+
+                    id="editPaymentAmount"
+
+                    min="0.01"
+
+                    step="0.01"
+
+                    required>
+
+
+
+            </div>
+
+
+
+            <div class="form-group">
+
+
+
+                <label for="editPaymentDate">
+
+                    Payment Date *
+
+                </label>
+
+
+
+                <input
+
+                    type="date"
+
+                    id="editPaymentDate"
+
+                    required>
+
+
+
+            </div>
+
+
+
+            <div class="form-group">
+                <label for="editPaymentMethod">Paid Using *</label>
+                <select id="editPaymentMethod" required>
+                    <option value="">Choose payment source</option>
+                    <option value="bank">Bank</option>
+                    <option value="cash">Cash</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+
+
+
+                <label for="editPaymentDescription">
+
+                    Description
+
+                </label>
+
+
+
+                <input
+
+                    type="text"
+
+                    id="editPaymentDescription"
+
+                    placeholder="Example: January 2026 payment">
+
+
+
+            </div>
+
+
+
+            <div class="modal-actions">
+
+
+
+                <button
+
+                    type="button"
+
+                    class="secondary-button"
+
+                    onclick="closeModal('editPaymentModal')">
+
+                    Cancel
+
+                </button>
+
+
+
+                <button
+
+                    type="submit"
+
+                    class="primary-button">
+
+                    Save Changes
+
+                </button>
+
+
+
+            </div>
+
+
+
+        </form>
+
+
+
+    </div>
+
+
+
+</div>
+
+<!-- LOAN PAYMENT HISTORY MODAL -->
+
+
+
+<div id="loanHistoryModal" class="modal">
+
+
+
+    <div class="modal-content">
+
+
+
+        <div class="modal-header">
+
+
+
+            <div>
+
+                <h2>Payment History</h2>
+
+                <small id="historyLoanName"></small>
+
+            </div>
+
+
+
+            <button
+
+                type="button"
+
+                class="close-modal"
+
+                onclick="closeModal('loanHistoryModal')">
+
+                ×
+
+            </button>
+
+
+
+        </div>
+
+
+
+        <div class="history-summary">
+
+
+
+            <div>
+
+                <span>Total Loan</span>
+
+                <strong id="historyOriginalAmount">
+
+                    MVR 0.00
+
+                </strong>
+
+            </div>
+
+
+
+            <div>
+
+                <span>Total Paid</span>
+
+                <strong id="historyTotalPaid">
+
+                    MVR 0.00
+
+                </strong>
+
+            </div>
+
+
+
+            <div>
+
+                <span>Remaining</span>
+
+                <strong id="historyRemaining">
+
+                    MVR 0.00
+
+                </strong>
+
+            </div>
+
+
+
+        </div>
+
+
+
+        <div id="loanHistoryList" class="loan-history-list">
+
+            Loading payment history...
+
+        </div>
+
+
+
+    </div>
+
+
+
+</div>
+
+<!-- EDIT LOAN MODAL -->
+
+
+
+<div id="editLoanModal" class="modal">
+
+
+
+    <div class="modal-content">
+
+
+
+        <div class="modal-header">
+
+
+
+            <h2>Edit Loan</h2>
+
+
+
+            <button
+
+                type="button"
+
+                class="close-modal"
+
+                onclick="closeModal('editLoanModal')">
+
+                ×
+
+            </button>
+
+
+
+        </div>
+
+
+
+        <form id="editLoanForm">
+
+
+
+            <input
+
+                type="hidden"
+
+                id="editLoanId">
+
+
+
+            <div class="form-group">
+
+                <label for="editLoanName">
+
+                    Loan Name *
+
+                </label>
+
+
+
+                <input
+
+                    type="text"
+
+                    id="editLoanName"
+
+                    required>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="editLoanAmount">
+
+                    Original / Total Loan Amount *
+
+                </label>
+
+
+
+                <input
+
+                    type="number"
+
+                    id="editLoanAmount"
+
+                    min="0.01"
+
+                    step="0.01"
+
+                    required>
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="editLoanStartDate">
+
+                    Loan Start Date
+
+                </label>
+
+
+
+                <input
+
+                    type="date"
+
+                    id="editLoanStartDate">
+
+            </div>
+
+
+
+            <div class="form-group">
+
+                <label for="editLoanNotes">
+
+                    Notes
+
+                </label>
+
+
+
+                <textarea
+
+                    id="editLoanNotes"
+
+                    rows="3"></textarea>
+
+            </div>
+
+
+
+            <div class="modal-actions">
+
+
+
+                <button
+
+                    type="button"
+
+                    class="secondary-button"
+
+                    onclick="closeModal('editLoanModal')">
+
+                    Cancel
+
+                </button>
+
+
+
+                <button
+
+                    type="submit"
+
+                    class="primary-button">
+
+                    Save Changes
+
+                </button>
+
+
+
+            </div>
+
+
+
+        </form>
+
+
+
+    </div>
+
+
+
+</div>
+
+<!-- LOAN PAYMENT MODAL -->
+
+
+
+<div id="loanPaymentModal" class="modal">
+
+
+
+    <div class="modal-content">
+
+
+
+        <div class="modal-header">
+
+
+
+            <h2>Loan Payment</h2>
+
+
+
+            <button
+
+                type="button"
+
+                class="close-modal"
+
+                onclick="closeModal('loanPaymentModal')">
+
+                ×
+
+            </button>
+
+
+
+        </div>
+
+
+
+        <form id="loanPaymentForm">
+
+
+
+            <input
+
+                type="hidden"
+
+                id="paymentLoanId">
+
+
+
+
+
+            <div class="payment-summary">
+
+
+
+                <div>
+
+                    <span>Original Loan</span>
+
+                    <strong id="paymentLoanOriginal">
+
+                        MVR 0.00
+
+                    </strong>
+
+                </div>
+
+
+
+                <div>
+
+                    <span>Total Paid</span>
+
+                    <strong id="paymentLoanPaid">
+
+                        MVR 0.00
+
+                    </strong>
+
+                </div>
+
+
+
+                <div>
+
+                    <span>Remaining</span>
+
+                    <strong id="paymentLoanRemaining">
+
+                        MVR 0.00
+
+                    </strong>
+
+                </div>
+
+
+
+            </div>
+
+
+
+
+
+            <div class="form-group">
+
+
+
+                <label for="loanPaymentAmount">
+
+                    Payment Amount *
+
+                </label>
+
+
+
+                <input
+
+                    type="number"
+
+                    id="loanPaymentAmount"
+
+                    min="0.01"
+
+                    step="0.01"
+
+                    placeholder="0.00"
+
+                    required>
+
+
+
+            </div>
+
+
+
+
+
+            <div class="form-group">
+
+
+
+                <label for="loanPaymentDate">
+
+                    Payment Date *
+
+                </label>
+
+
+
+                <input
+
+                    type="date"
+
+                    id="loanPaymentDate"
+
+                    required>
+
+
+
+            </div>
+
+
+
+
+
+            <div class="form-group">
+                <label for="loanPaymentMethod">Paid Using *</label>
+                <select id="loanPaymentMethod" required>
+                    <option value="">Choose payment source</option>
+                    <option value="bank">Bank</option>
+                    <option value="cash">Cash</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+
+
+
+                <label for="loanPaymentDescription">
+
+                    Description
+
+                </label>
+
+
+
+                <input
+
+                    type="text"
+
+                    id="loanPaymentDescription"
+
+                    placeholder="Example: January 2026 payment">
+
+
+
+            </div>
+
+
+
+
+
+            <div class="modal-actions">
+
+
+
+                <button
+
+                    type="button"
+
+                    class="secondary-button"
+
+                    onclick="closeModal('loanPaymentModal')">
+
+                    Cancel
+
+                </button>
+
+
+
+                <button
+
+                    type="submit"
+
+                    class="primary-button">
+
+                    Save Payment
+
+                </button>
+
+
+
+            </div>
+
+
+
+        </form>
+
+
+
+    </div>
+
+
+
+</div>
+
+<script src="js/config.js"></script>
+
+
+
+
+
+<script>
+
+
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+
+
+
+async function checkAuth() {
+
+
+
+    const {
+
+        data: { session }
+
+    } = await supabaseClient.auth.getSession();
+
+
+
+    if (!session) {
+
+        window.location.href = "login.html";
+
+        return;
+
+    }
+
+
+
+    loadLoans();
+
+}
+
+
+
+
+
+function openModal(id) {
+
+
+
+    document.getElementById(id).classList.add("show");
+
+
+
+}
+
+
+
+
+
+function closeModal(id) {
+
+
+
+    document.getElementById(id).classList.remove("show");
+
+
+
+}
+
+
+
+
+
+function openNewLoan() {
+
+
+
+    document.getElementById("loanForm").reset();
+
+
+
+    document.getElementById("loanId").value = "";
+
+
+
+    document.getElementById("loanModalTitle").textContent =
+
+        "Add Loan";
+
+
+
+    document.getElementById("loanStartDate").value =
+
+        new Date().toISOString().split("T")[0];
+
+
+
+    openModal("loanModal");
+
+
+
+}
+
+
+
+
+
+async function saveLoan(event) {
+
+
+
+    event.preventDefault();
+
+
+
+    const name =
+
+        document.getElementById("loanName").value.trim();
+
+
+
+    const originalAmount =
+
+        Number(document.getElementById("originalAmount").value);
+
+
+
+    const startDate =
+
+        document.getElementById("loanStartDate").value;
+
+
+
+    const notes =
+
+        document.getElementById("loanNotes").value.trim();
+
+
+
+    if (!name) {
+
+        alert("Please enter the loan name.");
+
+        return;
+
+    }
+
+
+
+    if (!originalAmount || originalAmount <= 0) {
+
+        alert("Please enter a valid loan amount.");
+
+        return;
+
+    }
+
+
+
+    const { error } = await supabaseClient
+
+        .from("loans")
+
+        .insert({
+
+            name: name,
+
+            original_amount: originalAmount,
+
+            start_date: startDate || null,
+
+            notes: notes
+
+        });
+
+
+
+    if (error) {
+
+
+
+        console.error(error);
+
+
+
+        alert("Could not save the loan.");
+
+
+
+        return;
+
+    }
+
+
+
+    closeModal("loanModal");
+
+
+
+    await loadLoans();
+
+
+
+    alert("Loan saved successfully.");
+
+
+
+}
+
+
+
+
+
+function isLoanAmountUnconfirmed(loan) {
+    return String(loan?.notes || "").includes(
+        "Original MFLC loan amount is not confirmed"
+    );
+}
+
+async function loadLoans() {
+
+
+
+    const { data: loans, error } =
+
+        await supabaseClient
+
+            .from("loans")
+
+            .select("*")
+
+            .order("created_at", { ascending: true });
+
+
+
+    if (error) {
+
+
+
+        console.error(error);
+
+
+
+        document.getElementById("loansContainer").innerHTML =
+
+            "<p>Could not load loans.</p>";
+
+
+
+        return;
+
+    }
+
+
+
+    document.getElementById("totalLoans").textContent =
+
+        loans.length;
+    const confirmedLoans = loans.filter(
+        loan => !isLoanAmountUnconfirmed(loan)
+    );
+
+    const unconfirmedLoanCount = loans.filter(
+        loan => isLoanAmountUnconfirmed(loan)
+    ).length;
+
+    const totalLoanAmount = confirmedLoans.reduce(
+        (sum, loan) => sum + Number(loan.original_amount || 0),
+        0
+    );
+
+    document.getElementById("totalLoanAmount").textContent =
+        unconfirmedLoanCount > 0
+            ? `MVR ${totalLoanAmount.toFixed(2)} + ${unconfirmedLoanCount} unconfirmed`
+            : `MVR ${totalLoanAmount.toFixed(2)}`;
+
+
+
+    if (loans.length === 0) {
+
+
+
+        document.getElementById("loansContainer").innerHTML =
+
+            "<p>No loans added yet.</p>";
+
+
+
+        document.getElementById("totalLoanPaid").textContent =
+
+            "MVR 0.00";
+
+
+
+        document.getElementById("totalLoanRemaining").textContent =
+
+            "MVR 0.00";
+
+
+
+        return;
+
+    }
+
+
+
+    const loanIds = loans.map(loan => loan.id);
+
+
+
+    const { data: payments, error: paymentError } =
+
+        await supabaseClient
+
+            .from("loan_payments")
+
+            .select("*")
+
+            .in("loan_id", loanIds);
+
+
+
+    if (paymentError) {
+
+
+
+        console.error(paymentError);
+
+
+
+        return;
+
+    }
+
+
+
+    const paidByLoan = {};
+
+
+
+    (payments || []).forEach(payment => {
+
+
+
+        if (!paidByLoan[payment.loan_id]) {
+
+            paidByLoan[payment.loan_id] = 0;
+
+        }
+
+
+
+        paidByLoan[payment.loan_id] +=
+
+            Number(payment.amount || 0);
+
+
+
+    });
+
+
+
+
+
+    let totalPaid = 0;
+
+    let totalRemaining = 0;
+
+
+
+
+
+    document.getElementById("loansContainer").innerHTML =
+
+        loans.map(loan => {
+
+
+
+            const paid = paidByLoan[loan.id] || 0;
+
+            const amountUnconfirmed = isLoanAmountUnconfirmed(loan);
+
+            const remaining = amountUnconfirmed
+                ? null
+                : Math.max(
+                    Number(loan.original_amount || 0) - paid,
+                    0
+                );
+
+            totalPaid += paid;
+
+            if (remaining !== null) {
+                totalRemaining += remaining;
+            }
+
+
+
+            return `
+
+                <div class="content-card loan-card">
+
+
+
+                    <div class="card-header">
+
+
+
+                        <div>
+
+                            <h3>${loan.name}</h3>
+
+
+
+                            <p>
+
+                                Started:
+
+                                ${loan.start_date || "Start date not confirmed"}
+
+                            </p>
+
+                        </div>
+
+
+
+                        <div class="loan-actions">
+                        <button type="button" class="primary-button loan-payment-button" onclick="openPaymentForm('${loan.id}')"><span aria-hidden="true">＋</span> Payment</button>
+                        <button type="button" class="secondary-button loan-edit-button" onclick="openEditLoan('${loan.id}')"><span aria-hidden="true">✏️</span> Edit</button>
+                        <button type="button" class="secondary-button loan-history-button" onclick="openLoanHistory('${loan.id}')"><span aria-hidden="true">📋</span> History</button>
+                        </div>
+
+
+
+                    </div>
+
+
+
+                    <div class="dashboard-grid">
+
+
+
+                        <div class="stat-card">
+
+                            <span>Original Amount</span>
+                            <strong>
+                                ${amountUnconfirmed
+                                    ? `Not confirmed (placeholder: MVR ${Number(loan.original_amount || 0).toFixed(2)})`
+                                    : `MVR ${Number(loan.original_amount || 0).toFixed(2)}`}
+                            </strong>
+
+                        </div>
+
+
+
+                        <div class="stat-card">
+
+                            <span>Total Paid</span>
+
+                            <strong class="loan-paid-value">
+                                MVR ${paid.toFixed(2)}
+                            </strong>
+
+                        </div>
+
+
+
+                        <div class="stat-card">
+
+                            <span>Remaining</span>
+                            <strong class="loan-remaining-value">
+                                ${remaining === null
+                                    ? "Not confirmed"
+                                    : `MVR ${remaining.toFixed(2)}`}
+                            </strong>
+
+                        </div>
+
+
+
+                    </div>
+
+
+
+                </div>
+
+            `;
+
+
+
+        }).join("");
+
+
+
+
+
+    document.getElementById("totalLoanPaid").textContent =
+
+        `MVR ${totalPaid.toFixed(2)}`;
+
+
+
+    document.getElementById("totalLoanRemaining").textContent =
+        unconfirmedLoanCount > 0
+            ? `MVR ${totalRemaining.toFixed(2)} + unconfirmed balance`
+            : `MVR ${totalRemaining.toFixed(2)}`;
+
+}
+
+
+
+
+
+document.getElementById("addLoanButton")
+
+    .addEventListener(
+
+        "click",
+
+        openNewLoan
+
+    );
+
+
+
+
+
+document.getElementById("loanForm")
+
+    .addEventListener(
+
+        "submit",
+
+        saveLoan
+
+    );
+
+
+
+document.getElementById("loanPaymentForm")
+
+    .addEventListener(
+
+        "submit",
+
+        saveLoanPayment
+
+    );
+
+
+
+
+
+async function openPaymentForm(loanId) {
+
+
+
+    const loan =
+
+        (await supabaseClient
+
+            .from("loans")
+
+            .select("*")
+
+            .eq("id", loanId)
+
+            .single()).data;
+
+
+
+    if (!loan) {
+
+        alert("Loan not found.");
+
+        return;
+
+    }
+
+
+
+    document.getElementById("paymentLoanId").value =
+
+        loanId;
+
+
+
+    document.getElementById("loanPaymentAmount").value =
+
+        "";
+
+
+
+    document.getElementById("loanPaymentDate").value =
+
+        new Date().toISOString().split("T")[0];
+
+
+
+    document.getElementById("loanPaymentDescription").value =
+
+        "";
+
+    document.getElementById("loanPaymentMethod").value = "";
+
+
+
+    const { data: payments } =
+
+        await supabaseClient
+
+            .from("loan_payments")
+
+            .select("amount")
+
+            .eq("loan_id", loanId);
+
+
+
+    const totalPaid =
+
+        (payments || []).reduce(
+
+            (sum, payment) =>
+
+                sum + Number(payment.amount || 0),
+
+            0
+
+        );
+
+
+
+    const originalAmount = Number(loan.original_amount || 0);
+
+    const amountUnconfirmed = isLoanAmountUnconfirmed(loan);
+
+    const remaining = amountUnconfirmed
+        ? null
+        : Math.max(originalAmount - totalPaid, 0);
+
+    document.getElementById("paymentLoanOriginal").textContent =
+        amountUnconfirmed
+            ? `Not confirmed (placeholder: MVR ${originalAmount.toFixed(2)})`
+            : `MVR ${originalAmount.toFixed(2)}`;
+
+    document.getElementById("paymentLoanPaid").textContent =
+        `MVR ${totalPaid.toFixed(2)}`;
+
+    document.getElementById("paymentLoanRemaining").textContent =
+        remaining === null ? "Not confirmed" : `MVR ${remaining.toFixed(2)}`;
+
+    const paymentAmountInput = document.getElementById("loanPaymentAmount");
+    if (remaining === null) {
+        paymentAmountInput.removeAttribute("max");
+    } else {
+        paymentAmountInput.max = String(remaining);
+    }
+
+
+
+    openModal("loanPaymentModal");
+
+}
+
+
+
+
+
+async function saveLoanPayment(event) {
+
+
+
+    event.preventDefault();
+
+
+
+    const loanId =
+
+        document.getElementById("paymentLoanId").value;
+
+
+
+    const amount =
+
+        Number(
+
+            document.getElementById(
+
+                "loanPaymentAmount"
+
+            ).value
+
+        );
+
+
+
+    const paymentDate =
+
+        document.getElementById(
+
+            "loanPaymentDate"
+
+        ).value;
+
+
+
+    const description =
+
+        document.getElementById(
+
+            "loanPaymentDescription"
+
+        ).value.trim();
+
+    const paymentMethod = document.getElementById("loanPaymentMethod").value;
+
+
+
+
+
+    if (!loanId) {
+
+        alert("Loan not found.");
+
+        return;
+
+    }
+
+
+
+    if (!amount || amount <= 0) {
+
+        alert("Please enter a valid payment amount.");
+
+        return;
+
+    }
+
+    if (!["bank", "cash"].includes(paymentMethod)) {
+
+        alert("Choose whether the loan payment was paid from Bank or Cash.");
+
+        return;
+
+    }
+
+
+
+    const { data: loan } =
+
+        await supabaseClient
+
+            .from("loans")
+
+            .select("original_amount, notes")
+
+            .eq("id", loanId)
+
+            .single();
+
+
+
+    if (!loan) {
+
+        alert("Loan not found.");
+
+        return;
+
+    }
+
+
+
+
+
+    const { data: existingPayments } =
+
+        await supabaseClient
+
+            .from("loan_payments")
+
+            .select("amount")
+
+            .eq("loan_id", loanId);
+
+
+
+
+
+    const totalPaid =
+
+        (existingPayments || []).reduce(
+
+            (sum, payment) =>
+
+                sum + Number(payment.amount || 0),
+
+            0
+
+        );
+
+
+
+
+
+    const amountUnconfirmed = isLoanAmountUnconfirmed(loan);
+
+    const remaining = amountUnconfirmed
+        ? null
+        : Math.max(Number(loan.original_amount || 0) - totalPaid, 0);
+
+    if (remaining !== null && amount > remaining) {
+
+
+
+        alert(
+
+            `Maximum payment is MVR ${remaining.toFixed(2)}.`
+
+        );
+
+
+
+        return;
+
+    }
+
+
+
+
+
+    const { error } =
+
+        await supabaseClient
+
+            .from("loan_payments")
+
+            .insert({
+
+                loan_id: loanId,
+
+                amount: amount,
+
+                payment_method: paymentMethod,
+
+                payment_date:
+
+                    paymentDate
+
+                        ? new Date(
+
+                            paymentDate + "T00:00:00"
+
+                        ).toISOString()
+
+                        : new Date().toISOString(),
+
+                description: description
+
+            });
+
+
+
+
+
+    if (error) {
+
+
+
+        console.error(error);
+
+
+
+        alert(
+
+            "Could not save the loan payment."
+
+        );
+
+
+
+        return;
+
+    }
+
+
+
+
+
+    closeModal("loanPaymentModal");
+
+
+
+    await loadLoans();
+
+
+
+    alert("Loan payment saved successfully.");
+
+}
+
+async function openEditLoan(loanId) {
+
+
+
+    const { data: loan, error } =
+
+        await supabaseClient
+
+            .from("loans")
+
+            .select("*")
+
+            .eq("id", loanId)
+
+            .single();
+
+
+
+    if (error || !loan) {
+
+        console.error(error);
+
+        alert("Loan not found.");
+
+        return;
+
+    }
+
+
+
+    document.getElementById("editLoanId").value =
+
+        loan.id;
+
+
+
+    document.getElementById("editLoanName").value =
+
+        loan.name || "";
+
+
+
+    document.getElementById("editLoanAmount").value =
+
+        loan.original_amount || "";
+
+
+
+    document.getElementById("editLoanStartDate").value =
+
+        loan.start_date || "";
+
+
+
+    document.getElementById("editLoanNotes").value =
+
+        loan.notes || "";
+
+
+
+    openModal("editLoanModal");
+
+}
+
+
+
+
+
+document.getElementById("editLoanForm")
+
+    .addEventListener(
+
+        "submit",
+
+        saveEditedLoan
+
+    );
+
+
+
+
+
+async function saveEditedLoan(event) {
+
+
+
+    event.preventDefault();
+
+
+
+    const loanId =
+
+        document.getElementById("editLoanId").value;
+
+
+
+    const name =
+
+        document.getElementById("editLoanName")
+
+            .value.trim();
+
+
+
+    const originalAmount =
+
+        Number(
+
+            document.getElementById("editLoanAmount")
+
+                .value
+
+        );
+
+
+
+    const startDate =
+
+        document.getElementById("editLoanStartDate")
+
+            .value;
+
+
+
+    const notes =
+
+        document.getElementById("editLoanNotes")
+
+            .value.trim();
+
+
+
+
+
+    if (!loanId) {
+
+        alert("Loan not found.");
+
+        return;
+
+    }
+
+
+
+    if (!name) {
+
+        alert("Please enter the loan name.");
+
+        return;
+
+    }
+
+
+
+    if (!originalAmount || originalAmount <= 0) {
+
+        alert("Please enter a valid loan amount.");
+
+        return;
+
+    }
+
+
+
+
+
+    const { error } =
+
+        await supabaseClient
+
+            .from("loans")
+
+            .update({
+
+                name: name,
+
+                original_amount: originalAmount,
+
+                start_date: startDate || null,
+
+                notes: notes
+
+            })
+
+            .eq("id", loanId);
+
+
+
+
+
+    if (error) {
+
+
+
+        console.error(error);
+
+
+
+        alert(
+
+            "Could not update the loan."
+
+        );
+
+
+
+        return;
+
+    }
+
+
+
+
+
+    closeModal("editLoanModal");
+
+
+
+    await loadLoans();
+
+
+
+    alert("Loan updated successfully.");
+
+}
+
+async function openLoanHistory(loanId) {
+
+
+
+    const { data: loan, error: loanError } =
+
+        await supabaseClient
+
+            .from("loans")
+
+            .select("*")
+
+            .eq("id", loanId)
+
+            .single();
+
+
+
+    if (loanError || !loan) {
+
+        console.error(loanError);
+
+        alert("Loan not found.");
+
+        return;
+
+    }
+
+
+
+    const { data: payments, error: paymentError } =
+
+        await supabaseClient
+
+            .from("loan_payments")
+
+            .select("*")
+
+            .eq("loan_id", loanId)
+
+            .order("payment_date", {
+
+                ascending: false
+
+            });
+
+
+
+    if (paymentError) {
+
+        console.error(paymentError);
+
+        alert("Could not load payment history.");
+
+        return;
+
+    }
+
+
+
+    const totalPaid =
+
+        (payments || []).reduce(
+
+            (sum, payment) =>
+
+                sum + Number(payment.amount || 0),
+
+            0
+
+        );
+
+
+
+    const originalAmount = Number(loan.original_amount || 0);
+
+    const amountUnconfirmed = isLoanAmountUnconfirmed(loan);
+
+    const remaining = amountUnconfirmed
+        ? null
+        : Math.max(originalAmount - totalPaid, 0);
+
+    document.getElementById("historyLoanName").textContent =
+        loan.name || "Loan";
+
+    document.getElementById("historyOriginalAmount").textContent =
+        amountUnconfirmed
+            ? `Not confirmed (placeholder: MVR ${originalAmount.toFixed(2)})`
+            : `MVR ${originalAmount.toFixed(2)}`;
+
+    document.getElementById("historyTotalPaid").textContent =
+        `MVR ${totalPaid.toFixed(2)}`;
+
+    document.getElementById("historyRemaining").textContent =
+        remaining === null ? "Not confirmed" : `MVR ${remaining.toFixed(2)}`;
+
+
+
+
+
+    const historyList =
+
+        document.getElementById("loanHistoryList");
+
+
+
+
+
+    if (!payments || payments.length === 0) {
+
+
+
+        historyList.innerHTML = `
+
+            <div class="empty-state">
+
+                No payments recorded yet.
+
+            </div>
+
+        `;
+
+
+
+        openModal("loanHistoryModal");
+
+
+
+        return;
+
+    }
+
+
+
+
+
+    historyList.innerHTML =
+
+        payments.map(payment => {
+
+
+
+            const date =
+
+                payment.payment_date
+
+                    ? new Date(
+
+                        payment.payment_date
+
+                    ).toLocaleDateString()
+
+                    : "-";
+
+
+
+
+
+            const rawDescription = (payment.description || "Loan payment").toString().trim();
+            // Hide the repeated import/history label while preserving meaningful descriptions.
+            const description = /historical\s+payment/i.test(rawDescription) ? "" : rawDescription;
+
+
+
+
+
+
+
+               return `
+
+    <div class="loan-history-item">
+
+
+
+        <div class="loan-history-info">
+
+
+
+            ${description ? `<strong>${description}</strong>` : ""}
+
+
+
+            <small>
+
+                ${date} · Paid using: ${(payment.payment_method || "Source not set").toString()}
+
+            </small>
+
+
+
+        </div>
+
+
+
+        <div class="loan-history-amount">
+
+            MVR ${Number(
+
+                payment.amount || 0
+
+            ).toFixed(2)}
+
+        </div>
+
+
+
+        <div class="loan-history-actions">
+
+
+
+            <button
+
+                type="button"
+
+                class="secondary-button"
+
+                onclick="openEditPayment('${payment.id}')">
+
+                ✏️ Edit
+
+            </button>
+
+
+
+            <button
+
+                type="button"
+
+                class="secondary-button"
+
+                onclick="deleteLoanPayment('${payment.id}', '${loanId}')">
+
+                🗑️ Delete
+
+            </button>
+
+
+
+        </div>
+
+
+
+    </div>
+
+`;
+
+
+
+        }).join("");
+
+
+
+
+
+    openModal("loanHistoryModal");
+
+}
+
+async function openEditPayment(paymentId) {
+
+
+
+    const { data: payment, error } =
+
+        await supabaseClient
+
+            .from("loan_payments")
+
+            .select("*")
+
+            .eq("id", paymentId)
+
+            .single();
+
+
+
+    if (error || !payment) {
+
+        console.error(error);
+
+        alert("Payment not found.");
+
+        return;
+
+    }
+
+
+
+    document.getElementById("editPaymentId").value =
+
+        payment.id;
+
+
+
+    document.getElementById("editPaymentAmount").value =
+
+        payment.amount || "";
+
+
+
+    document.getElementById("editPaymentDate").value =
+
+        payment.payment_date
+
+            ? new Date(payment.payment_date)
+
+                .toISOString()
+
+                .split("T")[0]
+
+            : "";
+
+
+
+    document.getElementById("editPaymentDescription").value =
+
+        payment.description || "";
+
+    document.getElementById("editPaymentMethod").value =
+
+        ["bank", "cash"].includes(String(payment.payment_method || "").toLowerCase())
+
+            ? String(payment.payment_method).toLowerCase()
+
+            : "";
+
+
+
+    openModal("editPaymentModal");
+
+}
+
+
+
+
+
+document.getElementById("editPaymentForm")
+
+    .addEventListener(
+
+        "submit",
+
+        saveEditedPayment
+
+    );
+
+
+
+
+
+async function saveEditedPayment(event) {
+
+
+
+    event.preventDefault();
+
+
+
+    const paymentId =
+
+        document.getElementById("editPaymentId").value;
+
+
+
+    const amount =
+
+        Number(
+
+            document.getElementById("editPaymentAmount").value
+
+        );
+
+
+
+    const paymentDate =
+
+        document.getElementById("editPaymentDate").value;
+
+
+
+    const description =
+
+        document.getElementById("editPaymentDescription")
+
+            .value.trim();
+
+    const paymentMethod = document.getElementById("editPaymentMethod").value;
+
+
+
+
+
+    if (!paymentId) {
+
+        alert("Payment not found.");
+
+        return;
+
+    }
+
+
+
+    if (!amount || amount <= 0) {
+
+        alert("Please enter a valid payment amount.");
+
+        return;
+
+    }
+
+    if (!["bank", "cash"].includes(paymentMethod)) {
+
+        alert("Choose whether the loan payment was paid from Bank or Cash.");
+
+        return;
+
+    }
+
+
+
+
+
+    const { error } =
+
+        await supabaseClient
+
+            .from("loan_payments")
+
+            .update({
+
+                amount: amount,
+
+                payment_method: paymentMethod,
+
+                payment_date: paymentDate
+
+                    ? new Date(
+
+                        paymentDate + "T00:00:00"
+
+                    ).toISOString()
+
+                    : new Date().toISOString(),
+
+                description: description
+
+            })
+
+            .eq("id", paymentId);
+
+
+
+
+
+    if (error) {
+
+
+
+        console.error(error);
+
+
+
+        alert("Could not update payment.");
+
+
+
+        return;
+
+    }
+
+
+
+
+
+    closeModal("editPaymentModal");
+
+
+
+    await loadLoans();
+
+
+
+    alert("Payment updated successfully.");
+
+}
+
+async function deleteLoanPayment(paymentId, loanId) {
+
+
+
+    const confirmed =
+
+        confirm(
+
+            "Are you sure you want to delete this payment?"
+
+        );
+
+
+
+    if (!confirmed) {
+
+        return;
+
+    }
+
+
+
+
+
+    const { error } =
+
+        await supabaseClient
+
+            .from("loan_payments")
+
+            .delete()
+
+            .eq("id", paymentId);
+
+
+
+
+
+    if (error) {
+
+
+
+        console.error(error);
+
+
+
+        alert("Could not delete payment.");
+
+
+
+        return;
+
+    }
+
+
+
+
+
+    alert("Payment deleted successfully.");
+
+
+
+    await loadLoans();
+
+
+
+    await openLoanHistory(loanId);
+
+}
+
+checkAuth();    
+
+
+
+</script>
+
+
+
+
+<script id="loans-sidebar-controls">
+(function(){
+  const sidebar = document.getElementById('sidebar');
+  const menuButton = document.getElementById('loansMenuButton');
+  const backdrop = document.getElementById('saikuSidebarBackdrop');
+  const appLayout = document.querySelector('.app-layout');
+  function closeSidebar(){ if(sidebar) sidebar.classList.remove('show'); if(backdrop) backdrop.classList.remove('show'); if(menuButton) menuButton.setAttribute('aria-expanded','false'); if(appLayout && window.innerWidth > 768) appLayout.classList.remove('loans-sidebar-collapsed'); }
+  function toggleSidebar(){ if(!sidebar) return; if(window.innerWidth > 768){ const collapsed = appLayout && appLayout.classList.toggle('loans-sidebar-collapsed'); if(menuButton) menuButton.setAttribute('aria-expanded', String(!collapsed)); return; } const opening = !sidebar.classList.contains('show'); sidebar.classList.toggle('show', opening); if(backdrop) backdrop.classList.toggle('show', opening); if(menuButton) menuButton.setAttribute('aria-expanded', String(opening)); }
+  if(menuButton) menuButton.addEventListener('click', toggleSidebar);
+  if(backdrop) backdrop.addEventListener('click', closeSidebar);
+  if(sidebar) sidebar.querySelectorAll('a.nav-item').forEach(function(link){ link.addEventListener('click', closeSidebar); });
+  document.addEventListener('keydown', function(event){ if(event.key === 'Escape') closeSidebar(); });
+  window.addEventListener('resize', function(){ if(window.innerWidth > 768) closeSidebar(); });
+})();
+</script>
+
+</body>
+
+</html>

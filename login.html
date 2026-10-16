@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#071b38">
+<title>Sign in | Saiku Rentals</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/liquid-glass-navy.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<style>
+:root{color-scheme:light;--navy:#071b38;--blue:#176bd7;--muted:#71829b}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#18304f;background:radial-gradient(ellipse at 12% 8%,rgba(64,157,255,.22),transparent 35%),radial-gradient(ellipse at 88% 90%,rgba(22,105,220,.16),transparent 34%),linear-gradient(135deg,#eef5ff 0%,#f7faff 48%,#e8f1fc 100%);display:grid;place-items:center;padding:22px;overflow-x:hidden}
+.login-shell{width:min(100%,1000px);min-height:590px;display:grid;grid-template-columns:1fr .88fr;border:1px solid rgba(255,255,255,.9);border-radius:30px;overflow:hidden;background:rgba(255,255,255,.58);box-shadow:0 28px 90px rgba(15,45,86,.17),inset 0 1px 0 #fff;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.brand-panel{position:relative;display:flex;flex-direction:column;justify-content:space-between;min-width:0;padding:42px;color:#f5f9ff;background:radial-gradient(ellipse at 88% 13%,rgba(0,190,255,.26),transparent 38%),radial-gradient(ellipse at 0% 100%,rgba(40,118,255,.25),transparent 42%),linear-gradient(145deg,#06152e,#0a3263 58%,#0c477e);overflow:hidden}
+.brand-panel:after{content:"";position:absolute;width:320px;height:320px;right:-150px;bottom:-150px;border:1px solid rgba(185,222,255,.18);border-radius:50%;box-shadow:0 0 0 34px rgba(255,255,255,.025),0 0 0 70px rgba(255,255,255,.02);pointer-events:none}
+.brand-top{position:relative;z-index:1;display:flex;align-items:center;gap:14px}.brand-logo{display:block;width:clamp(125px,15vw,190px);max-height:72px;object-fit:contain;object-position:left center;background:transparent;border:0;box-shadow:none;flex:0 0 auto}.brand-mark{display:none;place-items:center;width:52px;height:52px;border-radius:16px;background:linear-gradient(145deg,#48b8ff,#1764d5);box-shadow:0 9px 25px rgba(0,119,255,.35);font-size:23px;font-weight:900;color:white}.brand-name{font-weight:850;font-size:17px;letter-spacing:.01em}.brand-caption{margin-top:4px;color:#a9c8ed;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.brand-message{position:relative;z-index:1;max-width:430px;margin:48px 0}.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid rgba(144,204,255,.25);border-radius:999px;background:rgba(255,255,255,.07);color:#9bdcff;font-size:10px;font-weight:850;letter-spacing:.16em;text-transform:uppercase}.eyebrow:before{content:"";width:6px;height:6px;border-radius:50%;background:#45e0b0;box-shadow:0 0 0 4px rgba(69,224,176,.12)}
+.brand-message h1{margin:20px 0 14px;font-size:clamp(31px,4vw,47px);line-height:1.06;letter-spacing:-.045em}.brand-message p{max-width:360px;margin:0;color:#bed1e9;font-size:14px;line-height:1.8}.brand-features{display:grid;gap:13px;margin-top:30px}.brand-feature{display:flex;align-items:center;gap:11px;color:#d5e5f7;font-size:12px}.feature-icon{display:grid;place-items:center;width:29px;height:29px;border-radius:9px;border:1px solid rgba(171,215,255,.22);background:rgba(255,255,255,.07);color:#73d7ff;font-weight:800}.brand-footer{position:relative;z-index:1;color:#8caed3;font-size:11px}
+.form-panel{display:flex;align-items:center;justify-content:center;padding:clamp(24px,5vw,55px);min-width:0}.login-form-wrap{width:100%;max-width:365px}.form-kicker{color:#2777d6;font-size:10px;font-weight:900;letter-spacing:.18em;text-transform:uppercase}.form-panel h2{margin:10px 0 8px;color:#122b4b;font-size:29px;letter-spacing:-.035em}.form-intro{margin:0 0 26px;color:#71829b;font-size:13px;line-height:1.6}
+.role-switch{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:5px;margin-bottom:23px;border:1px solid #dfe8f4;border-radius:13px;background:rgba(235,242,251,.8)}.role-option{min-height:39px;border:0;border-radius:9px;background:transparent;color:#6a7c94;font:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:.18s}.role-option.active{color:#164f9b;background:#fff;box-shadow:0 3px 10px rgba(26,62,109,.09);border:1px solid #e3ebf6}
+.field{display:grid;gap:8px;margin-bottom:16px}.field label{color:#2c4361;font-size:12px;font-weight:800}.input-wrap{position:relative}.field input{display:block;width:100%;height:48px;padding:0 14px;border:1px solid #d9e4f1;border-radius:12px;outline:none;background:rgba(255,255,255,.83);color:#142c4a;font:inherit;font-size:13px;box-shadow:inset 0 1px 2px rgba(18,48,83,.025);transition:border-color .18s,box-shadow .18s}.field input:focus{border-color:#5aa0f4;box-shadow:0 0 0 4px rgba(54,139,235,.12)}.field input::placeholder{color:#9aa9bc}.toggle-password{position:absolute;right:9px;top:50%;transform:translateY(-50%);border:0;border-radius:7px;background:transparent;padding:7px;color:#6480a2;font-size:11px;font-weight:800;cursor:pointer}.password-input{padding-right:58px!important}
+.form-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:1px 0 22px}.remember{display:flex;align-items:center;gap:7px;color:#72829a;font-size:11px}.remember input{accent-color:#176bd7}.text-button{border:0;background:transparent;padding:0;color:#1d6bc4;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.submit-button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:49px;border:1px solid #1764c7;border-radius:12px;background:linear-gradient(110deg,#1679e5,#124da7);color:white;font:inherit;font-size:13px;font-weight:850;box-shadow:0 10px 20px rgba(22,100,199,.2);cursor:pointer;transition:transform .18s,box-shadow .18s}.submit-button:hover{transform:translateY(-1px);box-shadow:0 13px 25px rgba(22,100,199,.25)}.submit-button:disabled{opacity:.65;cursor:wait;transform:none}.submit-arrow{font-size:17px}.message{display:none;margin:0 0 15px;padding:11px 12px;border:1px solid #f4c8c8;border-radius:10px;background:#fff3f3;color:#a52d35;font-size:12px;line-height:1.5}.message.show{display:block}.message.success{border-color:#bde8d2;background:#effcf5;color:#14734b}.secure-note{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:19px;color:#8797ac;font-size:10px;text-align:center}.secure-note svg{flex:0 0 auto}.form-bottom{margin-top:26px;padding-top:18px;border-top:1px solid #e5edf6;color:#8b9ab0;font-size:10px;line-height:1.6;text-align:center}
+@media(max-width:760px){body{padding:12px}.login-shell{grid-template-columns:1fr;min-height:0;max-width:470px;border-radius:23px}.brand-panel{padding:20px 22px 18px;min-height:0}.brand-logo{width:112px;max-height:48px}.brand-mark{width:43px;height:43px;border-radius:13px;font-size:19px}.brand-message{margin:28px 0 8px}.brand-message h1{font-size:29px;margin:13px 0 9px}.brand-message p{font-size:12px;line-height:1.6}.brand-features{display:none}.brand-footer{display:none}.form-panel{padding:25px 22px 27px}.form-panel h2{font-size:25px;margin-top:8px}.form-intro{margin-bottom:20px}.role-switch{margin-bottom:20px}.form-bottom{margin-top:21px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="login-shell">
+  <aside class="brand-panel">
+    <div class="brand-top"><img class="brand-logo" src="assets/assets/saiku-rentals-logo.png" alt="Saiku Rentals logo" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><div class="brand-mark" aria-hidden="true">S</div><div><div class="brand-name">Saiku Rentals</div><div class="brand-caption">Rental management</div></div></div>
+    <div class="brand-message">
+      <span class="eyebrow">Secure workspace</span>
+      <h1>Your fleet.<br>Your business.<br>In control.</h1>
+      <p>Sign in to manage rental operations with a clear, secure workspace designed for your team.</p>
+      <div class="brand-features"><div class="brand-feature"><span class="feature-icon">✓</span><span>Rental and cycle operations in one place</span></div><div class="brand-feature"><span class="feature-icon">⌁</span><span>Role-based access for admins and staff</span></div><div class="brand-feature"><span class="feature-icon">◈</span><span>Protected business information</span></div></div>
+    </div>
+    <div class="brand-footer">SAIKU RENTALS · PRIVATE STAFF PORTAL</div>
+  </aside>
+  <main class="form-panel"><div class="login-form-wrap">
+    <div class="form-kicker">Welcome back</div><h2>Sign in to continue</h2><p class="form-intro">Use your assigned Saiku Rentals account to access your workspace.</p>
+    <div class="role-switch" role="group" aria-label="Choose login type"><button class="role-option active" type="button" data-role-choice="admin" aria-pressed="true">Admin login</button><button class="role-option" type="button" data-role-choice="staff" aria-pressed="false">Staff login</button></div>
+    <div id="loginMessage" class="message" role="alert" aria-live="polite"></div>
+    <form id="loginForm" novalidate>
+      <div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" autocomplete="username" placeholder="you@company.com" required></div>
+      <div class="field"><label for="password">Password</label><div class="input-wrap"><input class="password-input" id="password" name="password" type="password" autocomplete="current-password" placeholder="Enter your password" required><button class="toggle-password" id="togglePassword" type="button">Show</button></div></div>
+      <div class="form-row"><label class="remember"><input id="rememberMe" type="checkbox" checked> Keep me signed in</label><button class="text-button" id="forgotPassword" type="button">Forgot password?</button></div>
+      <button class="submit-button" id="submitButton" type="submit"><span id="submitLabel">Sign in as Admin</span><span class="submit-arrow">→</span></button>
+    </form>
+    <div class="secure-note"><span>🔒</span><span>Protected sign-in · Access depends on your assigned role</span></div>
+    <div class="form-bottom">Accounts are created by your Saiku Rentals administrator. Public registration is disabled.</div>
+  </div></main>
+</div>
+<script>
+(() => {
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+  const form = document.getElementById('loginForm');
+  const message = document.getElementById('loginMessage');
+  const submit = document.getElementById('submitButton');
+  const submitLabel = document.getElementById('submitLabel');
+  let selectedRole = 'admin';
+  function showMessage(text, type='error') { message.textContent = text; message.className = 'message show' + (type === 'success' ? ' success' : ''); }
+  function setBusy(busy, label) { submit.disabled = busy; submitLabel.textContent = label || (selectedRole === 'admin' ? 'Sign in as Admin' : 'Sign in as Staff'); }
+  function setRole(role) {
+    selectedRole = role;
+    document.querySelectorAll('[data-role-choice]').forEach(button => {
+      const active = button.dataset.roleChoice === role;
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+    if (!submit.disabled) setBusy(false);
+    message.className = 'message';
+  }
+  document.querySelectorAll('[data-role-choice]').forEach(button => button.addEventListener('click', () => setRole(button.dataset.roleChoice)));
+  document.getElementById('togglePassword').addEventListener('click', () => {
+    const input = document.getElementById('password');
+    const show = input.type === 'password'; input.type = show ? 'text' : 'password';
+    document.getElementById('togglePassword').textContent = show ? 'Hide' : 'Show';
+  });
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); message.className = 'message';
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    if (!email || !password) { showMessage('Enter your email address and password.'); return; }
+    setBusy(true, 'Verifying account…');
+    try {
+      const { data, error } = await client.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      if (!data.user) throw new Error('Your account could not be verified.');
+      const { data: roleRow, error: roleError } = await client.from('user_roles').select('role').eq('user_id', data.user.id).maybeSingle();
+      if (roleError) throw new Error('Could not verify your access role. Ask the administrator to check the role setup and database policies.');
+      const actualRole = String(roleRow?.role || '').toLowerCase();
+      if (!['admin','staff'].includes(actualRole)) {
+        await client.auth.signOut();
+        throw new Error('This account has no assigned Saiku Rentals role. Please contact the administrator.');
+      }
+      if (actualRole !== selectedRole) {
+        await client.auth.signOut();
+        throw new Error(`This account is assigned as ${actualRole === 'admin' ? 'Admin' : 'Staff'}. Select the matching login type and try again.`);
+      }
+      showMessage('Sign-in successful. Opening your workspace…', 'success');
+      setBusy(true, 'Opening dashboard…');
+      window.location.replace('dashboard.html');
+    } catch (error) {
+      showMessage(error?.message || 'Unable to sign in. Check your details and try again.');
+      setBusy(false);
+    }
+  });
+  document.getElementById('forgotPassword').addEventListener('click', async () => {
+    const email = document.getElementById('email').value.trim();
+    if (!email) { showMessage('Enter your email address first, then choose Forgot password.'); return; }
+    setBusy(true, 'Sending reset email…');
+    try {
+      const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
+      if (error) throw error;
+      showMessage('If this email belongs to an account, a password reset link will be sent.', 'success');
+    } catch (error) { showMessage(error?.message || 'Unable to request a password reset.'); }
+    finally { setBusy(false); }
+  });
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('error') === 'role') showMessage('Your account does not have a valid role assigned. Contact the administrator.');
+  // If already signed in, validate the role before forwarding.
+  client.auth.getSession().then(async ({data}) => {
+    const user = data?.session?.user;
+    if (!user) return;
+    const {data: roleRow, error} = await client.from('user_roles').select('role').eq('user_id', user.id).maybeSingle();
+    if (!error && ['admin','staff'].includes(String(roleRow?.role || '').toLowerCase())) window.location.replace('dashboard.html');
+  });
+})();
+</script>
+</body>
+</html>

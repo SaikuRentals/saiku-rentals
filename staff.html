@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Management | Saiku Rentals</title>
+<link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/liquid-glass-navy.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/config.js"></script>
+<style id="saiku-branded-header-final">
+/* Dashboard top banner and transparent logo treatment */
+.saiku-main-banner{
+  position:relative!important;display:flex!important;align-items:center!important;
+  gap:16px!important;min-height:142px!important;padding:18px 24px!important;
+  margin:0 0 18px!important;border:1px solid rgba(81,180,255,.45)!important;
+  border-radius:0 0 22px 22px!important;overflow:hidden!important;
+  background:
+    radial-gradient(ellipse at 88% 12%,rgba(0,181,255,.28),transparent 38%),
+    linear-gradient(115deg,rgba(3,18,45,.98),rgba(7,48,96,.96))!important;
+  box-shadow:0 15px 34px rgba(0,10,28,.23),inset 0 1px 0 rgba(255,255,255,.13)!important;
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+}
+.saiku-banner-brand{display:flex;align-items:center;gap:22px;min-width:0;flex:1}
+.saiku-banner-logo{
+  display:block;width:clamp(150px,21vw,245px);max-height:86px;object-fit:contain;
+  background:transparent!important;padding:0!important;border:0!important;border-radius:0!important;
+  box-shadow:none!important;mix-blend-mode:normal!important;flex:0 0 auto;
+}
+.saiku-banner-copy{min-width:0}
+.saiku-banner-kicker{display:block;color:#42dcff;font-size:10px;font-weight:850;letter-spacing:2.1px;margin-bottom:6px}
+.saiku-banner-copy h1{color:#f5f9ff!important;font-size:clamp(22px,2.5vw,32px)!important;line-height:1.15;margin:0 0 7px!important;letter-spacing:-.7px}
+.saiku-banner-copy p{color:#bed3ef!important;font-size:13px;margin:0!important;line-height:1.45}
+.saiku-banner-actions{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+.saiku-banner-refresh{background:rgba(255,255,255,.09)!important;color:#f5f9ff!important;border:1px solid rgba(151,206,255,.35)!important}
+.saiku-banner-user{display:grid!important;place-items:center!important;width:42px!important;height:42px!important;min-width:42px!important;border-radius:50%!important;
+  background:linear-gradient(145deg,#178fff,#0758c9)!important;color:#fff!important;border:1px solid rgba(143,220,255,.7)!important;
+  box-shadow:0 5px 18px rgba(0,119,255,.28)!important;font-weight:800!important}
+.saiku-banner-menu{flex:0 0 auto}
+.saiku-sidebar-brand{display:flex!important;align-items:center!important;gap:11px!important}
+.saiku-sidebar-logo{
+  display:block;width:56px;height:43px;object-fit:contain;flex:0 0 56px;
+  background:transparent!important;padding:0!important;border:0!important;border-radius:0!important;
+  box-shadow:none!important;mix-blend-mode:normal!important;
+}
+.saiku-sidebar-caption{min-width:0}
+.saiku-sidebar-caption h2{font-size:15px!important;margin:0 0 3px!important;white-space:nowrap}
+.saiku-sidebar-caption span{font-size:11px!important}
+@media(max-width:760px){
+  .saiku-main-banner{min-height:0!important;flex-wrap:wrap!important;gap:10px!important;padding:14px!important;border-radius:0 0 17px 17px!important}
+  .saiku-banner-brand{gap:12px;width:100%;flex:1 1 100%}
+  .saiku-banner-logo{width:112px;max-height:55px}
+  .saiku-banner-copy h1{font-size:21px!important}
+  .saiku-banner-copy p{font-size:11px!important}
+  .saiku-banner-kicker{font-size:8px;letter-spacing:1.5px}
+  .saiku-banner-actions{margin-left:auto}
+  .saiku-banner-refresh{padding:7px 9px!important;font-size:12px!important}
+  .saiku-banner-user{width:36px!important;height:36px!important;min-width:36px!important}
+  .saiku-banner-menu{position:absolute!important;right:12px!important;top:12px!important;z-index:2}
+  .saiku-banner-brand{padding-right:38px}
+}
+</style>
+<style>
+.staff-page{padding:18px;display:grid;grid-template-columns:minmax(300px,.78fr) minmax(0,1.5fr);gap:18px;align-items:start}
+.staff-box{padding:20px;border:1px solid rgba(113,190,255,.4);border-radius:20px;background:linear-gradient(145deg,rgba(12,49,95,.78),rgba(4,24,57,.78));box-shadow:0 16px 42px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.08);backdrop-filter:blur(20px)}
+.staff-box h2{margin:0 0 6px;color:#eff7ff}.staff-box>p{margin:0 0 18px;color:#a9c6e8;font-size:13px;line-height:1.5}
+.staff-form{display:grid;gap:13px}.staff-form label{display:grid;gap:7px;color:#dcebff;font-size:13px;font-weight:700}.staff-form input[type=text]{width:100%;box-sizing:border-box;min-width:0;padding:12px;border-radius:11px}
+.staff-photo-upload{display:grid;grid-template-columns:88px minmax(0,1fr);align-items:center;gap:13px;padding:12px;border:1px dashed rgba(111,180,255,.4);border-radius:14px;background:rgba(1,18,43,.28)}
+.staff-photo-preview{width:88px;height:88px;border-radius:50%;border:2px solid rgba(70,190,255,.65);background:linear-gradient(145deg,#0a79d9,#07315f);display:grid;place-items:center;overflow:hidden;color:#fff;font-size:24px;font-weight:800}
+.staff-photo-preview img{width:100%;height:100%;object-fit:cover;display:block}.staff-file-help{color:#99b9dd;font-size:11px;line-height:1.45}
+.staff-form-actions{display:flex;gap:8px;flex-wrap:wrap}.staff-form-actions button{flex:1;min-width:112px;padding:11px 13px}.staff-cancel{background:rgba(255,255,255,.06)!important;color:#e6f2ff!important;border:1px solid rgba(113,190,255,.32)!important}
+.staff-message{display:none;padding:11px 12px;border-radius:11px;margin:13px 0 0;font-size:12px;line-height:1.45}.staff-message.show{display:block;background:rgba(12,105,74,.23);border:1px solid rgba(38,221,172,.3);color:#b8ffeb}.staff-message.error{background:rgba(150,30,59,.23);border-color:rgba(255,100,137,.38);color:#ffd0db}
+.staff-list-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}.staff-count{color:#8ddaff;border:1px solid rgba(90,184,255,.32);background:rgba(18,92,160,.28);border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800;white-space:nowrap}
+.staff-list{display:grid;gap:10px}.staff-row{display:grid;grid-template-columns:60px minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px;border:1px solid rgba(113,190,255,.26);border-radius:16px;background:rgba(5,32,70,.45)}
+.staff-row-avatar{width:60px;height:60px;overflow:hidden;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#0a7ede,#072f60);color:#fff;font-size:18px;font-weight:800;border:2px solid rgba(75,188,255,.55)}.staff-row-avatar img{width:100%;height:100%;object-fit:cover}
+.staff-row-name{font-size:15px;font-weight:800;color:#f0f7ff;overflow-wrap:anywhere}.staff-row-sub{font-size:11px;color:#a7c4e8;margin-top:5px}.staff-row-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}.staff-row-actions button{padding:8px 10px;font-size:11px}.staff-edit{background:rgba(5,110,205,.24)!important;color:#d5efff!important;border:1px solid rgba(96,187,255,.4)!important}.staff-deactivate{background:rgba(165,41,71,.18)!important;color:#ffc7d4!important;border:1px solid rgba(255,116,148,.35)!important}
+@media(max-width:980px){.staff-page{grid-template-columns:1fr}}
+@media(max-width:560px){.staff-page{padding:10px;gap:12px}.staff-box{padding:14px;border-radius:16px}.staff-row{grid-template-columns:48px minmax(0,1fr);gap:10px}.staff-row-avatar{width:48px;height:48px}.staff-row-actions{grid-column:1/-1;justify-content:stretch}.staff-row-actions button{flex:1}.staff-photo-upload{grid-template-columns:72px minmax(0,1fr)}.staff-photo-preview{width:72px;height:72px}
+}
+</style>
+<style id="staff-management-white-card-theme">
+/* Match the clean white card styling used on the other Saiku Rentals pages. */
+body{background:#f4f7fb!important;color:#1d2b42!important}
+.main-area{background:#f4f7fb!important;color:#1d2b42!important}
+.staff-page{background:transparent!important}
+.staff-box{background:#fff!important;border:1px solid #e2e8f0!important;border-radius:18px!important;box-shadow:0 5px 18px rgba(24,43,72,.06)!important;backdrop-filter:none!important;color:#243247!important}
+.staff-box h2,.staff-form label,.staff-list-head h2{color:#1e2e46!important}
+.staff-box>p,.staff-list-head p{color:#718096!important}
+.staff-row{background:#fff!important;border:1px solid #e2e8f0!important;border-radius:14px!important;box-shadow:0 3px 10px rgba(24,43,72,.035)!important;color:#26364d!important}
+.staff-row-name{color:#243247!important}
+.staff-row-sub{color:#718096!important}
+.staff-row-avatar{background:linear-gradient(145deg,#e7f0ff,#f4f7fc)!important;color:#315b91!important;border:2px solid #d8e5f5!important}
+.staff-edit{background:#edf4ff!important;color:#245ca6!important;border:1px solid #cbdcf5!important}
+.staff-deactivate{background:#fff1f2!important;color:#b42336!important;border:1px solid #f4cbd1!important}
+.staff-count{background:#edf4ff!important;color:#245ca6!important;border:1px solid #d5e3f8!important}
+.staff-photo-preview{background:#edf4ff!important;color:#315b91!important;border-color:#d5e3f8!important}
+.staff-form input[type="text"],.staff-form input[type="file"],.staff-form input:not([type]){background:#fff!important;color:#26364d!important;border-color:#d8e1ed!important}
+.staff-form input::placeholder{color:#94a3b8!important}
+.staff-file-help{color:#718096!important}
+@media(max-width:560px){.staff-box{padding:14px!important}.staff-row{background:#fff!important}}
+</style>
+
+</head><body><div class="app-layout"><aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo saiku-sidebar-brand"><img src="assets/assets/saiku-rentals-logo.png" alt="Saiku Rentals" class="saiku-sidebar-logo"><div class="saiku-sidebar-caption"><h2>Saiku Rentals</h2><span>Management</span></div></div>
+  <nav class="navigation">
+    <a href="dashboard.html" class="nav-item"><span>⌂</span><span>Dashboard</span></a>
+    <a href="rentals.html" class="nav-item"><span>📋</span><span>Rentals</span></a>
+    <a href="customers.html" class="nav-item"><span>👥</span><span>Customers</span></a>
+    <a href="cycles.html" class="nav-item"><span>🛵</span><span>Cycles</span></a>
+    <a href="staff.html" class="nav-item active"><span>👥</span><span>Staff Management</span></a>
+    <a href="loans.html" class="nav-item"><span>💰</span><span>Loans &amp; Finance</span></a>
+    <a href="expenses.html" class="nav-item"><span>🧾</span><span>Expenses</span></a>
+    <a href="reports.html" class="nav-item"><span>📈</span><span>Monthly Reports</span></a>
+    <a href="finance.html" class="nav-item"><span>📊</span><span>Finance Overview</span></a>
+    <a href="settings.html" class="nav-item"><span>⚙️</span><span>Company Settings</span></a>
+  </nav>
+  <div class="sidebar-bottom"><button class="logout-button" type="button" onclick="logout()"><span>↪</span> Logout</button></div>
+</aside><div class="main-area">
+<header class="topbar saiku-main-banner"><button class="menu-button saiku-banner-menu" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button><div class="saiku-banner-brand"><img src="assets/assets/saiku-rentals-logo.png" alt="Saiku Rentals logo" class="saiku-banner-logo"><div class="saiku-banner-copy"><span class="saiku-banner-kicker">TEAM OPERATIONS</span><h1>Staff Management</h1><p>Add team members, upload photos and maintain your staff list.</p></div></div><div class="saiku-banner-actions"><button class="secondary-action saiku-banner-refresh" type="button" onclick="loadStaff()">↻ Refresh</button><button class="user-avatar saiku-banner-user" type="button" aria-label="User account">A</button></div></header>
+<main class="page-content staff-page">
+<section class="staff-box"><h2 id="staffFormHeading">Add Staff Member</h2><p>Enter a name and optionally add a profile photo. Photos appear on the Dashboard performance cards.</p>
+<form id="staffForm" class="staff-form"><label for="staffName">Staff name <input type="text" id="staffName" maxlength="80" placeholder="Enter full name" required autocomplete="name"></label>
+<div class="staff-photo-upload"><div class="staff-photo-preview" id="staffPhotoPreview">ST</div><div><label for="staffPhoto">Staff photo <input type="file" id="staffPhoto" accept="image/png,image/jpeg,image/webp"></label><div class="staff-file-help">PNG, JPG or WebP · maximum 5 MB. A clear face photo works best.</div><button type="button" id="removeStaffPhoto" class="staff-cancel" style="margin-top:8px;padding:6px 9px;font-size:11px" hidden>Remove current photo</button></div></div>
+<div class="staff-form-actions"><button type="submit" id="saveStaffButton" class="primary-button">Add Staff</button><button type="button" id="cancelStaffEdit" class="staff-cancel" hidden>Cancel Edit</button></div></form><div id="staffMessage" class="staff-message" role="status" aria-live="polite"></div></section>
+<section class="staff-box"><div class="staff-list-head"><div><h2>Team Members</h2><p style="margin:5px 0 0">Staff roster and activity status</p></div><span id="staffCount" class="staff-count">Loading…</span></div><div id="staffList" class="staff-list"><div class="empty-state">Loading staff…</div></div></section>
+</main></div></div>
+<script>
+// Initialize the Supabase client using the shared project configuration.
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let staffItems=[];let editingStaffId=null;let currentPhotoUrl='';let selectedPhotoFile=null;let previewUrl='';
+const $=id=>document.getElementById(id);
+function esc(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+function initials(name){return String(name||'ST').trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'ST';}
+function setMessage(message,error=false){const node=$('staffMessage');node.textContent=message;node.className='staff-message show'+(error?' error':'');}
+function clearMessage(){const node=$('staffMessage');node.textContent='';node.className='staff-message';}
+function toggleSidebar(){const side=document.getElementById('sidebar');if(side)side.classList.toggle('show');}
+async function logout(){await supabaseClient.auth.signOut();window.location.href='login.html';}
+function setPreview(url,name){const host=$('staffPhotoPreview');if(url){host.innerHTML=`<img src="${esc(url)}" alt="Staff photo preview" onerror="this.remove();this.parentElement.textContent='${esc(initials(name))}'">`;}else{host.textContent=initials(name);}}
+function resetForm(){if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl='';}editingStaffId=null;currentPhotoUrl='';selectedPhotoFile=null;$('staffForm').reset();$('staffFormHeading').textContent='Add Staff Member';$('saveStaffButton').textContent='Add Staff';$('cancelStaffEdit').hidden=true;$('removeStaffPhoto').hidden=true;setPreview('', 'Staff');clearMessage();}
+$('staffName').addEventListener('input',()=>{if(!selectedPhotoFile&&!currentPhotoUrl)setPreview('', $('staffName').value);});
+$('staffPhoto').addEventListener('change',event=>{const file=event.target.files?.[0];if(!file)return;if(!['image/png','image/jpeg','image/webp'].includes(file.type)){setMessage('Please choose a PNG, JPG or WebP image.',true);event.target.value='';return;}if(file.size>5*1024*1024){setMessage('The photo must be smaller than 5 MB.',true);event.target.value='';return;}selectedPhotoFile=file;if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(file);setPreview(previewUrl,$('staffName').value);clearMessage();});
+$('removeStaffPhoto').addEventListener('click',()=>{if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl='';}currentPhotoUrl='';selectedPhotoFile=null;$('staffPhoto').value='';setPreview('', $('staffName').value);$('removeStaffPhoto').hidden=true;setMessage('Photo will be removed when you save.');});
+$('cancelStaffEdit').addEventListener('click',resetForm);
+function renderStaff(){const host=$('staffList');$('staffCount').textContent=`${staffItems.filter(s=>s.is_active!==false).length} active / ${staffItems.length} total`;if(!staffItems.length){host.innerHTML='<div class="empty-state">No staff members yet. Add your first staff member using the form.</div>';return;}host.innerHTML=[...staffItems].sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(staff=>{const photo=staff.photo_url?`<img src="${esc(staff.photo_url)}" alt="${esc(staff.name)}" onerror="this.remove()">`:'';return `<article class="staff-row"><div class="staff-row-avatar">${photo||esc(initials(staff.name))}</div><div><div class="staff-row-name">${esc(staff.name)}</div><div class="staff-row-sub">${staff.is_active===false?'Inactive — history retained':'Active team member'}</div></div><div class="staff-row-actions"><button type="button" class="staff-edit" data-edit="${esc(staff.id)}">Edit / Photo</button><button type="button" class="staff-deactivate" data-activate="${esc(staff.id)}">${staff.is_active===false?'Reactivate':'Deactivate'}</button></div></article>`;}).join('');host.querySelectorAll('[data-edit]').forEach(btn=>btn.addEventListener('click',()=>editStaff(btn.dataset.edit)));host.querySelectorAll('[data-activate]').forEach(btn=>btn.addEventListener('click',()=>toggleStaff(btn.dataset.activate)));}
+async function loadStaff(){$('staffList').innerHTML='<div class="empty-state">Loading staff…</div>';const {data,error}=await supabaseClient.from('staff_members').select('id,name,is_active,photo_url,created_at').order('name',{ascending:true});if(error){console.error(error);$('staffCount').textContent='Setup needed';$('staffList').innerHTML=`<div class="staff-message show error">Could not load staff. Run staff_performance_setup.sql in Supabase and check permissions. ${esc(error.message)}</div>`;return;}staffItems=data||[];renderStaff();}
+function editStaff(id){const staff=staffItems.find(s=>String(s.id)===String(id));if(!staff)return;if(previewUrl){URL.revokeObjectURL(previewUrl);previewUrl='';}editingStaffId=String(staff.id);currentPhotoUrl=staff.photo_url||'';selectedPhotoFile=null;$('staffName').value=staff.name||'';$('staffPhoto').value='';$('staffFormHeading').textContent='Edit Staff Member';$('saveStaffButton').textContent='Save Changes';$('cancelStaffEdit').hidden=false;$('removeStaffPhoto').hidden=!currentPhotoUrl;setPreview(currentPhotoUrl,staff.name);clearMessage();$('staffFormHeading').scrollIntoView({behavior:'smooth',block:'start'});}
+async function uploadPhoto(staffId,file){const safeFile=file.name.replace(/[^a-zA-Z0-9._-]/g,'_').slice(-90)||'staff-photo';const path=`${staffId}/${Date.now()}-${safeFile}`;const {data,error}=await supabaseClient.storage.from('staff-photos').upload(path,file,{contentType:file.type,cacheControl:'3600',upsert:false});if(error)throw error;const result=supabaseClient.storage.from('staff-photos').getPublicUrl(data.path);return result.data.publicUrl;}
+$('staffForm').addEventListener('submit',async event=>{event.preventDefault();const name=$('staffName').value.trim().replace(/\s+/g,' ');if(!name){setMessage('Enter a staff name.',true);return;}if(staffItems.some(s=>String(s.id)!==String(editingStaffId||'')&&String(s.name||'').trim().toLowerCase()===name.toLowerCase())){setMessage('A staff member with this name already exists.',true);return;}const btn=$('saveStaffButton');btn.disabled=true;btn.textContent='Saving…';try{let staffId=editingStaffId;let nextPhotoUrl=currentPhotoUrl||null;if(!staffId){const {data,error}=await supabaseClient.from('staff_members').insert({name,is_active:true,photo_url:null}).select('id').single();if(error)throw error;staffId=data.id;}if(selectedPhotoFile)nextPhotoUrl=await uploadPhoto(staffId,selectedPhotoFile);const {error:updateError}=await supabaseClient.from('staff_members').update({name,photo_url:nextPhotoUrl}).eq('id',staffId);if(updateError)throw updateError;const successText=editingStaffId?'Staff details updated.':'Staff member added successfully.';resetForm();await loadStaff();setMessage(successText);}catch(error){console.error(error);setMessage('Could not save staff member. Check that the staff photo setup SQL was run and that you are signed in. '+(error.message||''),true);}finally{btn.disabled=false;btn.textContent='Add Staff';}});
+async function toggleStaff(id){const staff=staffItems.find(s=>String(s.id)===String(id));if(!staff)return;const next=staff.is_active===false;if(!next&&!confirm(`Deactivate ${staff.name}? Past delivery and pickup counts will be kept.`))return;const {error}=await supabaseClient.from('staff_members').update({is_active:next}).eq('id',id);if(error){setMessage('Could not update staff status: '+error.message,true);return;}setMessage(`${staff.name} ${next?'reactivated':'deactivated'}.`);await loadStaff();}
+(async()=>{const {data:{session},error}=await supabaseClient.auth.getSession();if(error)console.error(error);if(!session){window.location.href='login.html';return;}await loadStaff();})();
+</script></body></html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expenses | Saiku Rentals</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <style>
+    :root{--navy:#172238;--navy2:#25334b;--page:#f3f6fb;--white:#fff;--text:#172238;--muted:#66758f;--line:#e1e7f0;--blue:#315fe8;--red:#b93838;--green:#16805d;--shadow:0 8px 24px rgba(24,39,75,.06)}
+    *{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}
+    .layout{min-height:100vh;display:grid;grid-template-columns:246px minmax(0,1fr)}.sidebar{background:var(--navy);color:#fff;padding:22px 14px;display:flex;flex-direction:column;gap:26px}.brand{display:flex;align-items:center;gap:12px;padding:0 8px 22px;border-bottom:1px solid rgba(255,255,255,.12)}.brand-icon{height:42px;width:42px;border-radius:12px;background:#fff;color:var(--navy);display:grid;place-items:center;font-weight:800}.brand h2{font-size:17px;margin:0}.brand p{font-size:12px;color:#b6c2d5;margin:4px 0 0}.nav{display:grid;gap:7px}.nav a{display:flex;align-items:center;gap:12px;text-decoration:none;color:#dce4f1;padding:12px;border-radius:10px;font-size:14px}.nav a:hover,.nav a.active{background:var(--navy2);color:#fff}.side-note{margin-top:auto;padding:12px;color:#b6c2d5;font-size:12px;line-height:1.6}.main{min-width:0}.topbar{height:78px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px;gap:15px}.topbar h1{font-size:22px;margin:0}.topbar p{font-size:13px;color:var(--muted);margin:5px 0 0}.top-actions{display:flex;gap:10px;align-items:center}.content{max-width:1500px;margin:auto;padding:28px 30px 42px}.pagehead{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}.page-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.category-list{display:grid;gap:8px}.category-item{padding:11px 12px;border:1px solid var(--line);border-radius:9px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px}.category-list-empty{color:var(--muted);font-size:13px;padding:14px 2px}.pagehead h2{margin:0;font-size:27px}.pagehead p{margin:7px 0 0;color:var(--muted);font-size:14px}.btn{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:10px;padding:10px 14px;font-weight:600;font-size:13px}.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}.btn.danger{color:var(--red);border-color:#f0caca}.btn.small{padding:7px 10px;font-size:12px}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:22px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);min-width:0}.card .label{font-size:13px;color:var(--muted)}.card .value{font-size:26px;font-weight:800;letter-spacing:-.4px;margin:12px 0 6px;overflow-wrap:anywhere}.card small{color:var(--muted);font-size:12px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px;border-bottom:1px solid var(--line)}.panel-head h3{margin:0;font-size:17px}.panel-head p{margin:5px 0 0;color:var(--muted);font-size:12px}.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.filters select,.filters input{min-height:38px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fff;color:var(--text)}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{text-align:left;padding:14px 18px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}th{background:#f9fbfe;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}tbody tr:hover{background:#fafcff}td.amount{font-weight:750;white-space:nowrap}td.actions{white-space:nowrap}.pill{display:inline-flex;background:#eef2ff;color:#384f9b;padding:5px 9px;border-radius:99px;font-size:11px;font-weight:700}.empty{text-align:center;color:var(--muted);padding:36px 20px}.notice{display:none;margin-bottom:18px;padding:13px 15px;border-radius:10px;background:#fff3df;border:1px solid #f0d8a8;color:#694b17;font-size:13px;line-height:1.5}.notice.show{display:block}.footnote{color:var(--muted);font-size:12px;margin:15px 2px 0;line-height:1.6}
+    .modal{position:fixed;inset:0;z-index:99;background:rgba(16,24,40,.56);display:none;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.modal-box{background:#fff;width:min(520px,100%);border-radius:16px;box-shadow:0 20px 70px rgba(0,0,0,.25);max-height:92vh;overflow:auto}.modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid var(--line)}.modal-head h3{margin:0;font-size:18px}.xbtn{border:0;background:#f1f4f9;border-radius:8px;width:34px;height:34px;font-size:20px}.form{padding:22px;display:grid;gap:15px}.field{display:grid;gap:7px}.field label{font-size:13px;font-weight:650}.field input,.field select,.field textarea{width:100%;border:1px solid #d8e0eb;border-radius:9px;padding:11px 12px;background:#fff;color:var(--text);min-height:42px}.field textarea{resize:vertical;min-height:80px}.form-help{font-size:12px;color:var(--muted);line-height:1.5}.form-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:4px}.busy{opacity:.65;pointer-events:none}
+    @media(max-width:1000px){.layout{grid-template-columns:210px minmax(0,1fr)}.content{padding:22px 20px}.topbar{padding:0 20px}.cards{gap:12px}.card{padding:16px}.card .value{font-size:22px}}
+    @media(max-width:720px){.layout{display:block}.sidebar{padding:12px;gap:12px}.brand{padding:0 5px 12px}.nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.nav a{justify-content:center;padding:10px 6px;font-size:11px;gap:5px;text-align:center;flex-direction:column}.side-note{display:none}.topbar{height:auto;padding:16px;align-items:flex-start}.topbar h1{font-size:19px}.top-actions{flex-shrink:0}.content{padding:18px 12px 30px}.pagehead{align-items:flex-start;flex-direction:column}.page-actions{width:100%}.page-actions .btn{flex:1}.pagehead h2{font-size:23px}.cards{grid-template-columns:1fr;gap:10px}.card .value{font-size:24px}.panel-head{align-items:flex-start;flex-direction:column;padding:17px}.filters{width:100%}.filters select,.filters input{flex:1;min-width:130px}th,td{padding:12px}.form{padding:18px}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-icon">SR</div><div><h2>Saiku Rentals</h2><p>Management</p></div></div>
+    <nav class="nav">
+      <a href="dashboard.html"><span>⌂</span><span>Dashboard</span></a>
+      <a href="rentals.html"><span>📋</span><span>Rentals</span></a>
+      <a href="customers.html"><span>👥</span><span>Customers</span></a>
+      <a href="cycles.html"><span>🛵</span><span>Cycles</span></a>
+      <a href="loans.html"><span>💰</span><span>Loans &amp; Finance</span></a>
+      <a class="active" href="expenses.html"><span>🧾</span><span>Expenses</span></a>
+      <a href="dashboard.html#financeOverview"><span>📊</span><span>Finance Overview</span></a>
+      <a href="settings.html"><span>⚙️</span><span>Company Settings</span></a>
+    </nav>
+    <div class="side-note">Track business costs and loan interest here.<br>Loan principal repayments belong in Loans &amp; Finance.</div>
+  </aside>
+  <div class="main">
+    <header class="topbar"><div><h1>Expenses</h1><p>Record and manage Saiku Rentals business costs</p></div><div class="top-actions"><button class="btn" id="refreshButton" type="button">↻ Refresh</button></div></header>
+    <main class="content">
+      <div class="pagehead"><div><h2>Expense Tracking</h2><p>Keep operating expenses separate from loan principal repayments.</p></div><div class="page-actions"><button class="btn" id="manageCategoriesButton" type="button">⚙ Manage Categories</button><button class="btn primary" id="addExpenseButton" type="button">+ Add Expense</button></div></div>
+      <div id="notice" class="notice" role="status"></div>
+      <section class="cards">
+        <div class="card"><div class="label">Expenses Today</div><div class="value" id="todayTotal">MVR 0.00</div><small>Expenses recorded today</small></div>
+        <div class="card"><div class="label">This Month</div><div class="value" id="monthTotal">MVR 0.00</div><small>Based on expense date</small></div>
+        <div class="card"><div class="label">Since System Start</div><div class="value" id="sinceStartTotal">MVR 0.00</div><small id="startDateLabel">From Company Settings</small></div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><h3>Expense Records</h3><p id="recordCount">Loading records…</p></div><div class="filters"><select id="categoryFilter" aria-label="Filter by category"><option value="">All categories</option></select><input id="monthFilter" type="month" aria-label="Filter by month"><button class="btn small" id="clearFilters" type="button">Clear filters</button></div></div>
+        <div class="tablewrap"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="expenseRows"><tr><td colspan="5" class="empty">Loading expenses…</td></tr></tbody></table></div>
+      </section>
+      <p class="footnote">Accounting note: record loan interest as a business expense. Record loan principal repayments on the Loans &amp; Finance page, not here, to avoid treating principal as a business expense.</p>
+    </main>
+  </div>
+</div>
+
+<div id="expenseModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="modalTitle">Add Expense</h3><button class="xbtn" type="button" id="closeModal" aria-label="Close">×</button></div>
+    <form class="form" id="expenseForm">
+      <input type="hidden" id="expenseId">
+      <div class="field"><label for="expenseDate">Expense Date *</label><input id="expenseDate" type="date" required></div>
+      <div class="field"><label for="expenseCategory">Category *</label><select id="expenseCategory" required><option value="">Choose category</option></select></div>
+      <div class="field"><label for="expenseAmount">Amount (MVR) *</label><input id="expenseAmount" type="number" min="0.01" step="0.01" placeholder="0.00" required></div>
+      <div class="field"><label for="expenseDescription">Description *</label><textarea id="expenseDescription" maxlength="500" placeholder="What was this expense for?" required></textarea></div>
+      <div class="form-help">Do not record loan principal repayments as expenses. Record interest only under Loan Interest.</div>
+      <div class="form-actions"><button class="btn" type="button" id="cancelModal">Cancel</button><button class="btn primary" type="submit" id="saveButton">Save Expense</button></div>
+    </form>
+  </div>
+</div>
+
+<div id="categoriesModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="categoriesModalTitle">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="categoriesModalTitle">Manage Expense Categories</h3><button class="xbtn" type="button" id="closeCategoriesModal" aria-label="Close categories">×</button></div>
+    <form class="form" id="newCategoryForm">
+      <div class="form-help">Add categories for future expense entries. Existing expense records will keep their current category.</div>
+      <div id="categoryNotice" class="notice" role="status"></div>
+      <div class="field"><label for="newCategoryName">New category name *</label><input id="newCategoryName" type="text" maxlength="80" placeholder="e.g. Insurance, Parking, Bank Fees" required></div>
+      <div class="form-actions"><button class="btn" type="button" id="cancelCategoriesModal">Close</button><button class="btn primary" type="submit" id="addCategorySubmit">+ Add Category</button></div>
+    </form>
+    <div style="padding:0 22px 22px"><strong style="font-size:13px">Available categories</strong><div id="categoryList" class="category-list" style="margin-top:10px"><div class="category-list-empty">Loading categories…</div></div></div>
+  </div>
+</div>
+
+<script>
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const $ = id => document.getElementById(id);
+  let allExpenses = [];
+  let allCategories = [];
+  let categoriesTableReady = false;
+  let systemStartDate = '';
+  const defaultCategories = ['Salary', 'Maintenance', 'Petrol', 'Phone Bill', 'Loan Interest', 'Other'];
+  const money = value => 'MVR ' + Number(value || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const localDateKey = (date = new Date()) => {
+    const d = date instanceof Date ? date : new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  };
+  function safe(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function showNotice(message) { $('notice').textContent = message || ''; $('notice').classList.toggle('show', Boolean(message)); }
+  function uniqueCategoryNames(names) {
+    const seen = new Set();
+    return names.map(value => String(value || '').trim()).filter(value => {
+      const key = value.toLocaleLowerCase();
+      if (!value || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).sort((a, b) => {
+      const aDefault = defaultCategories.findIndex(x => x.toLocaleLowerCase() === a.toLocaleLowerCase());
+      const bDefault = defaultCategories.findIndex(x => x.toLocaleLowerCase() === b.toLocaleLowerCase());
+      if (aDefault !== -1 || bDefault !== -1) {
+        if (aDefault === -1) return 1;
+        if (bDefault === -1) return -1;
+        return aDefault - bDefault;
+      }
+      return a.localeCompare(b);
+    });
+  }
+  function renderCategoryControls() {
+    const filterValue = $('categoryFilter').value;
+    const formValue = $('expenseCategory').value;
+    const categories = uniqueCategoryNames([
+      ...defaultCategories,
+      ...allCategories,
+      ...allExpenses.map(row => row.category)
+    ]);
+    $('categoryFilter').innerHTML = '<option value="">All categories</option>' + categories.map(name => `<option value="${safe(name)}">${safe(name)}</option>`).join('');
+    $('expenseCategory').innerHTML = '<option value="">Choose category</option>' + categories.map(name => `<option value="${safe(name)}">${safe(name)}</option>`).join('');
+    if (categories.includes(filterValue)) $('categoryFilter').value = filterValue;
+    if (categories.includes(formValue)) $('expenseCategory').value = formValue;
+  }
+  function renderCategoryList() {
+    const categories = uniqueCategoryNames([...allCategories, ...allExpenses.map(row => row.category)]);
+    $('categoryList').innerHTML = categories.length
+      ? categories.map(name => `<div class="category-item"><span>${safe(name)}</span><span class="pill">Available</span></div>`).join('')
+      : '<div class="category-list-empty">No categories found.</div>';
+  }
+  async function loadCategories(showSetupWarning = true) {
+    const { data, error } = await supabaseClient.from('expense_categories').select('id,name').order('name', {ascending:true});
+    if (error) {
+      categoriesTableReady = false;
+      allCategories = defaultCategories.slice();
+      renderCategoryControls();
+      renderCategoryList();
+      if (showSetupWarning) showNotice('Default categories are available, but custom categories cannot be saved yet. Run the Expense Categories setup SQL first. Details: ' + error.message);
+      return false;
+    }
+    categoriesTableReady = true;
+    allCategories = uniqueCategoryNames((data || []).map(row => row.name));
+    renderCategoryControls();
+    renderCategoryList();
+    return true;
+  }
+  function openCategoriesModal() {
+    renderCategoryList();
+    $('categoryNotice').classList.remove('show');
+    $('categoryNotice').textContent = '';
+    $('categoriesModal').classList.add('show');
+    $('newCategoryName').value = '';
+    $('newCategoryName').focus();
+  }
+  function closeCategoriesModal() { $('categoriesModal').classList.remove('show'); }
+  function showCategoryNotice(message) { $('categoryNotice').textContent = message || ''; $('categoryNotice').classList.toggle('show', Boolean(message)); }
+  async function addCategory(event) {
+    event.preventDefault();
+    const name = $('newCategoryName').value.trim().replace(/\s+/g, ' ');
+    if (!name) { showNotice('Enter a category name.'); return; }
+    if (name.length > 80) { showNotice('Category names must be 80 characters or fewer.'); return; }
+    const duplicate = allCategories.some(item => item.toLocaleLowerCase() === name.toLocaleLowerCase());
+    if (duplicate) { showCategoryNotice('That category already exists. Choose a different name.'); return; }
+    if (!categoriesTableReady) {
+      showCategoryNotice('Custom categories are not enabled yet. Run the Expense Categories setup SQL in Supabase, then refresh this page.');
+      return;
+    }
+    $('addCategorySubmit').disabled = true;
+    try {
+      const { error } = await supabaseClient.from('expense_categories').insert({name});
+      if (error) {
+        if (error.code === '23505') throw new Error('That category already exists.');
+        throw new Error(error.message);
+      }
+      $('newCategoryForm').reset();
+      await loadCategories(false);
+      showCategoryNotice(`Category “${name}” added successfully and is now available in the expense form and filters.`);
+    } catch (error) {
+      console.error(error);
+      showCategoryNotice('Could not add category: ' + (error.message || 'Unknown error'));
+    } finally { $('addCategorySubmit').disabled = false; }
+  }
+  function openModal(editing = false) { $('modalTitle').textContent = editing ? 'Edit Expense' : 'Add Expense'; $('saveButton').textContent = editing ? 'Save Changes' : 'Save Expense'; $('expenseModal').classList.add('show'); $('expenseDate').focus(); }
+  function closeModal() { $('expenseModal').classList.remove('show'); }
+  async function checkAuth() {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) console.error('Session check failed:', error);
+    if (!data?.session) { window.location.href = 'login.html'; return false; }
+    return true;
+  }
+  async function loadExpenses() {
+    $('refreshButton').disabled = true;
+    $('recordCount').textContent = 'Loading records…';
+    showNotice('');
+    try {
+      const [expenseResult, settingsResult] = await Promise.all([
+        supabaseClient.from('expenses').select('*').order('expense_date', {ascending:false}),
+        supabaseClient.from('company_settings').select('system_start_date').eq('id',1).maybeSingle()
+      ]);
+      if (expenseResult.error) throw new Error('Could not load expenses: ' + expenseResult.error.message);
+      allExpenses = expenseResult.data || [];
+      systemStartDate = settingsResult.data?.system_start_date || '';
+      if (settingsResult.error) showNotice('Expenses loaded, but the system start date could not be read from Company Settings.');
+      $('startDateLabel').textContent = systemStartDate ? `From ${systemStartDate}` : 'System start date not configured';
+      await loadCategories();
+      updateSummary();
+      renderExpenses();
+    } catch (error) {
+      console.error(error);
+      showNotice(error.message || 'Unable to load expense records. Check the expenses table and its Supabase read policy.');
+      $('recordCount').textContent = 'Records unavailable';
+      $('expenseRows').innerHTML = `<tr><td colspan="5" class="empty">Unable to load expense records.</td></tr>`;
+    } finally { $('refreshButton').disabled = false; }
+  }
+  function updateSummary() {
+    const today = localDateKey();
+    const month = today.slice(0,7);
+    const sum = list => list.reduce((total, row) => total + Number(row.amount || 0), 0);
+    const key = row => row.expense_date ? localDateKey(row.expense_date) : (row.created_at ? localDateKey(row.created_at) : '');
+    $('todayTotal').textContent = money(sum(allExpenses.filter(row => key(row) === today)));
+    $('monthTotal').textContent = money(sum(allExpenses.filter(row => key(row).slice(0,7) === month)));
+    $('sinceStartTotal').textContent = money(sum(allExpenses.filter(row => !systemStartDate || key(row) >= systemStartDate)));
+  }
+  function renderExpenses() {
+    const category = $('categoryFilter').value;
+    const month = $('monthFilter').value;
+    const rows = allExpenses.filter(row => {
+      const d = row.expense_date ? localDateKey(row.expense_date) : (row.created_at ? localDateKey(row.created_at) : '');
+      return (!category || row.category === category) && (!month || d.startsWith(month));
+    });
+    $('recordCount').textContent = `${rows.length} record${rows.length === 1 ? '' : 's'}`;
+    if (!rows.length) { $('expenseRows').innerHTML = `<tr><td colspan="5" class="empty">No expense records match these filters.</td></tr>`; return; }
+    $('expenseRows').innerHTML = rows.map(row => {
+      const date = row.expense_date ? new Date(row.expense_date).toLocaleDateString() : '—';
+      return `<tr><td>${safe(date)}</td><td><span class="pill">${safe(row.category || 'Other')}</span></td><td>${safe(row.description || '—')}</td><td class="amount">${safe(money(row.amount))}</td><td class="actions"><button class="btn small" type="button" data-edit="${safe(row.id)}">Edit</button> <button class="btn small danger" type="button" data-delete="${safe(row.id)}">Delete</button></td></tr>`;
+    }).join('');
+  }
+  function startAdd() {
+    $('expenseForm').reset(); $('expenseId').value = ''; $('expenseDate').value = localDateKey(); openModal(false);
+  }
+  function startEdit(id) {
+    const row = allExpenses.find(item => item.id === id);
+    if (!row) { showNotice('Expense not found. Refresh the page and try again.'); return; }
+    $('expenseId').value = row.id;
+    $('expenseDate').value = row.expense_date ? localDateKey(row.expense_date) : localDateKey();
+    $('expenseCategory').value = row.category || '';
+    $('expenseAmount').value = Number(row.amount || 0).toFixed(2);
+    $('expenseDescription').value = row.description || '';
+    openModal(true);
+  }
+  async function saveExpense(event) {
+    event.preventDefault();
+    const id = $('expenseId').value;
+    const date = $('expenseDate').value;
+    const category = $('expenseCategory').value;
+    const amount = Number($('expenseAmount').value);
+    const description = $('expenseDescription').value.trim();
+    if (!date || !category || !description || !Number.isFinite(amount) || amount <= 0) { showNotice('Complete all required fields and enter an amount greater than zero.'); return; }
+    const payload = { expense_date: new Date(date + 'T00:00:00').toISOString(), category, amount, description };
+    $('saveButton').disabled = true;
+    try {
+      const result = id
+        ? await supabaseClient.from('expenses').update(payload).eq('id', id)
+        : await supabaseClient.from('expenses').insert(payload);
+      if (result.error) throw new Error(result.error.message);
+      closeModal();
+      await loadExpenses();
+      showNotice(id ? 'Expense updated successfully.' : 'Expense saved successfully.');
+    } catch (error) {
+      console.error(error);
+      showNotice('Could not save the expense: ' + (error.message || 'Unknown error') + '. Check that the expenses table allows authenticated inserts/updates.');
+    } finally { $('saveButton').disabled = false; }
+  }
+  async function deleteExpense(id) {
+    const row = allExpenses.find(item => item.id === id);
+    if (!row) return;
+    if (!confirm(`Delete this expense of ${money(row.amount)} (${row.category || 'Other'})? This cannot be undone.`)) return;
+    try {
+      const { error } = await supabaseClient.from('expenses').delete().eq('id',id);
+      if (error) throw error;
+      await loadExpenses();
+      showNotice('Expense deleted.');
+    } catch (error) {
+      console.error(error);
+      showNotice('Could not delete expense: ' + (error.message || 'Check the expenses table delete policy.'));
+    }
+  }
+  $('addExpenseButton').addEventListener('click', startAdd);
+  $('manageCategoriesButton').addEventListener('click', openCategoriesModal);
+  $('newCategoryForm').addEventListener('submit', addCategory);
+  $('closeCategoriesModal').addEventListener('click', closeCategoriesModal);
+  $('cancelCategoriesModal').addEventListener('click', closeCategoriesModal);
+  $('refreshButton').addEventListener('click', loadExpenses);
+  $('closeModal').addEventListener('click', closeModal);
+  $('cancelModal').addEventListener('click', closeModal);
+  $('expenseForm').addEventListener('submit', saveExpense);
+  $('categoryFilter').addEventListener('change', renderExpenses);
+  $('monthFilter').addEventListener('change', renderExpenses);
+  $('clearFilters').addEventListener('click', () => { $('categoryFilter').value = ''; $('monthFilter').value = ''; renderExpenses(); });
+  $('expenseRows').addEventListener('click', event => {
+    const edit = event.target.closest('[data-edit]');
+    const del = event.target.closest('[data-delete]');
+    if (edit) startEdit(edit.dataset.edit);
+    if (del) deleteExpense(del.dataset.delete);
+  });
+  $('expenseModal').addEventListener('click', event => { if (event.target === $('expenseModal')) closeModal(); });
+  $('categoriesModal').addEventListener('click', event => { if (event.target === $('categoriesModal')) closeCategoriesModal(); });
+  document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeModal(); closeCategoriesModal(); } });
+  (async () => { if (await checkAuth()) await loadExpenses(); })();
+</script>
+</body>
+</html>

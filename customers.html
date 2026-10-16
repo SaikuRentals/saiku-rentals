@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+
+        name="viewport"
+
+        content="width=device-width, initial-scale=1.0"
+
+    >
+
+    <title>Customers | Saiku Rentals</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Supabase -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/config.js"></script>
+
+
+<style>
+/* Customer photo cropper */
+.current-photo-preview, .customer-photo-crop-panel { margin-top:12px; padding:12px; border:1px solid #dbe4f0; border-radius:14px; background:#f7f9fc; color:#23334d; }
+.current-photo-preview[hidden], .customer-photo-crop-panel[hidden] { display:none !important; }
+.current-photo-preview { display:flex; align-items:center; gap:12px; }
+.current-photo-preview img { width:64px; height:64px; object-fit:cover; border-radius:50%; border:2px solid #d5e0ee; background:#e9eef5; }
+.current-photo-preview strong { display:block; font-size:13px; margin-bottom:3px; }
+.current-photo-preview small, .photo-crop-hint { display:block; color:#66758b; font-size:12px; line-height:1.45; }
+.customer-photo-crop-panel { background:#f4f7fc; }
+.photo-crop-title { font-size:13px; font-weight:700; margin-bottom:5px; color:#172a49; }
+.photo-crop-stage { position:relative; width:min(100%,300px); aspect-ratio:1 / 1; margin:12px auto 8px; overflow:hidden; border-radius:12px; background:#dce4ef; border:2px solid #9fb2cc; touch-action:none; cursor:grab; user-select:none; }
+.photo-crop-stage:active { cursor:grabbing; }
+#photoCropImage { position:absolute; left:0; top:0; max-width:none; max-height:none; width:auto; height:auto; pointer-events:none; user-select:none; -webkit-user-drag:none; }
+.photo-crop-tools { display:flex; align-items:center; gap:10px; margin-top:12px; }
+.photo-crop-tools label { font-size:12px; font-weight:700; white-space:nowrap; }
+.photo-crop-tools input[type=range] { width:100%; min-width:0; }
+.photo-crop-bottom { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px; }
+.photo-crop-bottom button { border:1px solid #cbd7e7; background:#fff; color:#233c60; border-radius:9px; padding:8px 10px; font-size:12px; font-weight:700; cursor:pointer; }
+.photo-crop-preview { display:flex; align-items:center; gap:10px; margin-top:10px; color:#66758b; font-size:12px; }
+#photoCropPreviewCanvas { width:70px; height:70px; flex:0 0 70px; border-radius:50%; object-fit:cover; border:2px solid #d2deed; background:#e3e9f1; }
+@media (max-width:520px) { .customer-photo-crop-panel, .current-photo-preview { padding:10px; } .photo-crop-stage { width:min(100%,270px); } .photo-crop-bottom button { padding:8px; } }
+</style>
+
+
+<style id="customers-dashboard-sidebar-match">
+/* Match only the Customers sidebar to the Dashboard sidebar. Customer page content is unchanged. */
+.sidebar{
+  background:linear-gradient(165deg,rgba(5,20,45,.99),rgba(9,35,72,.98))!important;
+  border-right:1px solid rgba(91,174,255,.22)!important;
+  box-shadow:10px 0 35px rgba(0,8,25,.18)!important;
+  color:#eef6ff!important;
+}
+.sidebar-logo{
+  display:flex!important;align-items:center!important;gap:11px!important;
+  min-height:90px!important;padding:18px 16px!important;
+  border-bottom:1px solid rgba(255,255,255,.1)!important;box-sizing:border-box!important;
+}
+.saiku-sidebar-brand{display:flex!important;align-items:center!important;gap:11px!important;min-width:0!important}
+.saiku-sidebar-logo{
+  display:block!important;width:56px!important;height:43px!important;flex:0 0 56px!important;
+  object-fit:contain!important;background:transparent!important;padding:0!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;mix-blend-mode:normal!important;
+}
+.saiku-sidebar-caption{min-width:0!important}
+.saiku-sidebar-caption h2{
+  margin:0 0 3px!important;color:#f5f9ff!important;font-size:15px!important;
+  line-height:1.25!important;letter-spacing:-.025em!important;white-space:nowrap!important;
+}
+.saiku-sidebar-caption span{color:#a9c4e6!important;font-size:11px!important}
+.sidebar .navigation{
+  display:flex!important;flex-direction:column!important;gap:5px!important;
+  padding:14px 8px!important;overflow-y:auto!important;min-height:0!important;
+}
+.sidebar .nav-item{
+  display:flex!important;align-items:center!important;gap:12px!important;
+  min-height:48px!important;box-sizing:border-box!important;padding:12px 14px!important;
+  margin:2px 4px!important;border:1px solid transparent!important;border-radius:13px!important;
+  color:rgba(239,245,255,.82)!important;background:transparent!important;
+  text-decoration:none!important;white-space:normal!important;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease!important;
+}
+.sidebar .nav-item>span:first-child{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 0 22px!important;width:22px!important;min-width:22px!important;
+  color:#a9cfff!important;font-size:16px!important;text-align:center!important;
+}
+.sidebar .nav-item>span:last-child{color:inherit!important;font-size:13px!important;line-height:1.3!important}
+.sidebar .nav-item:hover{
+  background:rgba(255,255,255,.08)!important;border-color:rgba(255,255,255,.1)!important;
+  color:#fff!important;transform:translateX(2px)!important;
+}
+.sidebar .nav-item.active{
+  background:linear-gradient(110deg,rgba(0,145,255,.34),rgba(255,255,255,.09))!important;
+  border-color:rgba(66,190,255,.48)!important;color:#fff!important;
+  box-shadow:inset 3px 0 0 #21b8ff,0 6px 18px rgba(0,0,0,.1)!important;
+}
+.sidebar .nav-item.active>span:first-child{color:#6dd8ff!important}
+.sidebar-bottom{
+  border-top:1px solid rgba(255,255,255,.1)!important;
+  background:rgba(5,20,45,.45)!important;padding:12px!important;
+}
+.sidebar .logout-button{
+  display:flex!important;align-items:center!important;gap:9px!important;width:100%!important;
+  min-height:44px!important;padding:11px 12px!important;border:1px solid transparent!important;
+  border-radius:11px!important;background:transparent!important;color:#c6d8ef!important;
+  text-align:left!important;font:inherit!important;font-size:13px!important;font-weight:700!important;
+  box-shadow:none!important;cursor:pointer!important;
+}
+.sidebar .logout-button:hover{background:rgba(255,255,255,.08)!important;color:#fff!important}
+@media(max-width:760px){
+  .sidebar-logo{min-height:82px!important;padding:15px 14px!important}
+  .saiku-sidebar-logo{width:48px!important;height:39px!important;flex-basis:48px!important}
+  .sidebar .navigation{padding:10px 7px!important}
+  .sidebar .nav-item{min-height:44px!important;padding:10px 12px!important}
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo saiku-sidebar-brand">
+        <img src="assets/assets/saiku-rentals-logo.png" alt="Saiku Rentals" class="saiku-sidebar-logo">
+        <div class="saiku-sidebar-caption"><h2>Saiku Rentals</h2><span>Management</span></div>
+      </div>
+      <nav class="navigation">
+        <a href="dashboard.html" class="nav-item"><span>⌂</span><span>Dashboard</span></a>
+        <a href="rentals.html" class="nav-item"><span>📋</span><span>Rentals</span></a>
+        <a href="customers.html" class="nav-item active"><span>👥</span><span>Customers</span></a>
+        <a href="cycles.html" class="nav-item"><span>🛵</span><span>Cycles</span></a>
+        <a href="staff.html" class="nav-item"><span>👥</span><span>Staff Management</span></a>
+        <a href="loans.html" class="nav-item"><span>💰</span><span>Loans &amp; Finance</span></a>
+        <a href="expenses.html" class="nav-item"><span>🧾</span><span>Expenses</span></a>
+        <a href="reports.html" class="nav-item"><span>📈</span><span>Monthly Reports</span></a>
+        <a href="finance.html" class="nav-item"><span>📊</span><span>Finance Overview</span></a>
+        <a href="finance.html#cashManagement" class="nav-item"><span>🏦</span><span>Cash &amp; Deposits</span></a>
+        <a href="settings.html" class="nav-item"><span>⚙️</span><span>Company Settings</span></a>
+      </nav>
+      <div class="sidebar-bottom"><button class="logout-button" onclick="logout()" type="button"><span>↪</span> Logout</button></div>
+    </aside>
+
+    <!-- MAIN -->
+
+    <div class="main-area">
+
+        <!-- TOPBAR -->
+
+        <header class="topbar">
+
+            <button
+
+                class="menu-button"
+
+                onclick="toggleSidebar()"
+
+            >
+
+                ☰
+
+            </button>
+
+            <div class="topbar-title">
+
+                <h2>
+
+                    Customers
+
+                </h2>
+
+                <p>
+
+                    Manage your rental customers
+
+                </p>
+
+            </div>
+
+            <div class="topbar-right">
+
+                <button class="notification-button">
+
+                    🔔
+
+                </button>
+
+                <div class="user-avatar">
+
+                    A
+
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- PAGE CONTENT -->
+
+        <main class="dashboard-content">
+
+            <div class="page-heading">
+
+                <div>
+
+                    <h1>
+
+                        Customers
+
+                    </h1>
+
+                    <p>
+
+                        Add and manage your customers.
+
+                    </p>
+
+                </div>
+
+                <button
+
+                    class="primary-button"
+
+                    onclick="openCustomerModal()"
+
+                >
+
+                    + Add Customer
+
+                </button>
+
+            </div>
+
+            <!-- SEARCH -->
+
+            <section class="dashboard-card customer-toolbar">
+
+                <div class="search-box">
+
+                    <span>🔍</span>
+
+                    <input
+
+                        type="text"
+
+                        id="searchInput"
+
+                        placeholder="Search name, phone or ID..."
+
+                        oninput="searchCustomers()"
+
+                    >
+
+                </div>
+
+                <div class="customer-count">
+
+                    <span id="customerCount">
+
+                        0 customers
+
+                    </span>
+
+                </div>
+
+            </section>
+
+            <!-- CUSTOMERS -->
+
+            <section class="dashboard-card customers-card">
+
+                <div id="customersContainer">
+
+                    <div class="customer-loading">
+
+                        Loading customers...
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+<!-- CUSTOMER MODAL -->
+
+<div
+
+    class="modal-overlay"
+
+    id="customerModal"
+
+>
+
+    <div class="modal-card">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2 id="modalTitle">
+
+                    Add Customer
+
+                </h2>
+
+                <p>
+
+                    Customer information
+
+                </p>
+
+            </div>
+
+            <button
+
+                class="modal-close"
+
+                onclick="closeCustomerModal()"
+
+            >
+
+                ×
+
+            </button>
+
+        </div>
+
+        <form id="customerForm">
+
+            <input
+
+                type="hidden"
+
+                id="customerId"
+
+            >
+
+            <div class="form-group">
+
+                <label>
+
+                    Customer Name *
+
+                </label>
+
+                <input
+
+                    type="text"
+
+                    id="customerName"
+
+                    placeholder="Enter customer name"
+
+                    required
+
+                >
+
+            </div>
+
+            <div class="form-row">
+
+                <div class="form-group">
+
+                    <label>
+
+                        ID / Passport
+
+                    </label>
+
+                    <input
+
+                        type="text"
+
+                        id="customerIdNumber"
+
+                        placeholder="ID or passport number"
+
+                    >
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>
+
+                        Phone
+
+                    </label>
+
+                    <input
+
+                        type="tel"
+
+                        id="customerPhone"
+
+                        placeholder="Phone number"
+
+                    >
+
+                </div>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>Photo</label>
+                <input type="file" id="customerPhoto" accept="image/*" onchange="handleCustomerPhotoSelected(event)">
+                <small>Optional. Choose a photo, then drag and zoom to crop it. The circular preview shows what will be saved.</small>
+                <div id="currentPhotoPreview" class="current-photo-preview" hidden>
+                    <img id="currentCustomerPhoto" alt="Current customer photo">
+                    <div><strong>Current photo</strong><small>Choose another image above to crop and replace it.</small></div>
+                </div>
+                <div id="customerPhotoCropPanel" class="customer-photo-crop-panel" hidden>
+                    <div class="photo-crop-title">Crop customer photo</div>
+                    <div class="photo-crop-hint">Drag the image to position the face. Use the zoom slider to adjust the crop.</div>
+                    <div id="photoCropStage" class="photo-crop-stage" onpointerdown="photoCropPointerDown(event)" onpointermove="photoCropPointerMove(event)" onpointerup="photoCropPointerUp(event)" onpointercancel="photoCropPointerUp(event)">
+                        <img id="photoCropImage" alt="Move and crop customer photo" draggable="false">
+                    </div>
+                    <div class="photo-crop-tools"><label for="photoCropZoom">Zoom</label><input id="photoCropZoom" type="range" min="1" max="3" step="0.01" value="1" oninput="setPhotoCropZoom(this.value)"></div>
+                    <div class="photo-crop-bottom"><button type="button" onclick="resetPhotoCrop()">Reset crop</button><button type="button" onclick="clearNewCustomerPhoto()">Cancel photo</button></div>
+                    <div class="photo-crop-preview"><canvas id="photoCropPreviewCanvas" width="112" height="112" aria-label="Cropped photo preview"></canvas><span>This square crop is saved as a compressed JPG when you save the customer.</span></div>
+                </div>
+
+            </div>
+
+            <div class="form-group">
+
+                <label>
+
+                    Notes
+
+                </label>
+
+                <textarea
+
+                    id="customerNotes"
+
+                    rows="3"
+
+                    placeholder="Optional notes..."
+
+                ></textarea>
+
+            </div>
+
+            <p
+
+                id="formMessage"
+
+                class="form-message"
+
+            ></p>
+
+            <div class="modal-actions">
+
+                <button
+
+                    type="button"
+
+                    class="secondary-button"
+
+                    onclick="closeCustomerModal()"
+
+                >
+
+                    Cancel
+
+                </button>
+
+                <button
+
+                    type="submit"
+
+                    class="primary-button"
+
+                    id="saveCustomerButton"
+
+                >
+
+                    Save Customer
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+
+    /* =========================
+
+       SUPABASE
+
+    ========================= */
+
+    const supabaseClient =
+
+        supabase.createClient(
+
+            SUPABASE_URL,
+
+            SUPABASE_KEY
+
+        );
+
+    let allCustomers = [];
+
+    // Photo cropper state remains in the browser; no database changes are needed.
+    const customerPhotoCrop = {
+        image: null, objectUrl: null, sourceFile: null,
+        naturalWidth: 0, naturalHeight: 0, baseScale: 1, scale: 1, x: 0, y: 0,
+        dragging: false, pointerId: null, dragStartX: 0, dragStartY: 0, originX: 0, originY: 0
+    };
+
+    function createSafeFileId() {
+        // crypto.randomUUID() is unavailable in some browsers and insecure/local contexts.
+        try {
+            if (window.crypto && typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID();
+            if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+                const bytes = new Uint8Array(16);
+                window.crypto.getRandomValues(bytes);
+                return Array.from(bytes, value => value.toString(16).padStart(2, "0")).join("");
+            }
+        } catch (_) { /* Use the compatibility fallback below. */ }
+        return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    }
+
+    function setCustomerPhotoMessage(text, isError = true) {
+        const message = document.getElementById("formMessage");
+        if (!message) return;
+        message.textContent = text || "";
+        message.style.color = isError ? "#d64545" : "#16805d";
+    }
+
+    function clampPhotoCropPosition() {
+        const stage = document.getElementById("photoCropStage");
+        if (!stage || !customerPhotoCrop.image) return;
+        const width = stage.clientWidth, height = stage.clientHeight;
+        const imageWidth = customerPhotoCrop.naturalWidth * customerPhotoCrop.scale;
+        const imageHeight = customerPhotoCrop.naturalHeight * customerPhotoCrop.scale;
+        customerPhotoCrop.x = Math.min(0, Math.max(width - imageWidth, customerPhotoCrop.x));
+        customerPhotoCrop.y = Math.min(0, Math.max(height - imageHeight, customerPhotoCrop.y));
+    }
+
+    function drawCustomerCropPreview() {
+        const canvas = document.getElementById("photoCropPreviewCanvas");
+        const stage = document.getElementById("photoCropStage");
+        if (!canvas || !stage || !customerPhotoCrop.image) return;
+        const size = stage.clientWidth;
+        if (!size) return;
+        const sourceSize = size / customerPhotoCrop.scale;
+        const sourceX = -customerPhotoCrop.x / customerPhotoCrop.scale;
+        const sourceY = -customerPhotoCrop.y / customerPhotoCrop.scale;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(customerPhotoCrop.image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, canvas.width, canvas.height);
+    }
+
+    function renderCustomerPhotoCrop() {
+        const image = document.getElementById("photoCropImage");
+        if (!image || !customerPhotoCrop.image) return;
+        clampPhotoCropPosition();
+        image.style.width = (customerPhotoCrop.naturalWidth * customerPhotoCrop.scale) + "px";
+        image.style.height = (customerPhotoCrop.naturalHeight * customerPhotoCrop.scale) + "px";
+        image.style.left = customerPhotoCrop.x + "px";
+        image.style.top = customerPhotoCrop.y + "px";
+        drawCustomerCropPreview();
+    }
+
+    function initializeCustomerPhotoCrop() {
+        const stage = document.getElementById("photoCropStage");
+        if (!stage || !customerPhotoCrop.image) return;
+        const width = stage.clientWidth, height = stage.clientHeight;
+        customerPhotoCrop.baseScale = Math.max(width / customerPhotoCrop.naturalWidth, height / customerPhotoCrop.naturalHeight);
+        customerPhotoCrop.scale = customerPhotoCrop.baseScale;
+        customerPhotoCrop.x = (width - customerPhotoCrop.naturalWidth * customerPhotoCrop.scale) / 2;
+        customerPhotoCrop.y = (height - customerPhotoCrop.naturalHeight * customerPhotoCrop.scale) / 2;
+        const zoom = document.getElementById("photoCropZoom");
+        if (zoom) zoom.value = "1";
+        renderCustomerPhotoCrop();
+    }
+
+    function handleCustomerPhotoSelected(event) {
+        const file = event && event.target && event.target.files ? event.target.files[0] : null;
+        const panel = document.getElementById("customerPhotoCropPanel");
+        if (!file) { if (panel) panel.hidden = true; return; }
+        if (!file.type || !file.type.startsWith("image/")) {
+            setCustomerPhotoMessage("Please choose an image file such as JPG or PNG.");
+            event.target.value = "";
+            return;
+        }
+        if (file.size > 20 * 1024 * 1024) {
+            setCustomerPhotoMessage("This image is larger than 20 MB. Please choose a smaller photo.");
+            event.target.value = "";
+            return;
+        }
+        if (customerPhotoCrop.objectUrl) URL.revokeObjectURL(customerPhotoCrop.objectUrl);
+        customerPhotoCrop.objectUrl = URL.createObjectURL(file);
+        customerPhotoCrop.sourceFile = file;
+        customerPhotoCrop.image = null;
+        const cropImage = new Image();
+        cropImage.onload = function () {
+            const visibleCropImage = document.getElementById("photoCropImage");
+            if (visibleCropImage) visibleCropImage.src = customerPhotoCrop.objectUrl;
+            customerPhotoCrop.image = cropImage;
+            customerPhotoCrop.naturalWidth = cropImage.naturalWidth;
+            customerPhotoCrop.naturalHeight = cropImage.naturalHeight;
+            if (panel) panel.hidden = false;
+            const current = document.getElementById("currentPhotoPreview");
+            if (current) current.hidden = true;
+            requestAnimationFrame(initializeCustomerPhotoCrop);
+            setCustomerPhotoMessage("Photo loaded. Adjust the crop, then save the customer.", false);
+        };
+        cropImage.onerror = function () {
+            setCustomerPhotoMessage("This image could not be opened. Please try a JPG or PNG photo.");
+            if (panel) panel.hidden = true;
+        };
+        cropImage.src = customerPhotoCrop.objectUrl;
+    }
+
+    function setPhotoCropZoom(value) {
+        if (!customerPhotoCrop.image) return;
+        const stage = document.getElementById("photoCropStage");
+        const centerX = stage.clientWidth / 2, centerY = stage.clientHeight / 2;
+        const oldScale = customerPhotoCrop.scale;
+        const imagePointX = (centerX - customerPhotoCrop.x) / oldScale;
+        const imagePointY = (centerY - customerPhotoCrop.y) / oldScale;
+        customerPhotoCrop.scale = customerPhotoCrop.baseScale * Math.max(1, Math.min(3, Number(value) || 1));
+        customerPhotoCrop.x = centerX - imagePointX * customerPhotoCrop.scale;
+        customerPhotoCrop.y = centerY - imagePointY * customerPhotoCrop.scale;
+        renderCustomerPhotoCrop();
+    }
+
+    function resetPhotoCrop() { initializeCustomerPhotoCrop(); }
+
+    function photoCropPointerDown(event) {
+        if (!customerPhotoCrop.image || (event.button !== undefined && event.button !== 0)) return;
+        const stage = event.currentTarget;
+        customerPhotoCrop.dragging = true;
+        customerPhotoCrop.pointerId = event.pointerId;
+        customerPhotoCrop.dragStartX = event.clientX;
+        customerPhotoCrop.dragStartY = event.clientY;
+        customerPhotoCrop.originX = customerPhotoCrop.x;
+        customerPhotoCrop.originY = customerPhotoCrop.y;
+        if (stage.setPointerCapture) stage.setPointerCapture(event.pointerId);
+        event.preventDefault();
+    }
+
+    function photoCropPointerMove(event) {
+        if (!customerPhotoCrop.dragging || event.pointerId !== customerPhotoCrop.pointerId) return;
+        customerPhotoCrop.x = customerPhotoCrop.originX + (event.clientX - customerPhotoCrop.dragStartX);
+        customerPhotoCrop.y = customerPhotoCrop.originY + (event.clientY - customerPhotoCrop.dragStartY);
+        renderCustomerPhotoCrop();
+        event.preventDefault();
+    }
+
+    function photoCropPointerUp(event) {
+        if (event && customerPhotoCrop.pointerId !== null && event.pointerId !== customerPhotoCrop.pointerId) return;
+        customerPhotoCrop.dragging = false;
+        customerPhotoCrop.pointerId = null;
+    }
+
+    function clearNewCustomerPhoto() {
+        const input = document.getElementById("customerPhoto");
+        const panel = document.getElementById("customerPhotoCropPanel");
+        const current = document.getElementById("currentPhotoPreview");
+        if (input) input.value = "";
+        if (panel) panel.hidden = true;
+        if (customerPhotoCrop.objectUrl) URL.revokeObjectURL(customerPhotoCrop.objectUrl);
+        Object.assign(customerPhotoCrop, { image: null, objectUrl: null, sourceFile: null, naturalWidth: 0, naturalHeight: 0, baseScale: 1, scale: 1, x: 0, y: 0, dragging: false, pointerId: null });
+        if (current) current.hidden = !current.dataset.url;
+        setCustomerPhotoMessage("New photo selection cancelled. The existing photo will be kept.", false);
+    }
+
+    function resetCustomerPhotoUi() {
+        const input = document.getElementById("customerPhoto");
+        const panel = document.getElementById("customerPhotoCropPanel");
+        const current = document.getElementById("currentPhotoPreview");
+        const currentImage = document.getElementById("currentCustomerPhoto");
+        if (input) input.value = "";
+        if (panel) panel.hidden = true;
+        if (current) { current.hidden = true; current.dataset.url = ""; }
+        if (currentImage) currentImage.removeAttribute("src");
+        if (customerPhotoCrop.objectUrl) URL.revokeObjectURL(customerPhotoCrop.objectUrl);
+        Object.assign(customerPhotoCrop, { image: null, objectUrl: null, sourceFile: null, naturalWidth: 0, naturalHeight: 0, baseScale: 1, scale: 1, x: 0, y: 0, dragging: false, pointerId: null });
+    }
+
+    async function getCroppedCustomerPhotoBlob() {
+        if (!customerPhotoCrop.image) return null;
+        const stage = document.getElementById("photoCropStage");
+        const size = stage.clientWidth;
+        const canvas = document.createElement("canvas");
+        canvas.width = 600; canvas.height = 600;
+        const ctx = canvas.getContext("2d");
+        const sourceSize = size / customerPhotoCrop.scale;
+        const sourceX = -customerPhotoCrop.x / customerPhotoCrop.scale;
+        const sourceY = -customerPhotoCrop.y / customerPhotoCrop.scale;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(customerPhotoCrop.image, sourceX, sourceY, sourceSize, sourceSize, 0, 0, canvas.width, canvas.height);
+        return new Promise((resolve, reject) => {
+            canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Could not process the cropped photo. Please choose another image.")), "image/jpeg", 0.86);
+        });
+    }
+
+
+    /* =========================
+
+       AUTH
+
+    ========================= */
+
+    async function checkLogin() {
+
+        const {
+
+            data: {
+
+                session
+
+            }
+
+        } = await supabaseClient
+
+            .auth
+
+            .getSession();
+
+        if (!session) {
+
+            window.location.href =
+
+                "login.html";
+
+        }
+
+    }
+
+    checkLogin();
+
+    /* =========================
+
+       LOAD CUSTOMERS
+
+    ========================= */
+
+    async function loadCustomers() {
+
+        const container =
+
+            document.getElementById(
+
+                "customersContainer"
+
+            );
+
+        container.innerHTML =
+
+            '<div class="customer-loading">Loading customers...</div>';
+
+        const {
+
+            data,
+
+            error
+
+        } = await supabaseClient
+
+            .from("customers")
+
+            .select("*")
+
+            .order("created_at", {
+
+                ascending: false
+
+            });
+
+        if (error) {
+
+            container.innerHTML =
+
+                `<div class="error-state">
+
+                    Unable to load customers.<br>
+
+                    ${error.message}
+
+                </div>`;
+
+            return;
+
+        }
+
+        allCustomers = data || [];
+
+        renderCustomers(allCustomers);
+
+    }
+
+    /* =========================
+
+       RENDER CUSTOMERS
+
+    ========================= */
+
+    function renderCustomers(customers) {
+
+        const container =
+
+            document.getElementById(
+
+                "customersContainer"
+
+            );
+
+        document.getElementById(
+
+            "customerCount"
+
+        ).textContent =
+
+            `${customers.length} customer${customers.length === 1 ? "" : "s"}`;
+
+        if (!customers.length) {
+
+            container.innerHTML = `
+
+                <div class="customer-empty">
+
+                    <div class="empty-icon">
+
+                        👥
+
+                    </div>
+
+                    <h3>
+
+                        No customers yet
+
+                    </h3>
+
+                    <p>
+
+                        Add your first customer to get started.
+
+                    </p>
+
+                    <button
+
+                        class="primary-button"
+
+                        onclick="openCustomerModal()"
+
+                    >
+
+                        + Add Customer
+
+                    </button>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+        container.innerHTML = `
+
+            <div class="customer-list">
+
+                ${customers.map(customer => {
+
+                    const photo =
+
+                        customer.photo_url ||
+
+                        "assets/sample-profile.jpg";
+
+                    return `
+
+                        <div class="customer-row">
+
+                            <div class="customer-main">
+
+                                <img
+
+                                    src="${escapeHtml(photo)}"
+
+                                    class="customer-photo"
+
+                                    onerror="this.src='assets/sample-profile.jpg'"
+
+                                >
+
+                                <div>
+
+                                    <strong>
+
+                                        ${escapeHtml(customer.name)}
+
+                                    </strong>
+
+                                    <span>
+
+                                        ${customer.phone
+
+                                            ? escapeHtml(customer.phone)
+
+                                            : "No phone number"}
+
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <div class="customer-info">
+
+                                <span>
+
+                                    ${customer.id_number
+
+                                        ? escapeHtml(customer.id_number)
+
+                                        : "No ID"}
+
+                                </span>
+
+                            </div>
+
+                            <div class="customer-actions">
+
+                                <button
+
+                                    onclick="editCustomer('${customer.id}')"
+
+                                >
+
+                                    Edit
+
+                                </button>
+
+                                <button
+
+                                    class="delete-button"
+
+                                    onclick="deleteCustomer('${customer.id}')"
+
+                                >
+
+                                    Delete
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }).join("")}
+
+            </div>
+
+        `;
+
+    }
+
+    /* =========================
+
+       SEARCH
+
+    ========================= */
+
+    function searchCustomers() {
+
+        const query =
+
+            document
+
+                .getElementById("searchInput")
+
+                .value
+
+                .toLowerCase()
+
+                .trim();
+
+        const filtered =
+
+            allCustomers.filter(customer => {
+
+                return (
+
+                    (customer.name || "")
+
+                        .toLowerCase()
+
+                        .includes(query)
+
+                    ||
+
+                    (customer.phone || "")
+
+                        .toLowerCase()
+
+                        .includes(query)
+
+                    ||
+
+                    (customer.id_number || "")
+
+                        .toLowerCase()
+
+                        .includes(query)
+
+                );
+
+            });
+
+        renderCustomers(filtered);
+
+    }
+
+    /* =========================
+
+       OPEN MODAL
+
+    ========================= */
+
+    function openCustomerModal() {
+
+        document
+
+            .getElementById("customerModal")
+
+            .classList.add("show");
+
+        document
+
+            .getElementById("modalTitle")
+
+            .textContent =
+
+            "Add Customer";
+
+        document
+
+            .getElementById("customerForm")
+
+            .reset();
+
+        resetCustomerPhotoUi();
+
+        document
+
+            .getElementById("customerId")
+
+            .value = "";
+
+        document
+
+            .getElementById("formMessage")
+
+            .textContent = "";
+
+    }
+
+    /* =========================
+
+       CLOSE MODAL
+
+    ========================= */
+
+    function closeCustomerModal() {
+
+        document
+
+            .getElementById("customerModal")
+
+            .classList.remove("show");
+
+        resetCustomerPhotoUi();
+
+    }
+
+    /* =========================
+
+       SAVE CUSTOMER
+
+    ========================= */
+
+    document
+
+        .getElementById("customerForm")
+
+        .addEventListener(
+
+            "submit",
+
+            async function(event) {
+
+                event.preventDefault();
+
+                const button =
+
+                    document.getElementById(
+
+                        "saveCustomerButton"
+
+                    );
+
+                const message =
+
+                    document.getElementById(
+
+                        "formMessage"
+
+                    );
+
+                const customerId =
+
+                    document.getElementById(
+
+                        "customerId"
+
+                    ).value;
+
+                const name =
+
+                    document.getElementById(
+
+                        "customerName"
+
+                    ).value.trim();
+
+                const idNumber =
+
+                    document.getElementById(
+
+                        "customerIdNumber"
+
+                    ).value.trim();
+
+                const phone =
+
+                    document.getElementById(
+
+                        "customerPhone"
+
+                    ).value.trim();
+
+                const notes =
+
+                    document.getElementById(
+
+                        "customerNotes"
+
+                    ).value.trim();
+
+                const photoInput =
+
+                    document.getElementById(
+
+                        "customerPhoto"
+
+                    );
+
+                button.disabled = true;
+
+                button.textContent =
+
+                    "Saving...";
+
+                message.textContent = "";
+                let operationStage = "saving customer details";
+
+                try {
+
+                    let photoUrl = null;
+
+                    /* CROP, COMPRESS AND UPLOAD PHOTO */
+                    if (photoInput.files && photoInput.files.length > 0) {
+                        operationStage = "uploading the customer photo";
+                        if (!customerPhotoCrop.image) {
+                            throw new Error("Please wait for the photo to load, then adjust the crop before saving.");
+                        }
+
+                        const croppedPhoto = await getCroppedCustomerPhotoBlob();
+                        const fileName = `${createSafeFileId()}.jpg`;
+                        const filePath = `customers/${fileName}`;
+                        const { error: uploadError } = await supabaseClient
+                            .storage
+                            .from("customer-photos")
+                            .upload(filePath, croppedPhoto, {
+                                upsert: false,
+                                contentType: "image/jpeg",
+                                cacheControl: "3600"
+                            });
+
+                        if (uploadError) throw uploadError;
+
+                        const { data: publicData } = supabaseClient
+                            .storage
+                            .from("customer-photos")
+                            .getPublicUrl(filePath);
+                        photoUrl = publicData.publicUrl;
+                    }
+
+
+                    /* INSERT */
+
+                    if (!customerId) {
+                        operationStage = "creating the customer record";
+
+                        const {
+
+                            error
+
+                        } = await supabaseClient
+
+                            .from("customers")
+
+                            .insert({
+
+                                name: name,
+
+                                id_number:
+
+                                    idNumber || null,
+
+                                phone:
+
+                                    phone || null,
+
+                                photo_url:
+
+                                    photoUrl,
+
+                                notes:
+
+                                    notes || null
+
+                            });
+
+                        if (error) {
+
+                            throw error;
+
+                        }
+
+                    }
+
+                    /* UPDATE */
+
+                    else {
+                        operationStage = "updating the customer record";
+
+                        const updateData = {
+
+                            name: name,
+
+                            id_number:
+
+                                idNumber || null,
+
+                            phone:
+
+                                phone || null,
+
+                            notes:
+
+                                notes || null
+
+                        };
+
+                        if (photoUrl) {
+
+                            updateData.photo_url =
+
+                                photoUrl;
+
+                        }
+
+                        const {
+
+                            error
+
+                        } = await supabaseClient
+
+                            .from("customers")
+
+                            .update(updateData)
+
+                            .eq(
+
+                                "id",
+
+                                customerId
+
+                            );
+
+                        if (error) {
+
+                            throw error;
+
+                        }
+
+                    }
+
+                    closeCustomerModal();
+
+                    await loadCustomers();
+
+                } catch (error) {
+
+                    const errorText = error && error.message ? error.message : String(error || "Unknown error");
+                    const lowerError = errorText.toLowerCase();
+                    const isRlsError = lowerError.includes("row-level security") || lowerError.includes("row level security") || (error && error.code === "42501");
+                    if (isRlsError) {
+                        const likelyResource = operationStage.includes("photo")
+                            ? "Supabase Storage blocked the customer photo upload"
+                            : "Supabase blocked the customer record save";
+                        message.textContent = likelyResource + " because a Row Level Security (RLS) policy is missing or denies this action. Run customers_rls_fix.sql in the Supabase SQL Editor, then try again. Details: " + errorText;
+                    } else if (lowerError.includes("customer-photos") || lowerError.includes("bucket")) {
+                        message.textContent = "Photo upload failed. Check that the Supabase Storage bucket is named customer-photos and that the signed-in user has upload permission. Details: " + errorText;
+                    } else {
+                        message.textContent = errorText;
+                    }
+                    message.style.color = "#d64545";
+
+                }
+
+                button.disabled = false;
+
+                button.textContent =
+
+                    "Save Customer";
+
+            }
+
+        );
+
+    /* =========================
+
+       EDIT CUSTOMER
+
+    ========================= */
+
+    function editCustomer(id) {
+
+        const customer =
+
+            allCustomers.find(
+
+                item => item.id === id
+
+            );
+
+        if (!customer) return;
+
+        document
+
+            .getElementById("customerModal")
+
+            .classList.add("show");
+
+        document
+
+            .getElementById("modalTitle")
+
+            .textContent =
+
+            "Edit Customer";
+
+        document
+
+            .getElementById("customerId")
+
+            .value =
+
+            customer.id;
+
+        document
+
+            .getElementById("customerName")
+
+            .value =
+
+            customer.name || "";
+
+        document
+
+            .getElementById("customerIdNumber")
+
+            .value =
+
+            customer.id_number || "";
+
+        document
+
+            .getElementById("customerPhone")
+
+            .value =
+
+            customer.phone || "";
+
+        document
+
+            .getElementById("customerNotes")
+
+            .value =
+
+            customer.notes || "";
+
+        document
+
+            .getElementById("customerPhoto")
+
+            .value = "";
+
+        resetCustomerPhotoUi();
+        const currentPhotoPreview = document.getElementById("currentPhotoPreview");
+        const currentPhotoImage = document.getElementById("currentCustomerPhoto");
+        if (customer.photo_url && currentPhotoPreview && currentPhotoImage) {
+            currentPhotoImage.src = customer.photo_url;
+            currentPhotoPreview.dataset.url = customer.photo_url;
+            currentPhotoPreview.hidden = false;
+        }
+
+    }
+
+    /* =========================
+
+       DELETE CUSTOMER
+
+    ========================= */
+
+    async function deleteCustomer(id) {
+
+        const customer =
+
+            allCustomers.find(
+
+                item => item.id === id
+
+            );
+
+        if (!customer) return;
+
+        const confirmed =
+
+            confirm(
+
+                `Delete ${customer.name}?`
+
+            );
+
+        if (!confirmed) return;
+
+        const {
+
+            error
+
+        } = await supabaseClient
+
+            .from("customers")
+
+            .delete()
+
+            .eq(
+
+                "id",
+
+                id
+
+            );
+
+        if (error) {
+
+            alert(
+
+                "Unable to delete customer:\n" +
+
+                error.message
+
+            );
+
+            return;
+
+        }
+
+        await loadCustomers();
+
+    }
+
+    /* =========================
+
+       ESCAPE HTML
+
+    ========================= */
+
+    function escapeHtml(value) {
+
+        return String(value)
+
+            .replaceAll("&", "&amp;")
+
+            .replaceAll("<", "&lt;")
+
+            .replaceAll(">", "&gt;")
+
+            .replaceAll('"', "&quot;")
+
+            .replaceAll("'", "&#039;");
+
+    }
+
+    /* =========================
+
+       LOGOUT
+
+    ========================= */
+
+    async function logout() {
+
+        await supabaseClient
+
+            .auth
+
+            .signOut();
+
+        window.location.href =
+
+            "login.html";
+
+    }
+
+    /* =========================
+
+       MOBILE SIDEBAR
+
+    ========================= */
+
+    function toggleSidebar() {
+
+        document
+
+            .getElementById("sidebar")
+
+            .classList
+
+            .toggle("show");
+
+    }
+
+    /* LOAD */
+
+    loadCustomers();
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cycles | Saiku Rentals</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="stylesheet" href="css/liquid-glass-theme.css">
+    <style>
+        .expiry-cell { min-width: 125px; }
+        .expiry-date { display:block; font-size:12px; color:var(--text-secondary, #687386); margin-top:4px; }
+        .expiry-countdown { display:inline-flex; align-items:center; padding:5px 8px; border-radius:8px; font-size:12px; font-weight:700; white-space:nowrap; }
+        .expiry-valid { color:#16803c; background:#e8f7ed; }
+        .expiry-warning { color:#a15c00; background:#fff3d6; }
+        .expiry-expired { color:#b42318; background:#feeceb; }
+        .document-fields { margin:18px 0; padding:14px; border:1px solid rgba(120,140,170,.25); border-radius:14px; }
+        .document-fields h3 { margin:0 0 12px; font-size:15px; }
+        .document-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+        .document-grid .input-group { min-width:0; margin:0; }
+        .document-grid input { width:100%; box-sizing:border-box; }
+        @media(max-width:700px) { .document-grid { grid-template-columns:1fr; } .table-wrapper { overflow-x:auto; } .expiry-cell { min-width:115px; } }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="js/config.js"></script>
+
+
+<style id="cycles-dashboard-sidebar-match">
+.saiku-sidebar-brand{display:flex!important;align-items:center!important;gap:11px!important;padding:18px 20px!important;min-height:92px;box-sizing:border-box}
+.saiku-sidebar-logo{display:block!important;width:56px!important;height:43px!important;flex:0 0 56px!important;object-fit:contain!important;background:transparent!important;padding:0!important;border:0!important;border-radius:0!important;box-shadow:none!important}
+.saiku-sidebar-caption{min-width:0!important}.saiku-sidebar-caption h2{font-size:15px!important;margin:0 0 3px!important;white-space:nowrap;color:#fff!important}.saiku-sidebar-caption span{font-size:11px!important;color:#b9d1f3!important}
+.sidebar .navigation{overflow-y:auto;min-height:0;padding:18px 12px!important}.sidebar .nav-item{display:flex!important;align-items:center!important;gap:12px!important;min-height:46px;padding:12px 14px!important;color:#d4e5ff!important;text-decoration:none!important;border-radius:12px!important;box-sizing:border-box}
+.sidebar .nav-item span:first-child{display:inline-flex!important;align-items:center;justify-content:center;flex:0 0 24px!important;width:24px!important;min-width:24px!important;font-size:18px!important;visibility:visible!important;opacity:1!important}.sidebar .nav-item span:last-child{display:inline-block!important;visibility:visible!important;opacity:1!important;color:inherit!important;white-space:nowrap}
+.sidebar .nav-item.active{background:linear-gradient(110deg,rgba(0,139,255,.48),rgba(0,217,255,.12))!important;border:1px solid rgba(55,191,255,.55)!important;color:#fff!important;box-shadow:0 0 22px rgba(0,139,255,.18),inset 0 1px 0 rgba(255,255,255,.15)!important}.sidebar .sidebar-bottom{padding:15px!important;border-top:1px solid rgba(112,178,244,.2)!important}
+@media(max-width:768px){.app-layout .sidebar{position:fixed!important;left:0!important;top:0!important;bottom:0!important;width:min(285px,86vw)!important;height:100dvh!important;min-height:0!important;z-index:9999!important;transform:translateX(-105%);transition:transform .25s ease!important;overflow-y:auto!important;box-shadow:18px 0 45px rgba(0,0,0,.3)!important}.app-layout .sidebar.show{transform:translateX(0)!important}.app-layout .main-content{margin-left:0!important;width:100%!important;min-width:0!important}.app-layout .main-content .topbar{box-sizing:border-box;width:100%}}
+</style>
+
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo saiku-sidebar-brand">
+        <img src="assets/assets/saiku-rentals-logo.png" alt="Saiku Rentals" class="saiku-sidebar-logo">
+        <div class="saiku-sidebar-caption"><h2>Saiku Rentals</h2><span>Management</span></div>
+      </div>
+      <nav class="navigation">
+        <a href="dashboard.html" class="nav-item"><span>⌂</span><span>Dashboard</span></a>
+        <a href="rentals.html" class="nav-item"><span>📋</span><span>Rentals</span></a>
+        <a href="customers.html" class="nav-item"><span>👥</span><span>Customers</span></a>
+        <a href="cycles.html" class="nav-item active"><span>🛵</span><span>Cycles</span></a>
+        <a href="staff.html" class="nav-item"><span>👥</span><span>Staff Management</span></a>
+        <a href="loans.html" class="nav-item"><span>💰</span><span>Loans &amp; Finance</span></a>
+        <a href="expenses.html" class="nav-item"><span>🧾</span><span>Expenses</span></a>
+        <a href="reports.html" class="nav-item"><span>📈</span><span>Monthly Reports</span></a>
+        <a href="finance.html" class="nav-item"><span>📊</span><span>Finance Overview</span></a>
+        <a href="finance.html#cashManagement" class="nav-item"><span>🏦</span><span>Cash &amp; Deposits</span></a>
+        <a href="settings.html" class="nav-item"><span>⚙️</span><span>Company Settings</span></a>
+      </nav>
+      <div class="sidebar-bottom"><button class="logout-button" onclick="logout()"><span>↪</span> Logout</button></div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main-content">
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <button class="mobile-menu" onclick="toggleSidebar()">
+
+                ☰
+
+            </button>
+
+            <div>
+
+                <h1>Cycles</h1>
+
+                <p>Manage your rental cycles</p>
+
+            </div>
+
+            <button class="primary-button" onclick="openCycleModal()">
+
+                + Add Cycle
+
+            </button>
+
+        </header>
+
+        <!-- PAGE CONTENT -->
+
+        <section class="page-content">
+
+            <!-- SUMMARY -->
+
+            <div class="stats-grid cycle-stats">
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">🛵</div>
+
+                    <div>
+
+                        <span>Total Cycles</span>
+
+                        <strong id="totalCycles">0</strong>
+
+                    </div>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">✅</div>
+
+                    <div>
+
+                        <span>Available</span>
+
+                        <strong id="availableCycles">0</strong>
+
+                    </div>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">🔴</div>
+
+                    <div>
+
+                        <span>Rented</span>
+
+                        <strong id="rentedCycles">0</strong>
+
+                    </div>
+
+                </div>
+
+                <div class="stat-card">
+
+                    <div class="stat-icon">🔧</div>
+
+                    <div>
+
+                        <span>Maintenance</span>
+
+                        <strong id="maintenanceCycles">0</strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- SEARCH -->
+
+            <div class="content-card">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>Cycle List</h2>
+
+                        <p>View and manage your rental cycles</p>
+
+                    </div>
+
+                    <input
+
+                        type="text"
+
+                        id="searchCycle"
+
+                        class="search-input"
+
+                        placeholder="Search plate number..."
+
+                        oninput="filterCycles()"
+
+                    >
+
+                </div>
+
+                <!-- TABLE -->
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>Plate Number</th>
+
+                                <th>Status</th>
+
+                                <th>Annual Fee</th>
+                                <th>Insurance</th>
+                                <th>Roadworthiness</th>
+                                <th>Notes</th>
+
+                                <th>Added</th>
+
+                                <th>Actions</th>
+
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="cyclesTableBody">
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <div id="emptyMessage" class="empty-state" style="display:none;">
+
+                    <div>🛵</div>
+
+                    <h3>No cycles found</h3>
+
+                    <p>Add your first rental cycle.</p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<!-- CYCLE MODAL -->
+
+<div class="modal-overlay" id="cycleModal">
+
+    <div class="modal-card">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2 id="modalTitle">Add Cycle</h2>
+
+                <p>Enter cycle information</p>
+
+            </div>
+
+            <button class="modal-close" onclick="closeCycleModal()">
+
+                ×
+
+            </button>
+
+        </div>
+
+        <form id="cycleForm">
+
+            <input type="hidden" id="cycleId">
+
+            <div class="input-group">
+
+                <label for="plateNumber">
+
+                    Plate Number
+
+                </label>
+
+                <input
+
+                    type="text"
+
+                    id="plateNumber"
+
+                    placeholder="Example: A1234"
+
+                    required
+
+                >
+
+            </div>
+
+            <div class="input-group">
+
+                <label for="cycleStatus">
+
+                    Status
+
+                </label>
+
+                <select id="cycleStatus">
+
+                    <option value="available">
+
+                        Available
+
+                    </option>
+
+                    <option value="rented">
+
+                        Rented
+
+                    </option>
+
+                    <option value="maintenance">
+
+                        Maintenance
+
+                    </option>
+
+                </select>
+
+            </div>
+
+            <div class="document-fields">
+                <h3>Annual Fee</h3>
+                <div class="document-grid">
+                    <div class="input-group">
+                        <label for="annualFeeAmount">Fee Amount (MVR)</label>
+                        <input type="number" id="annualFeeAmount" min="0" step="0.01" placeholder="e.g. 1500">
+                    </div>
+                    <div class="input-group">
+                        <label for="annualFeePaidDate">Last Payment Date</label>
+                        <input type="date" id="annualFeePaidDate">
+                    </div>
+                    <div class="input-group">
+                        <label for="annualFeeExpiry">Next Renewal / Expiry Date</label>
+                        <input type="date" id="annualFeeExpiry">
+                    </div>
+                </div>
+            </div>
+
+            <div class="document-fields">
+                <h3>Insurance</h3>
+                <div class="document-grid">
+                    <div class="input-group">
+                        <label for="insuranceExpiry">Insurance Expiry Date</label>
+                        <input type="date" id="insuranceExpiry">
+                    </div>
+                </div>
+            </div>
+
+            <div class="document-fields">
+                <h3>Roadworthiness</h3>
+                <div class="document-grid">
+                    <div class="input-group">
+                        <label for="roadworthinessExpiry">Roadworthiness Expiry Date</label>
+                        <input type="date" id="roadworthinessExpiry">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+
+                <label for="cycleNotes">
+
+                    Notes
+
+                </label>
+
+                <textarea
+
+                    id="cycleNotes"
+
+                    rows="3"
+
+                    placeholder="Optional notes"
+
+                ></textarea>
+
+            </div>
+
+            <p id="cycleMessage" class="form-message"></p>
+
+            <div class="modal-actions">
+
+                <button
+
+                    type="button"
+
+                    class="secondary-button"
+
+                    onclick="closeCycleModal()"
+
+                >
+
+                    Cancel
+
+                </button>
+
+                <button
+
+                    type="submit"
+
+                    class="primary-button"
+
+                >
+
+                    Save Cycle
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+
+const supabaseClient =
+
+    supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allCycles = [];
+
+// ==============================
+
+// LOGIN CHECK
+
+// ==============================
+
+async function checkLogin() {
+
+    const {
+
+        data: { session }
+
+    } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+
+        window.location.href = "login.html";
+
+        return;
+
+    }
+
+    loadCycles();
+
+}
+
+checkLogin();
+
+// ==============================
+
+// LOAD CYCLES
+
+// ==============================
+
+async function loadCycles() {
+
+    const {
+
+        data,
+
+        error
+
+    } = await supabaseClient
+
+        .from("cycles")
+
+        .select("\*")
+
+        .order("created_at", { ascending: false });
+
+    if (error) {
+
+        console.error(error);
+
+        alert("Unable to load cycles: " + error.message);
+
+        return;
+
+    }
+
+    allCycles = data || [];
+
+    updateStatistics();
+
+    renderCycles(allCycles);
+
+}
+
+// ==============================
+
+// STATISTICS
+
+// ==============================
+
+function updateStatistics() {
+
+    const total = allCycles.length;
+
+    const available =
+
+        allCycles.filter(
+
+            cycle => cycle.status === "available"
+
+        ).length;
+
+    const rented =
+
+        allCycles.filter(
+
+            cycle => cycle.status === "rented"
+
+        ).length;
+
+    const maintenance =
+
+        allCycles.filter(
+
+            cycle => cycle.status === "maintenance"
+
+        ).length;
+
+    document.getElementById("totalCycles").textContent =
+
+        total;
+
+    document.getElementById("availableCycles").textContent =
+
+        available;
+
+    document.getElementById("rentedCycles").textContent =
+
+        rented;
+
+    document.getElementById("maintenanceCycles").textContent =
+
+        maintenance;
+
+}
+
+// ==============================
+
+// RENDER CYCLES
+
+// ==============================
+
+function renderCycles(cycles) {
+
+    const tbody =
+
+        document.getElementById("cyclesTableBody");
+
+    const emptyMessage =
+
+        document.getElementById("emptyMessage");
+
+    tbody.innerHTML = "";
+
+    if (!cycles.length) {
+
+        emptyMessage.style.display = "block";
+
+        return;
+
+    }
+
+    emptyMessage.style.display = "none";
+
+    cycles.forEach(cycle => {
+
+        const row =
+
+            document.createElement("tr");
+
+        const statusText =
+
+            cycle.status.charAt(0).toUpperCase() +
+
+            cycle.status.slice(1);
+
+        const statusClass =
+
+            cycle.status;
+
+        const createdDate =
+
+            cycle.created_at
+
+                ? new Date(cycle.created_at)
+
+                    .toLocaleDateString()
+
+                : "-";
+
+        row.innerHTML = `
+
+            <td>
+
+                <strong>
+
+                    ${escapeHtml(cycle.plate_number)}
+
+                </strong>
+
+            </td>
+
+            <td>
+                <span class="status-badge ${statusClass}">
+                    ${statusText}
+                </span>
+            </td>
+
+            <td class="expiry-cell">
+                <strong>${formatMoney(cycle.annual_fee_amount)}</strong>
+                ${renderExpiry(cycle.annual_fee_expiry)}
+            </td>
+
+            <td class="expiry-cell">
+                ${renderExpiry(cycle.insurance_expiry)}
+            </td>
+
+            <td class="expiry-cell">
+                ${renderExpiry(cycle.roadworthiness_expiry)}
+            </td>
+
+            <td>
+                ${escapeHtml(cycle.notes || "-")}
+            </td>
+
+            <td>
+
+                ${createdDate}
+
+            </td>
+
+            <td>
+
+                <div class="table-actions">
+
+                    <button
+
+                        class="action-button edit"
+
+                        onclick="editCycle('${cycle.id}')"
+
+                    >
+
+                        ✏️
+
+                    </button>
+
+                    <button
+
+                        class="action-button delete"
+
+                        onclick="deleteCycle('${cycle.id}')"
+
+                    >
+
+                        🗑️
+
+                    </button>
+
+                </div>
+
+            </td>
+
+        `;
+
+        tbody.appendChild(row);
+
+    });
+
+}
+
+// ==============================
+
+// SEARCH
+
+// ==============================
+
+function filterCycles() {
+
+    const search =
+
+        document
+
+            .getElementById("searchCycle")
+
+            .value
+
+            .toLowerCase()
+
+            .trim();
+
+    const filtered =
+
+        allCycles.filter(cycle =>
+
+            (cycle.plate_number || "")
+
+                .toLowerCase()
+
+                .includes(search)
+
+        );
+
+    renderCycles(filtered);
+
+}
+
+// ==============================
+
+// OPEN MODAL
+
+// ==============================
+
+function openCycleModal() {
+
+    document
+
+        .getElementById("cycleForm")
+
+        .reset();
+
+    document
+
+        .getElementById("cycleId")
+
+        .value = "";
+
+    document
+
+        .getElementById("modalTitle")
+
+        .textContent = "Add Cycle";
+
+    document
+
+        .getElementById("cycleMessage")
+
+        .textContent = "";
+
+    document
+
+        .getElementById("cycleModal")
+
+        .classList.add("show");
+
+}
+
+// ==============================
+
+// CLOSE MODAL
+
+// ==============================
+
+function closeCycleModal() {
+
+    document
+
+        .getElementById("cycleModal")
+
+        .classList.remove("show");
+
+}
+
+// ==============================
+
+// SAVE CYCLE
+
+// ==============================
+
+document
+
+    .getElementById("cycleForm")
+
+    .addEventListener("submit", async function(event) {
+
+        event.preventDefault();
+
+        const cycleId =
+
+            document
+
+                .getElementById("cycleId")
+
+                .value;
+
+        const plateNumber =
+
+            document
+
+                .getElementById("plateNumber")
+
+                .value
+
+                .trim()
+
+                .toUpperCase();
+
+        const status =
+
+            document
+
+                .getElementById("cycleStatus")
+
+                .value;
+
+        const notes =
+
+            document
+
+                .getElementById("cycleNotes")
+
+                .value
+
+                .trim();
+
+        
+        const annualFeeAmount = document.getElementById("annualFeeAmount").value;
+        const annualFeePaidDate = document.getElementById("annualFeePaidDate").value || null;
+        const annualFeeExpiry = document.getElementById("annualFeeExpiry").value || null;
+        const insuranceExpiry = document.getElementById("insuranceExpiry").value || null;
+        const roadworthinessExpiry = document.getElementById("roadworthinessExpiry").value || null;
+const message =
+
+            document
+
+                .getElementById("cycleMessage");
+
+        if (!plateNumber) {
+
+            message.textContent =
+
+                "Please enter a plate number.";
+
+            message.style.color = "#d64545";
+
+            return;
+
+        }
+
+        message.textContent = "Saving...";
+
+        message.style.color = "#687386";
+
+        let result;
+
+        if (cycleId) {
+
+            result =
+
+                await supabaseClient
+
+                    .from("cycles")
+
+                    .update({
+
+                        plate_number: plateNumber,
+
+                        status: status,
+                            notes: notes || null,
+                            annual_fee_amount: annualFeeAmount === "" ? null : Number(annualFeeAmount),
+                            annual_fee_paid_date: annualFeePaidDate,
+                            annual_fee_expiry: annualFeeExpiry,
+                            insurance_expiry: insuranceExpiry,
+                            roadworthiness_expiry: roadworthinessExpiry
+                        })
+
+                    .eq("id", cycleId);
+
+        } else {
+
+            result =
+
+                await supabaseClient
+
+                    .from("cycles")
+
+                    .insert({
+
+                        plate_number: plateNumber,
+
+                        status: status,
+                            notes: notes || null,
+                            annual_fee_amount: annualFeeAmount === "" ? null : Number(annualFeeAmount),
+                            annual_fee_paid_date: annualFeePaidDate,
+                            annual_fee_expiry: annualFeeExpiry,
+                            insurance_expiry: insuranceExpiry,
+                            roadworthiness_expiry: roadworthinessExpiry
+                        });
+
+        }
+
+        if (result.error) {
+
+            console.error(result.error);
+
+            message.textContent =
+
+                "Error: " + result.error.message;
+
+            message.style.color = "#d64545";
+
+            return;
+
+        }
+
+        message.textContent =
+
+            "Cycle saved successfully.";
+
+        message.style.color = "#2e8b57";
+
+        setTimeout(() => {
+
+            closeCycleModal();
+
+            loadCycles();
+
+        }, 500);
+
+    });
+
+// ==============================
+
+// EDIT CYCLE
+
+// ==============================
+
+function editCycle(id) {
+
+    const cycle =
+
+        allCycles.find(item => item.id === id);
+
+    if (!cycle) return;
+
+    document
+
+        .getElementById("cycleId")
+
+        .value = cycle.id;
+
+    document
+
+        .getElementById("plateNumber")
+
+        .value = cycle.plate_number;
+
+    document
+
+        .getElementById("cycleStatus")
+
+        .value = cycle.status;
+
+    document
+
+        .getElementById("cycleNotes")
+
+        .value = cycle.notes || "";
+
+    
+    document.getElementById("annualFeeAmount").value = cycle.annual_fee_amount ?? "";
+    document.getElementById("annualFeePaidDate").value = cycle.annual_fee_paid_date || "";
+    document.getElementById("annualFeeExpiry").value = cycle.annual_fee_expiry || "";
+    document.getElementById("insuranceExpiry").value = cycle.insurance_expiry || "";
+    document.getElementById("roadworthinessExpiry").value = cycle.roadworthiness_expiry || "";
+document
+
+        .getElementById("modalTitle")
+
+        .textContent = "Edit Cycle";
+
+    document
+
+        .getElementById("cycleMessage")
+
+        .textContent = "";
+
+    document
+
+        .getElementById("cycleModal")
+
+        .classList.add("show");
+
+}
+
+// ==============================
+
+// DELETE CYCLE
+
+// ==============================
+
+async function deleteCycle(id) {
+
+    const cycle =
+
+        allCycles.find(item => item.id === id);
+
+    if (!cycle) return;
+
+    const confirmed =
+
+        confirm(
+
+            `Delete cycle ${cycle.plate_number}?`
+
+        );
+
+    if (!confirmed) return;
+
+    const {
+
+        error
+
+    } = await supabaseClient
+
+        .from("cycles")
+
+        .delete()
+
+        .eq("id", id);
+
+    if (error) {
+
+        alert(
+
+            "Unable to delete cycle: " +
+
+            error.message
+
+        );
+
+        return;
+
+    }
+
+    loadCycles();
+
+}
+
+// ==============================
+// DOCUMENT EXPIRY COUNTDOWNS
+// ==============================
+
+function formatMoney(value) {
+    if (value === null || value === undefined || value === "") return "Not entered";
+    return "MVR " + Number(value).toLocaleString("en-US", { maximumFractionDigits: 2 });
+}
+
+function renderExpiry(dateValue) {
+    if (!dateValue) return '<span class="expiry-date">Date not set</span>';
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expiry = new Date(dateValue + "T00:00:00");
+    if (Number.isNaN(expiry.getTime())) return '<span class="expiry-date">Invalid date</span>';
+
+    const days = Math.round((expiry.getTime() - today.getTime()) / 86400000);
+    let className = "expiry-valid";
+    let text = days + (days === 1 ? " day left" : " days left");
+
+    if (days < 0) {
+        className = "expiry-expired";
+        const overdue = Math.abs(days);
+        text = "EXPIRED · " + overdue + (overdue === 1 ? " day ago" : " days ago");
+    } else if (days <= 30) {
+        className = "expiry-warning";
+        text = days === 0 ? "EXPIRES TODAY" : text;
+    }
+
+    return '<span class="expiry-countdown ' + className + '">' + escapeHtml(text) + '</span>' +
+           '<span class="expiry-date">' + escapeHtml(formatDate(dateValue)) + '</span>';
+}
+
+function formatDate(value) {
+    if (!value) return "-";
+    const parts = value.split("-");
+    if (parts.length !== 3) return value;
+    return parts[2] + "/" + parts[1] + "/" + parts[0];
+}
+
+
+// ==============================
+// LOGOUT
+// ==============================
+
+async function logout() {
+
+    await supabaseClient.auth.signOut();
+
+    window.location.href = "login.html";
+
+}
+
+// ==============================
+
+// MOBILE SIDEBAR
+
+// ==============================
+
+function toggleSidebar() {
+
+    document
+
+        .getElementById("sidebar")
+
+        .classList.toggle("show");
+
+}
+
+// ==============================
+
+// SECURITY / HTML ESCAPE
+
+// ==============================
+
+function escapeHtml(value) {
+
+    return String(value)
+
+        .replace(/&/g, "&amp;")
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .replace(/"/g, "&quot;")
+
+        .replace(/'/g, "&#039;");
+
+}
+
+</script>
+
+</body>
+
+</html>
