@@ -533,7 +533,7 @@
       </div>
       <nav class="navigation">
         <a href="dashboard.html" class="nav-item"><span>⌂</span><span>Dashboard</span></a>
-        <a href="rentals.html" class="nav-item"><span>📋</span><span>Rentals</span></a>
+        <a href="Rentals.html" class="nav-item"><span>📋</span><span>Rentals</span></a>
         <a href="customers.html" class="nav-item"><span>👥</span><span>Customers</span></a>
         <a href="cycles.html" class="nav-item"><span>🛵</span><span>Cycles</span></a>
         <a href="loans.html" class="nav-item"><span>💰</span><span>Loans &amp; Finance</span></a>
@@ -557,7 +557,7 @@
       </header>
 
       <main class="dashboard-content">
-        <div class="dashboard-shortcuts"><button class="primary-button" type="button" onclick="window.location.href='rentals.html'">+ New Rental</button></div>
+        <div class="dashboard-shortcuts"><button class="primary-button" type="button" onclick="window.location.href='Rentals.html'">+ New Rental</button></div>
 
         <div id="dashboardNotice" class="notice" role="status" hidden></div>
 
@@ -582,7 +582,7 @@
               <p>Every cycle in one place — rented, available, or expired.</p>
             </div>
             <div class="live-section-actions">
-              <button class="secondary-action" type="button" onclick="window.location.href='rentals.html'">View rentals <span aria-hidden="true">↗</span></button>
+              <button class="secondary-action" type="button" onclick="window.location.href='Rentals.html'">View rentals <span aria-hidden="true">↗</span></button>
               <button class="secondary-action" type="button" onclick="window.location.href='cycles.html'">Manage cycles <span aria-hidden="true">↗</span></button>
             </div>
           </div>
@@ -632,7 +632,7 @@
 
         <div class="dashboard-grid finance-section">
           <section class="dashboard-card" aria-labelledby="recentRentalsHeading">
-            <div class="card-header"><div><h2 id="recentRentalsHeading">Recent Rentals</h2><p>Latest rental activity</p></div><button class="text-button" type="button" onclick="window.location.href='rentals.html'">View all</button></div>
+            <div class="card-header"><div><h2 id="recentRentalsHeading">Recent Rentals</h2><p>Latest rental activity</p></div><button class="text-button" type="button" onclick="window.location.href='Rentals.html'">View all</button></div>
             <div class="table-wrap"><table class="dashboard-table"><thead><tr><th>Customer</th><th>Cycle</th><th>Started</th><th>Status</th></tr></thead><tbody id="recentRentalsBody"><tr><td colspan="4">Loading rentals…</td></tr></tbody></table></div>
           </section>
           <section class="dashboard-card" aria-labelledby="cycleStatusHeading">
@@ -966,7 +966,7 @@
         return `<article class="active-rental-dashboard-card fleet-rental-card fleet-available-card ${isAvailable ? 'is-available' : 'is-unavailable'}" data-cycle-card="${escapeHtml(cycleId)}">
           <div class="fleet-card-heading"><strong class="fleet-cycle-plate">${escapeHtml(plate)}</strong><span class="fleet-pill ${isAvailable ? 'available' : isMaintenance ? 'maintenance' : 'unavailable'}">${escapeHtml(label)}</span></div>
           <div class="fleet-available-message"><span class="fleet-ready-icon">${isAvailable ? '✓' : isMaintenance ? '⚒' : '•'}</span><div><strong>${isAvailable ? 'Ready to rent' : isMaintenance ? 'Not ready to rent' : 'Check cycle status'}</strong><p>${isAvailable ? 'This cycle is available now.' : isMaintenance ? 'Maintenance status is set for this cycle.' : 'This cycle is not currently marked available.'}</p></div></div>
-          ${isAvailable ? `<a class="available-cycle-cta" href="rentals.html">Create rental <span aria-hidden="true">↗</span></a>` : ''}
+          ${isAvailable ? `<a class="available-cycle-cta" href="Rentals.html">Create rental <span aria-hidden="true">↗</span></a>` : ''}
         </article>`;
       }).join('');
 
@@ -1091,7 +1091,7 @@
       const phone = customer.phone || customer.phone_number || customer.mobile || '';
       const action = button.getAttribute('data-active-action');
       if (action === 'extend') {
-        window.location.href = `rentals.html?extend=${encodeURIComponent(String(rental.id))}`;
+        window.location.href = `Rentals.html?extend=${encodeURIComponent(String(rental.id))}`;
         return;
       }
       const start = formatActiveRentalDate(rental.start_date);
