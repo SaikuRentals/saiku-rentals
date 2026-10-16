@@ -1,0 +1,242 @@
+
+/* Saiku Rentals — unified light-blue Liquid Glass interface
+   Shared by all management pages. Page-specific content and business logic are unchanged. */
+:root{
+  --sg-ink:#172b49;
+  --sg-muted:#607795;
+  --sg-blue:#2f8fe8;
+  --sg-blue-deep:#1768b5;
+  --sg-line:rgba(105,157,211,.22);
+  --sg-glass:rgba(255,255,255,.78);
+  --sg-shadow:0 10px 30px rgba(45,91,145,.09);
+}
+html{min-height:100%;background:#eef6ff}
+body{
+  background:linear-gradient(145deg,#f7fbff 0%,#edf6ff 48%,#e8f3ff 100%) !important;
+  color:var(--sg-ink);
+}
+.layout{
+  grid-template-columns:246px minmax(0,1fr) !important;
+  min-height:100vh !important;
+  background:transparent !important;
+}
+.sidebar{
+  position:sticky !important;top:0 !important;
+  width:246px !important;height:100vh !important;min-height:100vh !important;
+  display:flex !important;flex-direction:column !important;
+  padding:0 !important;gap:0 !important;
+  overflow:hidden !important;
+  color:var(--sg-ink) !important;
+  background:linear-gradient(180deg,rgba(233,245,255,.94),rgba(216,235,253,.92)) !important;
+  border-right:1px solid rgba(100,157,211,.30) !important;
+  box-shadow:8px 0 28px rgba(51,105,160,.08) !important;
+  backdrop-filter:blur(22px) saturate(150%) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(150%) !important;
+  z-index:1000 !important;
+}
+.sidebar-logo.saiku-sidebar-brand,
+.sidebar .brand,
+.sidebar .saiku-sidebar-brand{
+  display:flex !important;align-items:center !important;
+  min-height:76px !important;flex:0 0 76px !important;
+  padding:16px 18px !important;margin:0 !important;gap:0 !important;
+  background:rgba(255,255,255,.48) !important;
+  border:0 !important;border-bottom:1px solid var(--sg-line) !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8) !important;
+}
+.sidebar .saiku-sidebar-logo,.sidebar .brand-icon,
+.sidebar .sidebar-logo img{display:none !important}
+.sidebar .saiku-sidebar-caption{min-width:0 !important}
+.sidebar .saiku-sidebar-caption h2,.sidebar .brand h2{
+  margin:0 0 3px !important;color:#17385f !important;
+  font-size:15px !important;font-weight:750 !important;line-height:1.25 !important;
+  white-space:nowrap !important;letter-spacing:-.02em !important;
+}
+.sidebar .saiku-sidebar-caption span,.sidebar .brand p{
+  display:block !important;color:#6483a5 !important;font-size:11px !important;line-height:1.4 !important;
+}
+.sidebar .navigation,.sidebar .nav{
+  display:flex !important;flex-direction:column !important;align-items:stretch !important;
+  gap:5px !important;padding:14px 9px !important;margin:0 !important;
+  overflow-y:auto !important;overflow-x:hidden !important;min-height:0 !important;
+  background:transparent !important;
+}
+.sidebar .navigation .nav-item,.sidebar .nav a{
+  display:flex !important;align-items:center !important;justify-content:flex-start !important;
+  flex-direction:row !important;gap:11px !important;
+  width:100% !important;min-height:43px !important;padding:10px 12px !important;margin:0 !important;
+  border:1px solid transparent !important;border-radius:12px !important;
+  background:transparent !important;color:#365777 !important;
+  font-family:Inter,"Segoe UI",Arial,sans-serif !important;
+  font-size:13px !important;font-weight:650 !important;line-height:1.3 !important;
+  text-align:left !important;text-decoration:none !important;white-space:nowrap !important;
+  box-sizing:border-box !important;box-shadow:none !important;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease !important;
+}
+.sidebar .navigation .nav-item span:first-child,.sidebar .nav a span:first-child{
+  display:inline-flex !important;align-items:center !important;justify-content:center !important;
+  flex:0 0 22px !important;width:22px !important;min-width:22px !important;
+  font-size:17px !important;line-height:1 !important;
+}
+.sidebar .navigation .nav-item span:last-child,.sidebar .nav a span:last-child{
+  display:inline-block !important;color:inherit !important;font-size:13px !important;
+  font-weight:650 !important;line-height:1.3 !important;white-space:nowrap !important;
+}
+.sidebar .navigation .nav-item:hover,.sidebar .nav a:hover{
+  color:#155b9d !important;background:rgba(255,255,255,.68) !important;
+  border-color:rgba(77,151,220,.22) !important;
+}
+.sidebar .navigation .nav-item.active,.sidebar .nav a.active{
+  color:#125a9a !important;
+  background:linear-gradient(110deg,rgba(255,255,255,.95),rgba(218,239,255,.92)) !important;
+  border-color:rgba(68,151,222,.38) !important;
+  box-shadow:inset 3px 0 0 #38a5f5,0 5px 15px rgba(45,119,184,.08) !important;
+}
+.sidebar-bottom,.sidebar .side-note,.sidebar .sidebar-footer{
+  margin-top:auto !important;padding:12px !important;
+  background:rgba(255,255,255,.28) !important;border-top:1px solid var(--sg-line) !important;
+  color:#6483a5 !important;
+}
+.sidebar .logout-button,.sidebar .logout,.sidebar-bottom button{
+  border-radius:11px !important;background:rgba(255,255,255,.65) !important;
+  color:#315779 !important;border:1px solid rgba(105,157,211,.25) !important;
+}
+.main{min-width:0 !important;background:transparent !important}
+/* Every page header uses the same compact, logo-free glass banner. */
+header.topbar{
+  position:relative !important;top:auto !important;
+  min-height:76px !important;height:auto !important;
+  display:flex !important;align-items:center !important;justify-content:flex-start !important;
+  gap:14px !important;flex-wrap:nowrap !important;
+  padding:15px 24px !important;margin:0 !important;
+  color:var(--sg-ink) !important;
+  background:rgba(255,255,255,.74) !important;
+  border:0 !important;border-bottom:1px solid rgba(109,162,215,.22) !important;
+  border-radius:0 0 20px 20px !important;
+  box-shadow:0 8px 25px rgba(49,104,158,.06) !important;
+  backdrop-filter:blur(20px) saturate(150%) !important;
+  -webkit-backdrop-filter:blur(20px) saturate(150%) !important;
+  box-sizing:border-box !important;
+}
+header.topbar.saiku-main-banner,header.topbar.loans-page-banner{
+  min-height:76px !important;height:auto !important;
+  background:rgba(255,255,255,.74) !important;color:var(--sg-ink) !important;
+  border-radius:0 0 20px 20px !important;
+}
+.saiku-banner-brand{display:flex !important;align-items:center !important;gap:0 !important;flex:1 1 auto !important;min-width:0 !important}
+.saiku-banner-logo,.saiku-banner-brand>img{display:none !important}
+.saiku-banner-copy{min-width:0 !important}
+.saiku-banner-kicker{
+  color:#4385c1 !important;font-size:10px !important;font-weight:800 !important;
+  letter-spacing:.16em !important;line-height:1.2 !important;
+}
+header.topbar h1,header.topbar h2,.report-heading h1,.topbar-title h1,.topbar-title h2{
+  margin:0 !important;color:#173354 !important;font-size:23px !important;
+  font-weight:750 !important;line-height:1.25 !important;letter-spacing:-.025em !important;
+}
+header.topbar p,.topbar-title p,.report-heading p,.saiku-banner-copy p{
+  margin:4px 0 0 !important;color:#66809c !important;font-size:12px !important;line-height:1.45 !important;
+}
+.topbar-title{display:flex !important;align-items:center !important;gap:14px !important;min-width:0 !important}
+.topbar-right,.top-actions,.saiku-banner-actions{display:flex !important;align-items:center !important;gap:10px !important;margin-left:auto !important;flex:0 0 auto !important}
+header.topbar button.menu-button,header.topbar button.mobile-menu,
+header.topbar button.menu-toggle,header.topbar button.report-menu-button,
+header.topbar button.saiku-banner-menu,#loansMenuButton{
+  order:-1 !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;
+  flex:0 0 42px !important;width:42px !important;min-width:42px !important;height:42px !important;
+  margin:0 !important;padding:0 !important;border-radius:13px !important;
+  background:rgba(222,240,255,.85) !important;color:#1769ad !important;
+  border:1px solid rgba(85,155,216,.28) !important;
+  box-shadow:0 4px 12px rgba(53,117,177,.08) !important;font-size:20px !important;
+}
+header.topbar button.menu-button:hover,header.topbar button.mobile-menu:hover,
+header.topbar button.menu-toggle:hover,header.topbar button.report-menu-button:hover,
+header.topbar button.saiku-banner-menu:hover,#loansMenuButton:hover{
+  background:#d5ebff !important;
+}
+header.topbar .user-avatar,header.topbar .avatar{
+  border:1px solid rgba(83,151,213,.25) !important;box-shadow:0 4px 12px rgba(53,117,177,.08) !important;
+}
+.content,main.content,.page-content,.main-content{
+  background:transparent !important;
+}
+.card,.panel,.stat-card,.summary-card,.table-container,.table-card,.section-card,.form-card{
+  border-color:rgba(113,163,211,.22) !important;
+  box-shadow:0 9px 25px rgba(51,101,153,.065) !important;
+}
+.card,.panel,.stat-card,.summary-card,.table-container,.table-card,.section-card,.form-card{
+  backdrop-filter:blur(12px) !important;-webkit-backdrop-filter:blur(12px) !important;
+}
+button.primary-button,button.btn.primary,button.primary-action,button#addRentalButton{
+  border-radius:12px !important;
+}
+#saikuSidebarBackdrop{z-index:999 !important}
+@media(max-width:760px){
+  .layout{display:block !important;grid-template-columns:minmax(0,1fr) !important}
+  .sidebar{
+    position:fixed !important;left:0 !important;top:0 !important;bottom:0 !important;
+    width:min(270px,84vw) !important;height:100dvh !important;min-height:0 !important;
+    transform:translateX(-105%) !important;transition:transform .24s ease !important;
+    box-shadow:12px 0 32px rgba(34,80,128,.18) !important;z-index:10000 !important;
+  }
+  .sidebar.show,.sidebar.open{transform:translateX(0) !important}
+  header.topbar{
+    min-height:68px !important;padding:12px 14px !important;gap:10px !important;
+    border-radius:0 0 16px 16px !important;flex-wrap:wrap !important;
+  }
+  header.topbar h1,header.topbar h2,.report-heading h1,.topbar-title h1,.topbar-title h2{font-size:20px !important}
+  header.topbar p,.topbar-title p,.report-heading p,.saiku-banner-copy p{font-size:11px !important}
+  .topbar-title{gap:10px !important;flex:1 1 auto !important}
+  .topbar-right,.top-actions,.saiku-banner-actions{gap:6px !important}
+  header.topbar button.menu-button,header.topbar button.mobile-menu,
+  header.topbar button.menu-toggle,header.topbar button.report-menu-button,
+  header.topbar button.saiku-banner-menu,#loansMenuButton{
+    width:38px !important;min-width:38px !important;height:38px !important;flex-basis:38px !important;
+  }
+  .sidebar .navigation .nav-item,.sidebar .nav a,
+  .sidebar .navigation .nav-item span:last-child,.sidebar .nav a span:last-child{font-size:13px !important}
+}
+
+
+/* Final high-specificity correction: force Dashboard sidebar to match every other page. */
+body .app-layout > #sidebar.sidebar,
+body .layout > #sidebar.sidebar {
+  background: linear-gradient(180deg, rgba(233,245,255,.97), rgba(216,235,253,.96)) !important;
+  color: #17385f !important;
+  border-right: 1px solid rgba(100,157,211,.30) !important;
+  box-shadow: 8px 0 28px rgba(51,105,160,.08) !important;
+}
+body .app-layout > #sidebar.sidebar .sidebar-logo,
+body .layout > #sidebar.sidebar .sidebar-logo,
+body .app-layout > #sidebar.sidebar .saiku-sidebar-brand,
+body .layout > #sidebar.sidebar .saiku-sidebar-brand {
+  background: rgba(255,255,255,.48) !important;
+  border-bottom: 1px solid rgba(105,157,211,.22) !important;
+}
+body .app-layout > #sidebar.sidebar .navigation a.nav-item,
+body .layout > #sidebar.sidebar .navigation a.nav-item {
+  background: transparent !important;
+  color: #365777 !important;
+  font-family: Inter, "Segoe UI", Arial, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+}
+body .app-layout > #sidebar.sidebar .navigation a.nav-item.active,
+body .layout > #sidebar.sidebar .navigation a.nav-item.active {
+  color: #125a9a !important;
+  background: linear-gradient(110deg, rgba(255,255,255,.95), rgba(218,239,255,.92)) !important;
+  border-color: rgba(68,151,222,.38) !important;
+  box-shadow: inset 3px 0 0 #38a5f5, 0 5px 15px rgba(45,119,184,.08) !important;
+}
+body .app-layout > #sidebar.sidebar .navigation a.nav-item:hover,
+body .layout > #sidebar.sidebar .navigation a.nav-item:hover {
+  color: #155b9d !important;
+  background: rgba(255,255,255,.68) !important;
+}
+body .app-layout > #sidebar.sidebar .sidebar-bottom,
+body .layout > #sidebar.sidebar .sidebar-bottom,
+body .app-layout > #sidebar.sidebar .sidebar-footer,
+body .layout > #sidebar.sidebar .sidebar-footer {
+  background: rgba(255,255,255,.28) !important;
+  border-top: 1px solid rgba(105,157,211,.22) !important;
+}
