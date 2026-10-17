@@ -4670,5 +4670,107 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
 }
 </style>
 
+
+<style id="dashboard-banner-mobile-size-only">
+/* Compact mobile banner only. Desktop styling and all dashboard cards remain unchanged. */
+@media (max-width: 600px) {
+  header.topbar.saiku-main-banner {
+    display:flex !important;
+    align-items:center !important;
+    flex-wrap:nowrap !important;
+    gap:7px !important;
+    min-height:60px !important;
+    height:auto !important;
+    padding:7px 9px !important;
+    margin:0 0 10px !important;
+    border-radius:0 0 13px 13px !important;
+    box-sizing:border-box !important;
+  }
+  header.topbar.saiku-main-banner > .saiku-banner-menu {
+    order:0 !important;
+    position:static !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    flex:0 0 30px !important;
+    width:30px !important;
+    min-width:30px !important;
+    height:30px !important;
+    padding:0 !important;
+    margin:0 !important;
+    font-size:16px !important;
+  }
+  header.topbar.saiku-main-banner > .saiku-banner-brand {
+    order:1 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    gap:0 !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-logo {
+    display:block !important;
+    width:auto !important;
+    max-width:100% !important;
+    height:auto !important;
+    max-height:42px !important;
+    flex:0 1 auto !important;
+    object-fit:contain !important;
+    object-position:left center !important;
+  }
+  /* Mobile banner: show only the menu, full logo and user profile. */
+  header.topbar.saiku-main-banner .saiku-banner-copy {
+    display:none !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-kicker {
+    font-size:6px !important;
+    letter-spacing:.7px !important;
+    line-height:1.1 !important;
+    margin-bottom:2px !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-copy h1 {
+    font-size:14px !important;
+    line-height:1.12 !important;
+    margin:0 !important;
+    letter-spacing:-.2px !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-copy p {
+    font-size:8px !important;
+    line-height:1.15 !important;
+    margin:2px 0 0 !important;
+  }
+  header.topbar.saiku-main-banner > .saiku-banner-actions {
+    order:2 !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:4px !important;
+    flex:0 0 auto !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-refresh { display:none !important; }
+  header.topbar.saiku-main-banner .saiku-banner-user {
+    width:27px !important;
+    min-width:27px !important;
+    height:27px !important;
+    font-size:11px !important;
+  }
+}
+@media (max-width:380px) {
+  header.topbar.saiku-main-banner {
+    gap:5px !important;
+    padding:6px 7px !important;
+    min-height:52px !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-logo {
+    width:auto !important;
+    max-width:100% !important;
+    max-height:38px !important;
+    flex-basis:auto !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-copy { display:none !important; }
+  header.topbar.saiku-main-banner .saiku-banner-refresh { display:none !important; }
+}
+</style>
+
 </body>
 </html>
