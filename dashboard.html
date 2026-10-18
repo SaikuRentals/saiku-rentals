@@ -2268,6 +2268,7 @@ body, .main-area { background:#f4f7fc !important; }
         <a href="dashboard.html" class="nav-item active"><span>⌂</span><span>Dashboard</span></a>
         <a href="Rentals.html" class="nav-item"><span>📋</span><span>Rentals</span></a>
         <a href="customers.html" class="nav-item"><span>👥</span><span>Customers</span></a>
+        <a href="invoices.html" class="nav-item"><span>🧾</span><span>Invoices</span></a>
         <a href="cycles.html" class="nav-item"><span>🛵</span><span>Cycles</span></a>
         <a href="staff.html" class="nav-item"><span>👥</span><span>Staff Management</span></a>
         <a href="loans.html" class="nav-item"><span>💰</span><span>Loans &amp; Finance</span></a>
@@ -2309,6 +2310,7 @@ body, .main-area { background:#f4f7fc !important; }
           <article class="key-metric-card"><span>Current Bank Balance</span><strong id="currentBankBalance">—</strong></article>
           <article class="key-metric-card is-warning"><span>Pending Payments</span><strong id="dashboardPendingPayments">—</strong></article>
           <article class="key-metric-card is-warning"><span>Unpaid Rentals</span><strong id="dashboardUnpaidRentals">—</strong></article>
+          <article class="key-metric-card"><span>Total Invoices</span><strong id="dashboardTotalInvoices">—</strong></article>
           <article class="key-metric-card is-warning"><span>Outstanding Invoices</span><strong id="dashboardOutstandingInvoices">—</strong></article>
           <article class="key-metric-card is-danger"><span>Overdue Invoices</span><strong id="dashboardOverdueInvoices">—</strong></article>
         </section>
@@ -3071,11 +3073,12 @@ Saiku Rentals | 7419944`;
           fetchTable('cash_deposits'),
           fetchTable('cycles'),
           fetchTable('customers'),
-          fetchTable('staff_members')
+          fetchTable('staff_members'),
+          fetchTable('invoices')
         ]);
 
         const [settingsResult, historicalFiguresResult, rentalsResult, rentalPaymentsResult, rentalExtensionsResult, expensesResult,
-          loansResult, loanPaymentsResult, cashDepositsResult, cyclesResult, customersResult, staffResult] = results;
+          loansResult, loanPaymentsResult, cashDepositsResult, cyclesResult, customersResult, staffResult, invoicesResult] = results;
 
         const settings = settingsResult.data.find(row => Number(row.id) === 1) || settingsResult.data[0] || null;
         const historicalFigures = historicalFiguresResult.data.find(row => Number(row.id) === 1) || historicalFiguresResult.data[0] || null;
@@ -3090,6 +3093,7 @@ Saiku Rentals | 7419944`;
         const cycles = cyclesResult.data || [];
         const customers = customersResult.data || [];
         const staffMembers = staffResult.data || [];
+        const invoices = invoicesResult.data || [];
 
         if (settingsResult.error) warnings.push('Company Settings could not be loaded. Check the company_settings table and its read policy.');
         if (historicalFiguresResult.error || !historicalFigures) warnings.push('Historical figures are not configured yet. Run historical_figures_setup.sql in Supabase, then use Edit Historical Figures.');
@@ -3103,6 +3107,7 @@ Saiku Rentals | 7419944`;
         if (cyclesResult.error) warnings.push('Cycle records could not be loaded.');
         if (customersResult.error) warnings.push('Customer records could not be loaded.');
         if (staffResult.error) warnings.push('Staff tracking is not configured yet. Run staff_performance_setup.sql in Supabase SQL Editor.');
+        if (invoicesResult.error) warnings.push('Invoices could not be loaded. Run invoice_setup.sql in Supabase SQL Editor and check invoice table permissions.');
 
         const expenseDateKeys = ['expense_date', 'date', 'transaction_date', 'created_at', 'payment_date'];
         const expenseAmountKeys = ['amount', 'expense_amount', 'total_amount', 'cost', 'payment_amount'];
@@ -3203,6 +3208,7 @@ Saiku Rentals | 7419944`;
         let unpaidRentalCount = 0;
         let outstandingInvoiceAmount = 0;
         let overdueInvoiceAmount = 0;
+        let totalInvoiceAmount = 0;
         for (const row of rentals) {
           const status = String(row.status || '').toLowerCase();
           if (['cancelled','canceled','void','deleted'].includes(status)) continue;
@@ -3212,17 +3218,31 @@ Saiku Rentals | 7419944`;
           let balance = Math.max(totalDue - (metricPaidByRental.get(id) || 0), 0);
           if (String(row.payment_status || '').toLowerCase() === 'paid' && paymentsForRental.length === 0) balance = 0;
           if (balance > 0.009) {
-            outstandingInvoiceAmount += balance;
             unpaidRentalCount += 1;
             const expired = ['overdue','expired'].includes(status) || Boolean(row.expected_return && new Date(row.expected_return).getTime() <= Date.now());
-            if (expired) overdueInvoiceAmount += balance;
             if (['active','overdue'].includes(status)) pendingPaymentAmount += balance;
+          }
+        }
+        const invoiceDataReady = !invoicesResult.error;
+        const todayInvoiceKey = localDateKey(new Date());
+        if (invoiceDataReady) {
+          for (const invoice of invoices) {
+            const status = String(invoice.status || '').toLowerCase();
+            if (['cancelled','canceled','void','deleted'].includes(status)) continue;
+            const total = Math.max(readAmount(invoice, ['total_amount','total','amount']) ?? 0, 0);
+            const paid = Math.max(readAmount(invoice, ['amount_paid','paid_amount']) ?? 0, 0);
+            const balance = Math.max(total - paid, 0);
+            totalInvoiceAmount += total;
+            outstandingInvoiceAmount += balance;
+            const dueDate = String(invoice.due_date || '').slice(0, 10);
+            if (balance > 0.009 && dueDate && dueDate < todayInvoiceKey) overdueInvoiceAmount += balance;
           }
         }
         setText('dashboardPendingPayments', metricsDataReady ? money(pendingPaymentAmount) : 'Not available');
         setText('dashboardUnpaidRentals', metricsDataReady ? String(unpaidRentalCount) : '—');
-        setText('dashboardOutstandingInvoices', metricsDataReady ? money(outstandingInvoiceAmount) : 'Not available');
-        setText('dashboardOverdueInvoices', metricsDataReady ? money(overdueInvoiceAmount) : 'Not available');
+        setText('dashboardTotalInvoices', invoiceDataReady ? money(totalInvoiceAmount) : 'Not available');
+        setText('dashboardOutstandingInvoices', invoiceDataReady ? money(outstandingInvoiceAmount) : 'Not available');
+        setText('dashboardOverdueInvoices', invoiceDataReady ? money(overdueInvoiceAmount) : 'Not available');
 
         // Split receipts and outflows by actual payment source. A deposit shifts cash to bank; it is not income.
         const cashDepositsSinceStart = depositsReady && startDate
