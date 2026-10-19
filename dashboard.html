@@ -3322,7 +3322,7 @@ Saiku Rentals | 7419944`;
         const customerMap = new Map(customers.map(c => [c.id, c]));
         const cycleMap = new Map(cycles.map(c => [c.id, c]));
         renderActiveRentalCards(rentals, customers, cycles, rentalPayments, rentalExtensions, rentalsResult.error, rentalPaymentsResult.error, rentalExtensionsResult.error, cyclesResult.error, staffMembers);
-        renderStaffPerformance(staffMembers, rentals, staffResult.error);
+        renderStaffPerformance(staffMembers, rentals, staffResult.error, customers, cycles);
         // Recent Rentals is intentionally hidden on the dashboard. Only render it if its table exists,
         // so removing that section cannot interrupt the rest of dashboard loading.
         const recentBody = document.getElementById('recentRentalsBody');
@@ -3378,11 +3378,12 @@ Saiku Rentals | 7419944`;
     }
 
 
-    function renderStaffPerformance(staffMembers, rentals, staffError) {
+    function renderStaffPerformance(staffMembers, rentals, staffError, customers, cycles) {
       const host = document.getElementById('staffPerformanceGrid');
       if (!host) return;
       const staff = Array.isArray(staffMembers) ? staffMembers : [];
       const allRentals = Array.isArray(rentals) ? rentals : [];
+      window.__saikuStaffActivity = { staff: staff, rentals: allRentals, customers: Array.isArray(customers) ? customers : [], cycles: Array.isArray(cycles) ? cycles : [] };
       const summary = document.getElementById('staffPerformanceSummary');
       if (staffError) {
         if (summary) summary.textContent = 'Setup required';
@@ -3453,7 +3454,7 @@ Saiku Rentals | 7419944`;
             <div class="staff-performance-avatar">${avatar}</div>
             <div class="staff-card-name-wrap"><h3 class="staff-performance-name">${escapeHtml(name)}</h3><span class="staff-card-status ${active ? '' : 'inactive'}">${active ? '● Active' : '● Inactive'}</span></div>
           </div>
-          <div class="staff-card-chart-row">
+          <div class="staff-card-chart-row" role="button" tabindex="0" aria-label="View all deliveries and pickups for ${escapeHtml(name)}" title="Click to view all activity" data-staff-activity="${escapeHtml(String(person.id))}">
             <div class="staff-card-chart">${ring(stats.monthlyDelivered, stats.delivered, 'deliveries', 'deliveries')}<div class="staff-card-chart-label">${deliveryIcon}<span>Deliveries</span></div><small>This month / All time</small></div>
             <div class="staff-card-chart">${ring(stats.monthlyPickedUp, stats.pickedUp, 'pickups', 'pickups')}<div class="staff-card-chart-label">${pickupIcon}<span>Pickups</span></div><small>This month / All time</small></div>
           </div>
@@ -4791,6 +4792,44 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
   header.topbar.saiku-main-banner .saiku-banner-refresh { display:none !important; }
 }
 </style>
+
+
+
+<!-- Staff activity details: opened by clicking the existing circular charts -->
+<style id="staff-activity-modal-styles">
+#staffActivityModal[hidden]{display:none!important}#staffActivityModal{position:fixed;inset:0;z-index:10050;background:rgba(13,25,45,.58);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:16px}
+#staffActivityModal .sam-panel{width:min(900px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#fff;color:#20314a;border:1px solid #dce6f3;border-radius:18px;box-shadow:0 24px 80px rgba(8,24,48,.28)}
+#staffActivityModal .sam-head{position:sticky;top:0;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:18px 20px;background:linear-gradient(135deg,#f5f9ff,#fff);border-bottom:1px solid #e5edf7}
+#staffActivityModal .sam-head h2{margin:0 0 5px;font-size:1.15rem;color:#183456}#staffActivityModal .sam-head p{margin:0;color:#71829a;font-size:.85rem}
+#staffActivityModal .sam-close{border:1px solid #dce6f3;border-radius:9px;background:#fff;color:#334155;padding:7px 11px;font:inherit;cursor:pointer}
+#staffActivityModal .sam-body{padding:16px 20px 20px}#staffActivityModal .sam-summary{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
+#staffActivityModal .sam-summary span{padding:8px 11px;border-radius:10px;background:#f1f7ff;border:1px solid #e0ebf8;font-size:.82rem;color:#526780}#staffActivityModal .sam-summary b{color:#214f8c}
+#staffActivityModal .sam-table-wrap{overflow:auto;border:1px solid #e5edf7;border-radius:12px}#staffActivityModal table{width:100%;border-collapse:collapse;min-width:560px}#staffActivityModal th,#staffActivityModal td{padding:10px 12px;text-align:left;border-bottom:1px solid #edf1f7;font-size:.82rem}#staffActivityModal th{background:#f7faff;color:#64748b;font-size:.74rem;white-space:nowrap}#staffActivityModal tr:last-child td{border-bottom:0}
+#staffActivityModal .sam-type{display:inline-block;padding:4px 7px;border-radius:999px;background:#e8f2ff;color:#2563a8;font-size:.72rem;font-weight:800}#staffActivityModal .sam-type.pickup{background:#e4faf3;color:#087d65}
+#staffActivityModal .sam-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}#staffActivityModal .sam-pdf{border:0;border-radius:10px;padding:10px 14px;background:#173b65;color:white;font:inherit;font-size:.86rem;font-weight:750;cursor:pointer}
+@media(max-width:600px){#staffActivityModal{padding:8px}#staffActivityModal .sam-panel{max-height:calc(100vh - 16px);border-radius:14px}#staffActivityModal .sam-head,#staffActivityModal .sam-body{padding:13px}}
+@media print{body>*:not(#staffActivityModal){display:none!important}#staffActivityModal{position:static!important;display:block!important;padding:0!important;background:#fff!important}#staffActivityModal .sam-panel{max-height:none!important;overflow:visible!important;width:100%!important;border:0!important;box-shadow:none!important}#staffActivityModal .sam-head{position:static!important}#staffActivityModal .sam-close,#staffActivityModal .sam-actions{display:none!important}#staffActivityModal .sam-table-wrap{overflow:visible!important}#staffActivityModal table{min-width:0!important}#staffActivityModal th,#staffActivityModal td{font-size:10pt!important}}
+</style>
+<div id="staffActivityModal" hidden role="dialog" aria-modal="true" aria-labelledby="samTitle">
+ <section class="sam-panel"><header class="sam-head"><div><h2 id="samTitle">Staff activity</h2><p id="samSubtitle">All-time deliveries and pickups</p></div><button class="sam-close" type="button" id="samClose">Close ✕</button></header>
+ <div class="sam-body"><div class="sam-summary" id="samSummary"></div><div class="sam-table-wrap"><table><thead><tr><th>Type</th><th>Date</th><th>Customer / Rental</th><th>Cycle</th><th>Status</th></tr></thead><tbody id="samRows"></tbody></table></div><div class="sam-actions"><button class="sam-pdf" type="button" id="samPdf">Save as PDF</button></div></div></section>
+</div>
+<script id="staff-activity-modal-script">
+(function(){
+ const modal=document.getElementById('staffActivityModal'); if(!modal)return;
+ const esc=v=>typeof escapeHtml==='function'?escapeHtml(String(v??'')):String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const dateOf=r=>{const v=r.actual_return||r.returned_at||r.pickup_date||r.delivered_at||r.start_date||r.rental_date||r.created_at||r.created_on; if(!v)return '—';const d=new Date(v);return Number.isNaN(d.getTime())?'—':d.toLocaleDateString();};
+ function openFor(id){const src=window.__saikuStaffActivity||{staff:[],rentals:[],customers:[],cycles:[]};const person=src.staff.find(x=>String(x.id)===String(id));if(!person)return;const rentals=src.rentals||[];const customerMap=new Map((src.customers||[]).map(c=>[String(c.id),c]));const cycleMap=new Map((src.cycles||[]).map(c=>[String(c.id),c]));const rows=[];
+ rentals.forEach(r=>{const customer=customerMap.get(String(r.customer_id||''));const cycle=cycleMap.get(String(r.cycle_id||''));const customerName=customer?(customer.name||customer.full_name||customer.customer_name):null;const cycleName=cycle?(cycle.plate_number||cycle.name||cycle.cycle_number||cycle.registration_number):null;const details={rental:r.id,customer:customerName||r.customer_name||r.customer_full_name||'Customer name unavailable',cycle:cycleName||r.cycle_number||r.plate_number||'Cycle number unavailable',status:r.status};if(String(r.delivered_by_staff_id||'')===String(id)||String(r.delivered_by_staff_id_2||'')===String(id))rows.push({...details,type:'Delivery',date:r.start_date||r.rental_date||r.delivered_at||r.created_at||r.created_on});if(String(r.picked_up_by_staff_id||'')===String(id))rows.push({...details,type:'Pickup',date:r.actual_return||r.returned_at||r.pickup_date||r.updated_at});});
+ rows.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));document.getElementById('samTitle').textContent=(person.name||'Staff member')+' — Activity';document.getElementById('samSubtitle').textContent='All recorded deliveries and pickups';const deliveries=rows.filter(r=>r.type==='Delivery').length,pickups=rows.length-deliveries;document.getElementById('samSummary').innerHTML='<span>All-time deliveries <b>'+deliveries+'</b></span><span>All-time pickups <b>'+pickups+'</b></span><span>Total activities <b>'+rows.length+'</b></span>';
+ document.getElementById('samRows').innerHTML=rows.length?rows.map(r=>'<tr><td><span class="sam-type '+(r.type==='Pickup'?'pickup':'')+'">'+r.type+'</span></td><td>'+esc(r.date?dateOf({start_date:r.date}):'—')+'</td><td>'+esc(r.customer)+'<small style="display:block;opacity:.65;font-size:11px;margin-top:3px">Rental ID: '+esc(r.rental||'—')+'</small></td><td>'+esc(r.cycle)+'</td><td>'+esc(r.status||'—')+'</td></tr>').join(''):'<tr><td colspan="5">No delivery or pickup records found for this staff member.</td></tr>';
+ modal.dataset.staffName=person.name||'Staff activity';modal.hidden=false;document.body.style.overflow='hidden';document.getElementById('samClose').focus();}
+ function close(){modal.hidden=true;document.body.style.overflow='';}
+ document.addEventListener('click',e=>{const chart=e.target.closest('[data-staff-activity]');if(chart){openFor(chart.dataset.staffActivity);}});
+ document.addEventListener('keydown',e=>{const chart=e.target.closest&&e.target.closest('[data-staff-activity]');if(chart&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openFor(chart.dataset.staffActivity);}if(e.key==='Escape'&&!modal.hidden)close();});
+ document.getElementById('samClose').addEventListener('click',close);modal.addEventListener('click',e=>{if(e.target===modal)close();});document.getElementById('samPdf').addEventListener('click',()=>{document.title=(modal.dataset.staffName||'Staff activity').replace(/[\\/:*?"<>|]/g,'-');window.print();});
+})();
+</script>
 
 </body>
 </html>
