@@ -1332,6 +1332,68 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 @media(max-width:760px){.sidebar .navigation .nav-item,.sidebar .nav-item{border-radius:10px!important;}}
 </style>
 
+
+<style id="saiku-editable-return-and-customer-history">
+#extensionModal #currentReturnDisplay{display:block!important;width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;margin:0!important;padding:5px 6px!important;border:1px solid #d4e1f1!important;border-radius:7px!important;background:#f8fbff!important;color:#203c63!important;font:inherit!important;font-size:clamp(.62rem,2.4vw,.78rem)!important;font-weight:800!important;line-height:1.25!important}
+.rental-customer-history-link{padding:0!important;margin:0!important;border:0!important;background:transparent!important;color:#1c5a9b!important;font:inherit!important;font-weight:800!important;text-align:left!important;text-decoration:underline!important;text-decoration-color:#a9c9ed!important;text-underline-offset:3px!important;cursor:pointer!important;white-space:normal!important}
+.rental-customer-history-link:hover{color:#0b3d72!important}
+#customerRentalHistoryModal{position:fixed!important;inset:0!important;z-index:2147483200!important;display:none!important;align-items:center!important;justify-content:center!important;padding:12px!important;background:rgba(5,18,39,.58)!important;backdrop-filter:blur(5px)!important;-webkit-backdrop-filter:blur(5px)!important;box-sizing:border-box!important}
+#customerRentalHistoryModal.show{display:flex!important}
+#customerRentalHistoryModal .customer-rental-history-panel{width:min(850px,calc(100vw - 24px))!important;max-height:calc(100dvh - 24px)!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;box-sizing:border-box!important;border:1px solid #dce7f5!important;border-radius:18px!important;background:linear-gradient(145deg,#fff,#f2f7fd)!important;color:#20334d!important;box-shadow:0 22px 70px rgba(5,19,42,.3)!important;padding:16px!important}
+.customer-rental-history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #e0e9f5}
+.customer-rental-history-head h2{margin:0;color:#18365f;font-size:18px;line-height:1.2}
+.customer-rental-history-head p{margin:5px 0 0;color:#71839e;font-size:12px;line-height:1.4}
+.customer-rental-history-close{width:34px;height:34px;flex:0 0 34px;border:1px solid #d5e2f2;border-radius:10px;background:#fff;color:#35516f;font-size:22px;cursor:pointer}
+.customer-rental-history-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.customer-rental-history-stat{min-width:0;padding:9px;border:1px solid #dce7f5;border-radius:10px;background:#fff}
+.customer-rental-history-stat span{display:block;color:#74849b;font-size:10px;font-weight:750;margin-bottom:4px}
+.customer-rental-history-stat strong{display:block;color:#203d63;font-size:13px;overflow-wrap:anywhere}
+.customer-rental-history-table-wrap{min-height:0;overflow:auto;border:1px solid #e0e8f3;border-radius:11px;background:#fff}
+.customer-rental-history-table{width:100%;border-collapse:collapse;font-size:12px}
+.customer-rental-history-table th{position:sticky;top:0;background:#eaf1fa;color:#36506f;text-align:left;padding:10px;white-space:nowrap}
+.customer-rental-history-table td{padding:10px;border-top:1px solid #e5edf6;color:#253951;vertical-align:top}
+.customer-rental-history-table td:last-child{white-space:nowrap;font-weight:800}
+.customer-rental-history-empty{padding:20px;text-align:center;color:#71839e;font-size:12px}
+@media(max-width:600px){#customerRentalHistoryModal{padding:8px!important}#customerRentalHistoryModal .customer-rental-history-panel{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;padding:11px!important;border-radius:14px!important}.customer-rental-history-head h2{font-size:16px}.customer-rental-history-stats{gap:5px}.customer-rental-history-stat{padding:7px}.customer-rental-history-stat span{font-size:9px}.customer-rental-history-stat strong{font-size:11px}.customer-rental-history-table{font-size:10px}.customer-rental-history-table th,.customer-rental-history-table td{padding:8px 7px}}
+</style>
+
+
+<style id="saiku-extension-mobile-alignment-fix">
+/* Keep the editable Current Return datetime control inside its summary card on phones. */
+#extensionModal #extensionForm,
+#extensionModal #extensionForm > .extension-summary,
+#extensionModal #extensionForm > .form-grid,
+#extensionModal .extension-summary-item,
+#extensionModal #extensionForm .form-group {
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+#extensionModal #extensionForm > .extension-summary {
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  width:100%!important;
+}
+#extensionModal .extension-summary-item {
+  width:100%!important;
+  overflow:hidden!important;
+}
+#extensionModal #currentReturnDisplay {
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  padding:7px 5px!important;
+  font-size:clamp(10px,2.7vw,13px)!important;
+  line-height:1.25!important;
+  text-align:center!important;
+}
+@media(max-width:480px){
+  #extensionModal>.modal-content.extension-manage-panel{width:calc(100vw - 24px)!important;padding:11px!important}
+  #extensionModal #extensionForm > .extension-summary{gap:6px!important}
+  #extensionModal .extension-summary-item{padding:7px 6px!important}
+  #extensionModal #currentReturnDisplay{padding:7px 3px!important;font-size:10px!important;letter-spacing:-.2px!important}
+}
+</style>
 </head>
 
 
@@ -2277,11 +2339,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
 
 
-                    <strong id="currentReturnDisplay">
-
-                        —
-
-                    </strong>
+                    <input type="datetime-local" id="currentReturnDisplay" aria-label="Current expected return date and time" title="Edit current expected return date and time">
 
 
 
@@ -2434,12 +2492,9 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
 
                     <input
-
-                        type="text"
-
+                        type="datetime-local"
                         id="newReturnDisplay"
-
-                        readonly>
+                        required>
 
 
 
@@ -4134,7 +4189,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
             const status = String(rental.status || "active").toLowerCase();
             const payment = String(rental.payment_status || "unpaid").toLowerCase();
             return `<tr class="mobile-rental-log-row">
-              <td class="mobile-rental-customer"><strong>${escapeHtml(customer)}</strong>${phone ? `<small>${escapeHtml(phone)}</small>` : ""}</td>
+              <td class="mobile-rental-customer"><button type="button" class="rental-customer-history-link" onclick="openCustomerRentalHistory('${String(rental.customers?.id || rental.customer_id || "").replace(/'/g, "") }')" title="View all rentals for this customer">${escapeHtml(customer)}</button>${phone ? `<small>${escapeHtml(phone)}</small>` : ""}</td>
               <td class="mobile-rental-cycle"><strong>${escapeHtml(plate)}</strong></td>
               <td>${escapeHtml(formatDate(rental.start_date))}</td>
               <td>${escapeHtml(formatDate(rental.expected_return))}</td>
@@ -4294,15 +4349,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
 
 
-                            <strong>
-
-                                ${escapeHtml(
-
-                                    rental.customers?.name || "Unknown"
-
-                                )}
-
-                            </strong>
+                            <button type="button" class="rental-customer-history-link" onclick="openCustomerRentalHistory('${String(rental.customers?.id || rental.customer_id || "").replace(/'/g, "") }')" title="View all rentals for this customer">${escapeHtml(rental.customers?.name || "Unknown")}</button>
 
 
 
@@ -5626,17 +5673,9 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
 
 
-        document.getElementById(
-
-            "currentReturnDisplay"
-
-        ).textContent =
-
-            formatDate(
-
-                rental.expected_return
-
-            );
+        document.getElementById("currentReturnDisplay").value = rental.expected_return
+            ? toLocalDateTimeInput(new Date(rental.expected_return))
+            : "";
 
 
 
@@ -5687,8 +5726,12 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         ).value = "";
 
 
-
-
+        // Overdue rentals must never receive an automatic extension date.
+        // Staff must manually choose a future return date/time for overdue rentals.
+        const newReturnInput = document.getElementById("newReturnDisplay");
+        if (String(rental.status || "").toLowerCase() === "overdue") {
+            newReturnInput.value = "";
+        }
 
         calculateExtension();
 
@@ -5717,6 +5760,19 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
     // =====================================================
 
 
+
+    // Convert a Date to the local format required by datetime-local inputs.
+    function toLocalDateTimeInput(date) {
+        const pad = value => String(value).padStart(2, "0");
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    function getExtensionBaseDate(rental) {
+        const editableValue = document.getElementById("currentReturnDisplay")?.value;
+        const editableDate = editableValue ? new Date(editableValue) : new Date(NaN);
+        if (Number.isFinite(editableDate.getTime())) return editableDate;
+        return new Date(rental.expected_return);
+    }
 
     function calculateExtension() {
 
@@ -5804,81 +5860,13 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
 
 
-        const oldDate =
-
-            new Date(
-
-                rental.expected_return
-
-            );
-
-
-
-
-
-        /*
-
-         * If the rental is overdue,
-
-         * extend from NOW instead of
-
-         * the old expired return date.
-
-         */
-
-
-
-        let baseDate =
-
-            oldDate;
-
-
-
-
-
-        if (
-
-            rental.status === "overdue" &&
-
-            oldDate < new Date()
-
-        ) {
-
-
-
-            baseDate =
-
-                new Date();
-
-
-
+        // Only prefill the return date for rentals that are not overdue.
+        // For overdue rentals, leave the date/time under explicit staff control.
+        if (String(rental.status || "").toLowerCase() !== "overdue") {
+            const baseDate = getExtensionBaseDate(rental);
+            const newDate = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000);
+            document.getElementById("newReturnDisplay").value = toLocalDateTimeInput(newDate);
         }
-
-
-
-
-
-        const newDate =
-
-            new Date(
-
-                baseDate.getTime() +
-
-                days * 24 * 60 * 60 * 1000
-
-            );
-
-
-
-
-
-        document.getElementById(
-
-            "newReturnDisplay"
-
-        ).value =
-
-            formatDate(newDate);
 
 
 
@@ -6040,81 +6028,27 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
 
 
-        const oldReturnDate =
+        const oldReturnDate = new Date(rental.expected_return);
+        const editedCurrentReturnValue = document.getElementById("currentReturnDisplay").value;
+        const baseDate = editedCurrentReturnValue ? new Date(editedCurrentReturnValue) : new Date(NaN);
+        if (!Number.isFinite(baseDate.getTime())) {
+            alert("Please select a valid current expected return date and time.");
+            return;
+        }
+        const selectedReturnValue = document.getElementById("newReturnDisplay").value;
+        const newReturnDate = selectedReturnValue ? new Date(selectedReturnValue) : new Date(NaN);
 
-            new Date(
-
-                rental.expected_return
-
-            );
-
-
-
-
-
-        let baseDate =
-
-            oldReturnDate;
-
-
-
-
-
-        /*
-
-         * If already overdue,
-
-         * extension starts from NOW.
-
-         */
-
-
-
-        if (
-
-            rental.status === "overdue" &&
-
-            oldReturnDate < new Date()
-
-        ) {
-
-
-
-            baseDate =
-
-                new Date();
-
-
-
+        if (!Number.isFinite(newReturnDate.getTime())) {
+            alert("Please select a valid new expected return date and time.");
+            return;
         }
 
+        if (newReturnDate <= baseDate) {
+            alert("The new expected return must be later than the extension start time.");
+            return;
+        }
 
-
-
-
-        const newReturnDate =
-
-            new Date(
-
-                baseDate.getTime() +
-
-                addedDays *
-
-                24 *
-
-                60 *
-
-                60 *
-
-                1000
-
-            );
-
-
-
-
-
-        // -----------------------------------------
+        const extensionNotes = document.getElementById("extensionNotes").value.trim();
 
         // SAVE EXTENSION HISTORY
 
@@ -6122,61 +6056,30 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
 
 
-        const {
+        const extensionRecord = {
+            rental_id: rentalId,
+            added_days: addedDays,
+            daily_rate: dailyRate,
+            amount: amount,
+            old_return_date: oldReturnDate.toISOString(),
+            new_return_date: newReturnDate.toISOString()
+        };
 
-            error: extensionError
+        if (extensionNotes) extensionRecord.notes = extensionNotes;
 
-        } =
+        let { error: extensionError } = await supabaseClient
+            .from("rental_extensions")
+            .insert(extensionRecord);
 
-            await supabaseClient
-
+        // Support older schemas without a notes column while still saving the extension.
+        if (extensionError && extensionNotes &&
+            /column .*notes.* does not exist|could not find the .*notes.* column/i.test(extensionError.message || "")) {
+            const { notes, ...recordWithoutNotes } = extensionRecord;
+            const retry = await supabaseClient
                 .from("rental_extensions")
-
-                .insert({
-
-
-
-                    rental_id:
-
-                        rentalId,
-
-
-
-                    added_days:
-
-                        addedDays,
-
-
-
-                    daily_rate:
-
-                        dailyRate,
-
-
-
-                    amount:
-
-                        amount,
-
-
-
-                    old_return_date:
-
-                        oldReturnDate.toISOString(),
-
-
-
-                    new_return_date:
-
-                        newReturnDate.toISOString(),
-
-
-
-                });
-
-
-
-
+                .insert(recordWithoutNotes);
+            extensionError = retry.error;
+        }
 
         if (extensionError) {
 
@@ -7636,6 +7539,42 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeRentalLicenseMo
  .sidebar .navigation .nav-item{min-height:41px!important;padding:9px 10px!important;font-size:12px!important}
 }
 </style>
+
+
+
+<script id="saiku-current-return-recalculate">
+document.addEventListener('DOMContentLoaded',()=>{const field=document.getElementById('currentReturnDisplay');if(field)field.addEventListener('change',()=>{const rentalId=document.getElementById('extensionRentalId')?.value;const rental=(allRentals||[]).find(r=>String(r.id)===String(rentalId));if(rental&&String(rental.status||'').toLowerCase()!=='overdue')calculateExtension();});});
+</script>
+
+<div id="customerRentalHistoryModal" role="dialog" aria-modal="true" aria-labelledby="customerRentalHistoryTitle" aria-hidden="true" onclick="if(event.target===this) closeCustomerRentalHistory()">
+  <div class="customer-rental-history-panel" onclick="event.stopPropagation()">
+    <div class="customer-rental-history-head"><div><h2 id="customerRentalHistoryTitle">Customer Rental History</h2><p id="customerRentalHistoryMeta">All recorded rentals for this customer</p></div><button type="button" class="customer-rental-history-close" onclick="closeCustomerRentalHistory()" aria-label="Close customer rental history">×</button></div>
+    <div class="customer-rental-history-stats"><div class="customer-rental-history-stat"><span>Total rentals</span><strong id="customerHistoryCount">0</strong></div><div class="customer-rental-history-stat"><span>Completed rentals</span><strong id="customerHistoryCompleted">0</strong></div><div class="customer-rental-history-stat"><span>Total rental charges</span><strong id="customerHistoryTotal">MVR 0.00</strong></div></div>
+    <div class="customer-rental-history-table-wrap"><table class="customer-rental-history-table"><thead><tr><th>Cycle</th><th>Start</th><th>Expected return</th><th>Actual return</th><th>Status</th><th>Rental total</th></tr></thead><tbody id="customerRentalHistoryRows"><tr><td colspan="6" class="customer-rental-history-empty">Loading history…</td></tr></tbody></table></div>
+  </div>
+</div>
+<script id="saiku-customer-rental-history-script">
+function closeCustomerRentalHistory(){const modal=document.getElementById('customerRentalHistoryModal');if(modal){modal.classList.remove('show');modal.setAttribute('aria-hidden','true');}}
+function openCustomerRentalHistory(customerId){
+  const id=String(customerId||'');
+  const sourceRental=allRentals.find(r=>String(r.customers?.id||r.customer_id||'')===id);
+  const customer=(sourceRental&&sourceRental.customers)||((allCustomers||[]).find(c=>String(c.id)===id))||{};
+  const records=allRentals.filter(r=>String(r.customers?.id||r.customer_id||'')===id).sort((a,b)=>new Date(b.start_date||0)-new Date(a.start_date||0));
+  if(!id){alert('Customer ID is missing for this rental.');return;}
+  const modal=document.getElementById('customerRentalHistoryModal');
+  if(modal.parentElement!==document.body)document.body.appendChild(modal);
+  document.getElementById('customerRentalHistoryTitle').textContent=(customer.name||'Customer')+' · Rental History';
+  document.getElementById('customerRentalHistoryMeta').textContent=[customer.phone||customer.phone_number||'',customer.id_number||customer.nid||''].filter(Boolean).join(' · ')||'All recorded rentals for this customer';
+  document.getElementById('customerHistoryCount').textContent=String(records.length);
+  document.getElementById('customerHistoryCompleted').textContent=String(records.filter(r=>String(r.status||'').toLowerCase()==='returned').length);
+  document.getElementById('customerHistoryTotal').textContent=formatMoney(records.reduce((sum,r)=>sum+Number(r.total_amount||0),0));
+  const rows=document.getElementById('customerRentalHistoryRows');
+  if(!records.length){rows.innerHTML='<tr><td colspan="6" class="customer-rental-history-empty">No rental history found for this customer.</td></tr>';}
+  else{rows.innerHTML=records.map(r=>`<tr><td>${escapeHtml(r.cycles?.plate_number||'Cycle not assigned')}</td><td>${escapeHtml(formatDate(r.start_date))}</td><td>${escapeHtml(formatDate(r.expected_return))}</td><td>${escapeHtml(r.actual_return?formatDate(r.actual_return):'—')}</td><td>${escapeHtml(String(r.status||'unknown').replace(/^./,c=>c.toUpperCase()))}</td><td>${escapeHtml(formatMoney(r.total_amount))}</td></tr>`).join('');}
+  modal.classList.add('show');modal.setAttribute('aria-hidden','false');
+}
+document.addEventListener('keydown',event=>{if(event.key==='Escape')closeCustomerRentalHistory();});
+</script>
 
 </body>
 
