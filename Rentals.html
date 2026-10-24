@@ -7550,28 +7550,85 @@ document.addEventListener('DOMContentLoaded',()=>{const field=document.getElemen
   <div class="customer-rental-history-panel" onclick="event.stopPropagation()">
     <div class="customer-rental-history-head"><div><h2 id="customerRentalHistoryTitle">Customer Rental History</h2><p id="customerRentalHistoryMeta">All recorded rentals for this customer</p></div><button type="button" class="customer-rental-history-close" onclick="closeCustomerRentalHistory()" aria-label="Close customer rental history">×</button></div>
     <div class="customer-rental-history-stats"><div class="customer-rental-history-stat"><span>Total rentals</span><strong id="customerHistoryCount">0</strong></div><div class="customer-rental-history-stat"><span>Completed rentals</span><strong id="customerHistoryCompleted">0</strong></div><div class="customer-rental-history-stat"><span>Total rental charges</span><strong id="customerHistoryTotal">MVR 0.00</strong></div></div>
-    <div class="customer-rental-history-table-wrap"><table class="customer-rental-history-table"><thead><tr><th>Cycle</th><th>Start</th><th>Expected return</th><th>Actual return</th><th>Status</th><th>Rental total</th></tr></thead><tbody id="customerRentalHistoryRows"><tr><td colspan="6" class="customer-rental-history-empty">Loading history…</td></tr></tbody></table></div>
+    <div class="customer-rental-history-table-wrap"><table class="customer-rental-history-table"><thead><tr><th>Cycle</th><th>Rental day</th><th>Period start</th><th>Period end</th><th>Status</th><th>Booking total</th></tr></thead><tbody id="customerRentalHistoryRows"><tr><td colspan="6" class="customer-rental-history-empty">Loading history…</td></tr></tbody></table></div>
   </div>
 </div>
 <script id="saiku-customer-rental-history-script">
 function closeCustomerRentalHistory(){const modal=document.getElementById('customerRentalHistoryModal');if(modal){modal.classList.remove('show');modal.setAttribute('aria-hidden','true');}}
-function openCustomerRentalHistory(customerId){
+async function openCustomerRentalHistory(customerId){
   const id=String(customerId||'');
-  const sourceRental=allRentals.find(r=>String(r.customers?.id||r.customer_id||'')===id);
-  const customer=(sourceRental&&sourceRental.customers)||((allCustomers||[]).find(c=>String(c.id)===id))||{};
-  const records=allRentals.filter(r=>String(r.customers?.id||r.customer_id||'')===id).sort((a,b)=>new Date(b.start_date||0)-new Date(a.start_date||0));
   if(!id){alert('Customer ID is missing for this rental.');return;}
+  const records=allRentals.filter(r=>String(r.customers?.id||r.customer_id||'')===id)
+    .sort((a,b)=>new Date(b.start_date||0)-new Date(a.start_date||0));
+  const sourceRental=records[0];
+  const customer=(sourceRental&&sourceRental.customers)||((allCustomers||[]).find(c=>String(c.id)===id))||{};
   const modal=document.getElementById('customerRentalHistoryModal');
   if(modal.parentElement!==document.body)document.body.appendChild(modal);
   document.getElementById('customerRentalHistoryTitle').textContent=(customer.name||'Customer')+' · Rental History';
   document.getElementById('customerRentalHistoryMeta').textContent=[customer.phone||customer.phone_number||'',customer.id_number||customer.nid||''].filter(Boolean).join(' · ')||'All recorded rentals for this customer';
   document.getElementById('customerHistoryCount').textContent=String(records.length);
   document.getElementById('customerHistoryCompleted').textContent=String(records.filter(r=>String(r.status||'').toLowerCase()==='returned').length);
-  document.getElementById('customerHistoryTotal').textContent=formatMoney(records.reduce((sum,r)=>sum+Number(r.total_amount||0),0));
   const rows=document.getElementById('customerRentalHistoryRows');
-  if(!records.length){rows.innerHTML='<tr><td colspan="6" class="customer-rental-history-empty">No rental history found for this customer.</td></tr>';}
-  else{rows.innerHTML=records.map(r=>`<tr><td>${escapeHtml(r.cycles?.plate_number||'Cycle not assigned')}</td><td>${escapeHtml(formatDate(r.start_date))}</td><td>${escapeHtml(formatDate(r.expected_return))}</td><td>${escapeHtml(r.actual_return?formatDate(r.actual_return):'—')}</td><td>${escapeHtml(String(r.status||'unknown').replace(/^./,c=>c.toUpperCase()))}</td><td>${escapeHtml(formatMoney(r.total_amount))}</td></tr>`).join('');}
+  rows.innerHTML='<tr><td colspan="6" class="customer-rental-history-empty">Loading daily rental history…</td></tr>';
   modal.classList.add('show');modal.setAttribute('aria-hidden','false');
+  try{
+    const ids=records.map(r=>r.id).filter(Boolean);
+    let extensions=[];
+    if(ids.length&&supabaseClient){
+      const result=await supabaseClient.from('rental_extensions').select('*').in('rental_id',ids);
+      if(result.error)throw result.error;
+      extensions=result.data||[];
+    }
+    const dailyRows=[];
+    let totalCharges=0;
+    const DAY_MS=24*60*60*1000;
+    for(const rental of records){
+      const start=new Date(rental.start_date);
+      if(!Number.isFinite(start.getTime()))continue;
+      const rate=Math.max(0,Number(rental.daily_rate)||280);
+      // rental.days and rental.total_amount describe the original booking only.
+      // Extension charges live separately in rental_extensions and must not be counted twice.
+      const originalDays=Math.max(1,Number.parseInt(rental.days,10)||1);
+      const originalTotal=Math.max(0,Number(rental.total_amount)||rate*originalDays);
+      const originalPerDay=originalDays>0?originalTotal/originalDays:rate;
+      const rentalExtensions=extensions.filter(e=>String(e.rental_id)===String(rental.id))
+        .sort((a,b)=>new Date(a.old_return_date||0)-new Date(b.old_return_date||0));
+      const status=String(rental.status||'unknown').replace(/^./,c=>c.toUpperCase());
+      let dayNumber=0;
+      for(let i=0;i<originalDays;i++){
+        const from=new Date(start.getTime()+i*DAY_MS),to=new Date(from.getTime()+DAY_MS);
+        const charge=(i===originalDays-1)?(originalTotal-originalPerDay*(originalDays-1)):originalPerDay;
+        dailyRows.push({from,html:`<tr><td>${escapeHtml(rental.cycles?.plate_number||'Cycle not assigned')}</td><td>Day ${++dayNumber}</td><td>${escapeHtml(formatDate(from.toISOString()))}</td><td>${escapeHtml(formatDate(to.toISOString()))}</td><td>${escapeHtml(status)}</td><td>${escapeHtml(formatMoney(charge))} (booking)</td></tr>`});
+        totalCharges+=charge;
+      }
+      for(const ext of rentalExtensions){
+        const amount=Math.max(0,Number(ext.amount)||0);
+        const extRate=Math.max(0,Number(ext.daily_rate)||rate);
+        const oldDate=ext.old_return_date?new Date(ext.old_return_date):new Date(start.getTime()+dayNumber*DAY_MS);
+        const fromBase=Number.isFinite(oldDate.getTime())?oldDate:new Date(start.getTime()+dayNumber*DAY_MS);
+        // Use the extension's saved amount as the source of truth. A partial day charge
+        // is shown as its own record; a full MVR 280 extension adds exactly one 24-hour day.
+        const addedDays=extRate>0?Math.floor((amount+0.0001)/extRate):0;
+        const remainder=amount-addedDays*extRate;
+        for(let i=0;i<addedDays;i++){
+          const from=new Date(fromBase.getTime()+i*DAY_MS),to=new Date(from.getTime()+DAY_MS);
+          dailyRows.push({from,html:`<tr><td>${escapeHtml(rental.cycles?.plate_number||'Cycle not assigned')}</td><td>Day ${++dayNumber} · Extension</td><td>${escapeHtml(formatDate(from.toISOString()))}</td><td>${escapeHtml(formatDate(to.toISOString()))}</td><td>${escapeHtml(status)}</td><td>${escapeHtml(formatMoney(extRate))} (extension)</td></tr>`});
+          totalCharges+=extRate;
+        }
+        if(remainder>0.009){
+          const from=new Date(fromBase.getTime()+addedDays*DAY_MS),to=new Date(from.getTime()+DAY_MS);
+          dailyRows.push({from,html:`<tr><td>${escapeHtml(rental.cycles?.plate_number||'Cycle not assigned')}</td><td>Additional charge</td><td>${escapeHtml(formatDate(from.toISOString()))}</td><td>${escapeHtml(formatDate(to.toISOString()))}</td><td>${escapeHtml(status)}</td><td>${escapeHtml(formatMoney(remainder))} (extension)</td></tr>`});
+          totalCharges+=remainder;
+        }
+      }
+    }
+    dailyRows.sort((a,b)=>b.from-a.from);
+    rows.innerHTML=dailyRows.map(x=>x.html).join('')||'<tr><td colspan="6" class="customer-rental-history-empty">No valid rental dates found.</td></tr>';
+    document.getElementById('customerHistoryTotal').textContent=formatMoney(totalCharges);
+  }catch(error){
+    console.error('Unable to load customer rental history:',error);
+    rows.innerHTML='<tr><td colspan="6" class="customer-rental-history-empty">Could not load rental history. Please refresh and try again.</td></tr>';
+  }
 }
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeCustomerRentalHistory();});
 </script>

@@ -484,26 +484,33 @@
     .fleet-summary-row b { color:#1c3049; }
     @media(max-width:900px) { .active-rental-card-grid.fleet-unified-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; } }
     @media(max-width:760px) {
-      .active-rental-card-grid.fleet-unified-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:8px !important; }
-      .fleet-rental-card { padding:10px !important; gap:8px !important; border-radius:14px !important; }
-      .fleet-cycle-plate { font-size:.86rem; }
-      .fleet-pill { font-size:.53rem; padding:4px 6px; }
-      .fleet-customer-row { gap:7px; align-items:flex-start; }
-      .fleet-customer-row .active-rental-avatar { width:32px; height:32px; flex-basis:32px; }
-      .fleet-customer-row .active-rental-person h3 { font-size:.72rem; }
-      .fleet-customer-row .active-rental-phone { font-size:.63rem !important; }
-      .fleet-customer-id { font-size:.6rem; }
-      .fleet-rental-meta { gap:5px; }
-      .fleet-rental-meta>div { padding:6px; }
-      .fleet-rental-meta span,.fleet-payment span { font-size:.58rem; }
-      .fleet-rental-meta strong { font-size:.61rem; }
-      .fleet-time-label span,.fleet-time-label strong { font-size:.6rem; }
-      .fleet-payment strong { font-size:.63rem; }
-      .fleet-card-actions { grid-template-columns:1fr !important; gap:4px !important; }
-      .fleet-card-actions button { min-height:28px !important; font-size:.63rem !important; }
-      .fleet-available-message { min-height:85px; }
-      .fleet-available-message strong { font-size:.7rem; }
-      .fleet-available-message p { font-size:.62rem; }
+      /* Preserve the original compact three-column fleet layout on phones. */
+      .active-rental-card-grid.fleet-unified-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:6px !important; }
+      .fleet-rental-card { padding:7px !important; gap:6px !important; border-radius:12px !important; }
+      .fleet-cycle-plate { font-size:.72rem; line-height:1.15; }
+      .fleet-pill { font-size:.44rem; padding:3px 4px; letter-spacing:0; }
+      .fleet-card-heading { gap:3px; }
+      .fleet-customer-row { gap:5px; align-items:flex-start; }
+      .fleet-customer-row .active-rental-avatar { width:28px; height:28px; flex-basis:28px; }
+      .fleet-customer-row .active-rental-person h3 { font-size:.67rem; line-height:1.15; }
+      .fleet-customer-row .active-rental-phone { font-size:.58rem !important; }
+      .fleet-customer-id { font-size:.55rem; }
+      .fleet-rental-meta { grid-template-columns:minmax(0,1fr); gap:3px; }
+      .fleet-rental-meta>div { padding:4px 5px; }
+      .fleet-rental-meta span,.fleet-payment span { font-size:.52rem; margin-bottom:1px; }
+      .fleet-rental-meta strong { font-size:.56rem; line-height:1.2; }
+      .fleet-time-label { gap:3px; margin-bottom:4px; flex-wrap:wrap; }
+      .fleet-time-label span,.fleet-time-label strong { font-size:.53rem; }
+      .fleet-time-line .rental-time-track { height:5px !important; }
+      .fleet-payment { display:flex; flex-direction:row; align-items:center; justify-content:space-between; flex-wrap:nowrap; gap:4px; padding:5px 6px; border:1px solid rgba(214,225,239,.7); border-radius:8px; min-width:0; }
+      .fleet-payment span { flex:0 0 auto; margin:0; font-size:.52rem; }
+      .fleet-payment strong { min-width:0; margin:0; font-size:.55rem !important; line-height:1.15; text-align:right; overflow-wrap:anywhere; }
+      .fleet-card-actions { grid-template-columns:1fr !important; gap:3px !important; }
+      .fleet-card-actions button { min-height:25px !important; padding:4px 2px !important; font-size:.56rem !important; }
+      .fleet-available-message { min-height:55px; padding:5px 0; gap:4px; }
+      .fleet-ready-icon { width:20px; height:20px; flex-basis:20px; }
+      .fleet-available-message strong { font-size:.58rem; }
+      .fleet-available-message p { font-size:.5rem; line-height:1.2; }
       .fleet-summary-row { gap:5px; }
       .fleet-summary-row span { font-size:.64rem; padding:5px 8px; }
     }
@@ -521,11 +528,13 @@
 </style>
 
 <style id="saiku-payment-balance-emphasis">
-.fleet-payment{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.fleet-payment strong{color:#a52222;font-weight:800}
+/* Compact inline payment status; do not stack the label and amount on mobile. */
+.fleet-payment{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:nowrap;min-width:0}
+.fleet-payment span{flex:0 0 auto;margin:0}
+.fleet-payment strong{min-width:0;color:#a52222;font-weight:800;line-height:1.2;text-align:right;overflow-wrap:anywhere}
 .fleet-payment strong:where(:not(:empty)){overflow-wrap:anywhere}
-.fleet-payment:has(strong):has(strong:not(:empty)){border-radius:12px}
-@media(max-width:600px){.fleet-payment{align-items:flex-start;flex-direction:column;gap:4px}.fleet-payment strong{font-size:13px}}
+.fleet-payment:has(strong):has(strong:not(:empty)){border-radius:8px}
+@media(max-width:600px){.fleet-payment{align-items:center;flex-direction:row;gap:4px;padding:5px 6px}.fleet-payment span{font-size:.52rem}.fleet-payment strong{font-size:.55rem!important}}
 </style>
 
 
@@ -570,11 +579,12 @@
 .saiku-sidebar-caption h2{font-size:15px!important;margin:0 0 3px!important;white-space:nowrap}
 .saiku-sidebar-caption span{font-size:11px!important}
 @media(max-width:760px){
-  .saiku-main-banner{min-height:0!important;flex-wrap:wrap!important;gap:10px!important;padding:14px!important;border-radius:0 0 17px 17px!important}
-  .saiku-banner-brand{gap:12px;width:100%;flex:1 1 100%}
-  .saiku-banner-logo{width:112px;max-height:55px}
-  .saiku-banner-copy h1{font-size:21px!important}
-  .saiku-banner-copy p{font-size:11px!important}
+  .saiku-main-banner{min-height:0!important;flex-wrap:wrap!important;gap:10px!important;padding:14px!important;box-sizing:border-box!important;width:100%;max-width:100%;border-radius:0 0 17px 17px!important}
+  .saiku-banner-brand{gap:12px;width:100%;flex:1 1 100%;min-width:0;box-sizing:border-box}
+  .saiku-banner-logo{width:112px;max-height:55px;flex:0 0 auto}
+    .saiku-banner-copy{min-width:0;flex:1 1 0}
+  .saiku-banner-copy h1{font-size:21px!important;max-width:100%;overflow-wrap:anywhere}
+  .saiku-banner-copy p{font-size:11px!important;max-width:100%;overflow-wrap:anywhere;word-break:normal}
   .saiku-banner-kicker{font-size:8px;letter-spacing:1.5px}
   .saiku-banner-actions{margin-left:auto}
   .saiku-banner-refresh{padding:7px 9px!important;font-size:12px!important}
@@ -2187,6 +2197,65 @@ body, .main-area { background:#f4f7fc !important; }
  .dashboard-content .monthly-summary-section .stats-grid{margin-top:11px!important;}
 }
 </style>
+
+<style id="saiku-unified-sidebar">
+/* Shared Saiku Rentals sidebar — kept consistent across every management page */
+.sidebar{
+  background:linear-gradient(165deg,rgba(5,20,45,.99),rgba(9,35,72,.98))!important;
+  border-right:1px solid rgba(91,174,255,.22)!important;
+  box-shadow:10px 0 35px rgba(0,8,25,.18)!important;
+  color:#eef6ff!important;
+  padding:0!important;
+  gap:0!important;
+  min-height:100vh;
+  box-sizing:border-box!important;
+}
+.sidebar-logo.saiku-sidebar-brand{
+  display:flex!important;align-items:center!important;gap:11px!important;
+  min-height:90px!important;padding:18px 16px!important;
+  border-bottom:1px solid rgba(255,255,255,.1)!important;
+  box-sizing:border-box!important;flex:0 0 auto!important;
+}
+.saiku-sidebar-brand{display:flex!important;align-items:center!important;gap:11px!important;min-width:0!important}
+.saiku-sidebar-logo{
+  display:block!important;width:56px!important;height:43px!important;flex:0 0 56px!important;
+  object-fit:contain!important;background:transparent!important;padding:0!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;mix-blend-mode:normal!important;
+}
+.saiku-sidebar-caption{min-width:0!important}
+.saiku-sidebar-caption h2{margin:0 0 3px!important;color:#f5f9ff!important;font-size:15px!important;line-height:1.25!important;letter-spacing:-.025em!important;white-space:nowrap!important}
+.saiku-sidebar-caption span{color:#a9c4e6!important;font-size:11px!important}
+.sidebar .navigation{
+  display:flex!important;flex-direction:column!important;gap:5px!important;
+  padding:14px 8px!important;overflow-y:auto!important;min-height:0!important;
+}
+.sidebar .navigation .nav-item{
+  display:flex!important;align-items:center!important;gap:12px!important;
+  min-height:44px!important;padding:11px 12px!important;margin:0!important;
+  color:#d4e5ff!important;text-decoration:none!important;border:1px solid transparent!important;
+  border-radius:12px!important;box-sizing:border-box!important;font-size:13px!important;
+  font-weight:600!important;line-height:1.3!important;background:transparent!important;
+  transition:background .18s ease,border-color .18s ease!important;
+}
+.sidebar .navigation .nav-item span:first-child{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 0 24px!important;width:24px!important;min-width:24px!important;font-size:18px!important;
+  visibility:visible!important;opacity:1!important;
+}
+.sidebar .navigation .nav-item span:last-child{display:inline-block!important;visibility:visible!important;opacity:1!important;color:inherit!important;white-space:nowrap!important}
+.sidebar .navigation .nav-item:hover{background:rgba(65,157,255,.15)!important;border-color:rgba(99,184,255,.18)!important;color:#fff!important}
+.sidebar .navigation .nav-item.active{background:linear-gradient(110deg,rgba(0,139,255,.38),rgba(0,217,255,.13))!important;border-color:rgba(91,190,255,.32)!important;color:#fff!important;box-shadow:inset 3px 0 0 #39baff!important}
+.sidebar-bottom{margin-top:auto;padding:12px!important;border-top:1px solid rgba(255,255,255,.1)!important}
+.sidebar .logout-button{width:100%!important;display:flex!important;align-items:center!important;gap:10px!important;padding:11px 13px!important;border-radius:11px!important;background:rgba(255,255,255,.06)!important;color:#dcecff!important;border:1px solid rgba(255,255,255,.1)!important}
+@media(max-width:760px){
+ .sidebar-logo.saiku-sidebar-brand{min-height:76px!important;padding:14px 12px!important}
+ .saiku-sidebar-logo{width:48px!important;height:38px!important;flex-basis:48px!important}
+ .sidebar .navigation{padding:10px 7px!important;gap:4px!important}
+ .sidebar .navigation .nav-item{min-height:42px!important;padding:10px!important;font-size:12px!important}
+}
+</style>
+
+  <link rel="stylesheet" href="css/unified-liquid-glass.css">
 </head>
 <body>
   <div class="app-layout">
@@ -2199,6 +2268,7 @@ body, .main-area { background:#f4f7fc !important; }
         <a href="dashboard.html" class="nav-item active"><span>⌂</span><span>Dashboard</span></a>
         <a href="Rentals.html" class="nav-item"><span>📋</span><span>Rentals</span></a>
         <a href="customers.html" class="nav-item"><span>👥</span><span>Customers</span></a>
+        <a href="invoices.html" class="nav-item"><span>🧾</span><span>Invoices</span></a>
         <a href="cycles.html" class="nav-item"><span>🛵</span><span>Cycles</span></a>
         <a href="staff.html" class="nav-item"><span>👥</span><span>Staff Management</span></a>
         <a href="loans.html" class="nav-item"><span>💰</span><span>Loans &amp; Finance</span></a>
@@ -2240,6 +2310,7 @@ body, .main-area { background:#f4f7fc !important; }
           <article class="key-metric-card"><span>Current Bank Balance</span><strong id="currentBankBalance">—</strong></article>
           <article class="key-metric-card is-warning"><span>Pending Payments</span><strong id="dashboardPendingPayments">—</strong></article>
           <article class="key-metric-card is-warning"><span>Unpaid Rentals</span><strong id="dashboardUnpaidRentals">—</strong></article>
+          <article class="key-metric-card"><span>Total Invoices</span><strong id="dashboardTotalInvoices">—</strong></article>
           <article class="key-metric-card is-warning"><span>Outstanding Invoices</span><strong id="dashboardOutstandingInvoices">—</strong></article>
           <article class="key-metric-card is-danger"><span>Overdue Invoices</span><strong id="dashboardOverdueInvoices">—</strong></article>
         </section>
@@ -3002,11 +3073,12 @@ Saiku Rentals | 7419944`;
           fetchTable('cash_deposits'),
           fetchTable('cycles'),
           fetchTable('customers'),
-          fetchTable('staff_members')
+          fetchTable('staff_members'),
+          fetchTable('invoices')
         ]);
 
         const [settingsResult, historicalFiguresResult, rentalsResult, rentalPaymentsResult, rentalExtensionsResult, expensesResult,
-          loansResult, loanPaymentsResult, cashDepositsResult, cyclesResult, customersResult, staffResult] = results;
+          loansResult, loanPaymentsResult, cashDepositsResult, cyclesResult, customersResult, staffResult, invoicesResult] = results;
 
         const settings = settingsResult.data.find(row => Number(row.id) === 1) || settingsResult.data[0] || null;
         const historicalFigures = historicalFiguresResult.data.find(row => Number(row.id) === 1) || historicalFiguresResult.data[0] || null;
@@ -3021,6 +3093,7 @@ Saiku Rentals | 7419944`;
         const cycles = cyclesResult.data || [];
         const customers = customersResult.data || [];
         const staffMembers = staffResult.data || [];
+        const invoices = invoicesResult.data || [];
 
         if (settingsResult.error) warnings.push('Company Settings could not be loaded. Check the company_settings table and its read policy.');
         if (historicalFiguresResult.error || !historicalFigures) warnings.push('Historical figures are not configured yet. Run historical_figures_setup.sql in Supabase, then use Edit Historical Figures.');
@@ -3034,6 +3107,7 @@ Saiku Rentals | 7419944`;
         if (cyclesResult.error) warnings.push('Cycle records could not be loaded.');
         if (customersResult.error) warnings.push('Customer records could not be loaded.');
         if (staffResult.error) warnings.push('Staff tracking is not configured yet. Run staff_performance_setup.sql in Supabase SQL Editor.');
+        if (invoicesResult.error) warnings.push('Invoices could not be loaded. Run invoice_setup.sql in Supabase SQL Editor and check invoice table permissions.');
 
         const expenseDateKeys = ['expense_date', 'date', 'transaction_date', 'created_at', 'payment_date'];
         const expenseAmountKeys = ['amount', 'expense_amount', 'total_amount', 'cost', 'payment_amount'];
@@ -3134,6 +3208,7 @@ Saiku Rentals | 7419944`;
         let unpaidRentalCount = 0;
         let outstandingInvoiceAmount = 0;
         let overdueInvoiceAmount = 0;
+        let totalInvoiceAmount = 0;
         for (const row of rentals) {
           const status = String(row.status || '').toLowerCase();
           if (['cancelled','canceled','void','deleted'].includes(status)) continue;
@@ -3143,17 +3218,31 @@ Saiku Rentals | 7419944`;
           let balance = Math.max(totalDue - (metricPaidByRental.get(id) || 0), 0);
           if (String(row.payment_status || '').toLowerCase() === 'paid' && paymentsForRental.length === 0) balance = 0;
           if (balance > 0.009) {
-            outstandingInvoiceAmount += balance;
             unpaidRentalCount += 1;
             const expired = ['overdue','expired'].includes(status) || Boolean(row.expected_return && new Date(row.expected_return).getTime() <= Date.now());
-            if (expired) overdueInvoiceAmount += balance;
             if (['active','overdue'].includes(status)) pendingPaymentAmount += balance;
+          }
+        }
+        const invoiceDataReady = !invoicesResult.error;
+        const todayInvoiceKey = localDateKey(new Date());
+        if (invoiceDataReady) {
+          for (const invoice of invoices) {
+            const status = String(invoice.status || '').toLowerCase();
+            if (['cancelled','canceled','void','deleted'].includes(status)) continue;
+            const total = Math.max(readAmount(invoice, ['total_amount','total','amount']) ?? 0, 0);
+            const paid = Math.max(readAmount(invoice, ['amount_paid','paid_amount']) ?? 0, 0);
+            const balance = Math.max(total - paid, 0);
+            totalInvoiceAmount += total;
+            outstandingInvoiceAmount += balance;
+            const dueDate = String(invoice.due_date || '').slice(0, 10);
+            if (balance > 0.009 && dueDate && dueDate < todayInvoiceKey) overdueInvoiceAmount += balance;
           }
         }
         setText('dashboardPendingPayments', metricsDataReady ? money(pendingPaymentAmount) : 'Not available');
         setText('dashboardUnpaidRentals', metricsDataReady ? String(unpaidRentalCount) : '—');
-        setText('dashboardOutstandingInvoices', metricsDataReady ? money(outstandingInvoiceAmount) : 'Not available');
-        setText('dashboardOverdueInvoices', metricsDataReady ? money(overdueInvoiceAmount) : 'Not available');
+        setText('dashboardTotalInvoices', invoiceDataReady ? money(totalInvoiceAmount) : 'Not available');
+        setText('dashboardOutstandingInvoices', invoiceDataReady ? money(outstandingInvoiceAmount) : 'Not available');
+        setText('dashboardOverdueInvoices', invoiceDataReady ? money(overdueInvoiceAmount) : 'Not available');
 
         // Split receipts and outflows by actual payment source. A deposit shifts cash to bank; it is not income.
         const cashDepositsSinceStart = depositsReady && startDate
@@ -4500,6 +4589,206 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
  #staffPerformance .staff-performance-name{font-size:11px!important}
  #staffPerformance .staff-ring{width:51px;height:51px}
  #staffPerformance .staff-ring strong{font-size:14px!important}
+}
+</style>
+
+
+
+<style id="saiku-monthly-performance-light-blue-liquid-glass">
+/* Monthly Performance cards — light-blue liquid glass.
+   Scoped to this section so other dashboard cards and behaviour remain unchanged. */
+.dashboard-content .monthly-summary-section .stats-grid {
+  gap: 14px;
+}
+.dashboard-content .monthly-summary-section .stat-card {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid rgba(112, 196, 255, .62) !important;
+  border-radius: 18px !important;
+  color: #153c61 !important;
+  background:
+    radial-gradient(ellipse at 8% 0%, rgba(255,255,255,.98) 0%, rgba(255,255,255,0) 48%),
+    linear-gradient(135deg, rgba(239,249,255,.92) 0%, rgba(207,235,255,.78) 52%, rgba(235,247,255,.91) 100%) !important;
+  box-shadow:
+    0 10px 25px rgba(40, 126, 190, .10),
+    inset 0 1px 0 rgba(255,255,255,.95),
+    inset 0 -1px 0 rgba(108,181,235,.18) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(18px) saturate(145%);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.dashboard-content .monthly-summary-section .stat-card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgba(255,255,255,.48), transparent 42%, rgba(132,207,255,.10));
+}
+.dashboard-content .monthly-summary-section .stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(70, 169, 240, .78) !important;
+  box-shadow:
+    0 14px 29px rgba(40,126,190,.15),
+    inset 0 1px 0 rgba(255,255,255,.98) !important;
+}
+.dashboard-content .monthly-summary-section .stat-top {
+  position: relative;
+  z-index: 1;
+}
+.dashboard-content .monthly-summary-section .stat-label {
+  color: #426b8e !important;
+  font-weight: 750 !important;
+}
+.dashboard-content .monthly-summary-section .stat-card strong {
+  position: relative;
+  z-index: 1;
+  color: #123f68 !important;
+  letter-spacing: -.35px;
+}
+.dashboard-content .monthly-summary-section .stat-card small {
+  position: relative;
+  z-index: 1;
+  color: #567995 !important;
+  line-height: 1.45;
+}
+.dashboard-content .monthly-summary-section .stat-icon {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(110,185,238,.52) !important;
+  background: rgba(255,255,255,.72) !important;
+  color: #1679bc !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), 0 3px 10px rgba(45,130,190,.08);
+}
+.dashboard-content .monthly-summary-section .stat-icon.income,
+.dashboard-content .monthly-summary-section .stat-icon.expense,
+.dashboard-content .monthly-summary-section .stat-icon.rentals {
+  background: rgba(224,243,255,.88) !important;
+  color: #1679bc !important;
+}
+.dashboard-content .monthly-summary-section .stat-icon.profit {
+  background: rgba(218,244,237,.92) !important;
+  border-color: rgba(103,201,171,.48) !important;
+  color: #16866b !important;
+}
+@media (max-width: 700px) {
+  .dashboard-content .monthly-summary-section .stats-grid {
+    gap: 10px;
+  }
+  .dashboard-content .monthly-summary-section .stat-card {
+    border-radius: 15px !important;
+    padding: 13px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-content .monthly-summary-section .stat-card {
+    transition: none;
+  }
+}
+</style>
+
+
+<style id="dashboard-banner-mobile-size-only">
+/* Compact mobile banner only. Desktop styling and all dashboard cards remain unchanged. */
+@media (max-width: 600px) {
+  header.topbar.saiku-main-banner {
+    display:flex !important;
+    align-items:center !important;
+    flex-wrap:nowrap !important;
+    gap:7px !important;
+    min-height:60px !important;
+    height:auto !important;
+    padding:7px 9px !important;
+    margin:0 0 10px !important;
+    border-radius:0 0 13px 13px !important;
+    box-sizing:border-box !important;
+  }
+  header.topbar.saiku-main-banner > .saiku-banner-menu {
+    order:0 !important;
+    position:static !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    flex:0 0 30px !important;
+    width:30px !important;
+    min-width:30px !important;
+    height:30px !important;
+    padding:0 !important;
+    margin:0 !important;
+    font-size:16px !important;
+  }
+  header.topbar.saiku-main-banner > .saiku-banner-brand {
+    order:1 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    gap:0 !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-logo {
+    display:block !important;
+    width:auto !important;
+    max-width:100% !important;
+    height:auto !important;
+    max-height:42px !important;
+    flex:0 1 auto !important;
+    object-fit:contain !important;
+    object-position:left center !important;
+  }
+  /* Mobile banner: show only the menu, full logo and user profile. */
+  header.topbar.saiku-main-banner .saiku-banner-copy {
+    display:none !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-kicker {
+    font-size:6px !important;
+    letter-spacing:.7px !important;
+    line-height:1.1 !important;
+    margin-bottom:2px !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-copy h1 {
+    font-size:14px !important;
+    line-height:1.12 !important;
+    margin:0 !important;
+    letter-spacing:-.2px !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-copy p {
+    font-size:8px !important;
+    line-height:1.15 !important;
+    margin:2px 0 0 !important;
+  }
+  header.topbar.saiku-main-banner > .saiku-banner-actions {
+    order:2 !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:4px !important;
+    flex:0 0 auto !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-refresh { display:none !important; }
+  header.topbar.saiku-main-banner .saiku-banner-user {
+    width:27px !important;
+    min-width:27px !important;
+    height:27px !important;
+    font-size:11px !important;
+  }
+}
+@media (max-width:380px) {
+  header.topbar.saiku-main-banner {
+    gap:5px !important;
+    padding:6px 7px !important;
+    min-height:52px !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-logo {
+    width:auto !important;
+    max-width:100% !important;
+    max-height:38px !important;
+    flex-basis:auto !important;
+  }
+  header.topbar.saiku-main-banner .saiku-banner-copy { display:none !important; }
+  header.topbar.saiku-main-banner .saiku-banner-refresh { display:none !important; }
 }
 </style>
 
