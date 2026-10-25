@@ -2308,6 +2308,7 @@ body, .main-area { background:#f4f7fc !important; }
           <article class="key-metric-card"><span>Total Expenses</span><strong id="dashboardTotalExpenses">—</strong></article>
           <article class="key-metric-card"><span>Net Profit</span><strong id="dashboardNetProfit">—</strong></article>
           <article class="key-metric-card"><span>Current Bank Balance</span><strong id="currentBankBalance">—</strong></article>
+          <article class="key-metric-card"><span>Available Cash</span><strong id="dashboardAvailableCash">—</strong><small>Tracked cash remaining after outflows and deposits</small></article>
           <article class="key-metric-card is-warning"><span>Pending Payments</span><strong id="dashboardPendingPayments">—</strong></article>
           <article class="key-metric-card is-warning"><span>Unpaid Rentals</span><strong id="dashboardUnpaidRentals">—</strong></article>
           <article class="key-metric-card"><span>Total Invoices</span><strong id="dashboardTotalInvoices">—</strong></article>
@@ -3288,6 +3289,9 @@ Saiku Rentals | 7419944`;
 
         const cashBalanceReady = incomeReady && expensesReady && loanPaymentsReady && depositsReady && Boolean(startDate) && paymentMethodsKnown;
         setText('cashTrackedBalance', cashBalanceReady
+          ? money(cashIncomeSinceStart - cashExpensesSinceStart - cashLoanPaymentsSinceStart - cashDepositsSinceStart)
+          : 'Incomplete data');
+        setText('dashboardAvailableCash', cashBalanceReady
           ? money(cashIncomeSinceStart - cashExpensesSinceStart - cashLoanPaymentsSinceStart - cashDepositsSinceStart)
           : 'Incomplete data');
         renderCashDeposits(cashDeposits, cashDepositsResult.error);
