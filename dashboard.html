@@ -1400,6 +1400,7 @@ section[aria-labelledby="loanSummaryHeading"]{
   .fleet-manage-action.return { color:#176b59; background:#e2f7f0; border-color:#a9e4d1; }
   .fleet-manage-action.reminder { color:#8b4a13; background:#fff2df; border-color:#f5d39c; }
   .fleet-manage-action.expiry-reminder { color:#6d3ca0; background:#f4eaff; border-color:#dfc6f8; }
+  .fleet-manage-action.share-rental { color:#fff; background:#16845b; }
   .fleet-manage-footnote { margin:12px 0 0; color:#8190a5; font-size:.69rem; line-height:1.4; text-align:center; }
   @media(max-width:760px) {
     #activeRentalCards .active-rental-card-grid.fleet-unified-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:6px !important; }
@@ -2747,6 +2748,7 @@ body, .main-area { background:#f4f7fc !important; }
               <button type="button" class="fleet-manage-action return" data-active-action="return" data-rental-id="">Return cycle</button>
               <button type="button" class="fleet-manage-action reminder" data-active-action="paymentReminder" data-rental-id="">Copy payment reminder</button>
               <button type="button" class="fleet-manage-action expiry-reminder" data-active-action="expiryReminder" data-rental-id="">Copy expiry reminder</button>
+              <button type="button" class="fleet-manage-action share-rental" data-active-action="shareRental" data-rental-id="">Share rental JPG</button>
             </div>
             <p class="fleet-manage-footnote">Changes are handled by the existing Rentals page workflow.</p>
           </section>
@@ -2810,6 +2812,129 @@ body, .main-area { background:#f4f7fc !important; }
       modal.hidden = false;
       const closeButton = modal.querySelector('[data-manage-close]');
       if (closeButton) closeButton.focus();
+    }
+
+    function loadRentalSharePhoto(url) {
+      if (!url) return Promise.resolve(null);
+      return new Promise(resolve => {
+        const image = new Image();
+        image.crossOrigin = 'anonymous';
+        image.onload = () => resolve(image);
+        image.onerror = () => resolve(null);
+        image.src = url;
+      });
+    }
+
+    function drawShareText(ctx, text, x, y, maxWidth, lineHeight, maxLines = 2) {
+      const words = String(text || '').split(/\s+/);
+      let line = '';
+      let lines = [];
+      for (const word of words) {
+        const test = line ? `${line} ${word}` : word;
+        if (ctx.measureText(test).width > maxWidth && line) { lines.push(line); line = word; }
+        else line = test;
+      }
+      if (line) lines.push(line);
+      if (lines.length > maxLines) {
+        lines = lines.slice(0, maxLines);
+        let last = lines[maxLines - 1];
+        while (last.length && ctx.measureText(`${last}…`).width > maxWidth) last = last.slice(0, -1);
+        lines[maxLines - 1] = `${last}…`;
+      }
+      lines.forEach((value, index) => ctx.fillText(value, x, y + index * lineHeight));
+      return y + lines.length * lineHeight;
+    }
+
+    async function shareRentalJpg(rentalId) {
+      const state = activeRentalCardState;
+      const rental = state?.rentals.find(item => String(item.id) === String(rentalId));
+      if (!rental) { alert('This rental is no longer active. Refresh the dashboard.'); return; }
+      const customer = state.customers.get(String(rental.customer_id)) || rental.customers || {};
+      const cycle = state.cycles.get(String(rental.cycle_id)) || rental.cycles || {};
+      const customerName = customer.name || customer.full_name || 'Customer';
+      const phone = customer.phone || customer.phone_number || customer.mobile || 'Phone not recorded';
+      const identity = customer.id_number || customer.national_id || customer.nid || customer.identity_number || customer.passport_number || customer.customer_id_number || '';
+      const plate = cycle.plate_number || cycle.name || 'Cycle';
+      const staff1 = state.staff?.get(String(rental.delivered_by_staff_id || ''))?.name || '';
+      const staff2 = state.staff?.get(String(rental.delivered_by_staff_id_2 || ''))?.name || '';
+      const deliveredBy = [staff1, staff2].filter(Boolean).join(' + ') || 'Not assigned';
+      const payments = (state.payments || []).filter(row => String(row.rental_id) === String(rental.id));
+      const extensions = (state.extensions || []).filter(row => String(row.rental_id) === String(rental.id));
+      const paid = payments.reduce((sum, row) => sum + (readAmount(row, ['amount','paid_amount','amount_paid','payment_amount','total_amount']) || 0), 0);
+      const extensionTotal = extensions.reduce((sum, row) => sum + (readAmount(row, ['amount','extension_amount','total_amount']) || 0), 0);
+      const totalDue = Number(rental.total_amount || 0) + extensionTotal;
+      const balance = Math.max(totalDue - paid, 0);
+      const duration = liveCountdownDuration(rental.expected_return || '');
+      const expired = String(rental.status || '').toLowerCase() === 'overdue' || duration.expired;
+      const photo = await loadRentalSharePhoto(customerPhotoUrl(customer));
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1400;
+      const ctx = canvas.getContext('2d');
+      const bg = ctx.createLinearGradient(0, 0, 1080, 1400);
+      bg.addColorStop(0, '#f4f8ff'); bg.addColorStop(1, '#e7eef8');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const rounded = (x,y,w,h,r,color) => { ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fillStyle=color; ctx.fill(); };
+      rounded(42, 42, 996, 1316, 34, '#ffffff');
+      rounded(42, 42, 996, 220, 34, '#14365d');
+      ctx.fillStyle = '#a9d9ff'; ctx.font = '700 24px Arial'; ctx.fillText('SAIKU RENTALS  /  RENTAL SUMMARY', 88, 104);
+      ctx.fillStyle = '#ffffff'; ctx.font = '800 52px Arial'; ctx.fillText('Rental information', 88, 178);
+      rounded(818, 88, 166, 54, 27, expired ? '#fee2e2' : '#dcfce7');
+      ctx.fillStyle = expired ? '#b42318' : '#166534'; ctx.font = '800 22px Arial'; ctx.textAlign = 'center'; ctx.fillText(expired ? 'OVERDUE' : 'RENTED', 901, 123); ctx.textAlign = 'left';
+
+      ctx.save(); ctx.beginPath(); ctx.arc(164, 370, 72, 0, Math.PI * 2); ctx.fillStyle = '#dcecff'; ctx.fill();
+      if (photo) { ctx.beginPath(); ctx.arc(164, 370, 68, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(photo, 96, 302, 136, 136); }
+      else { ctx.fillStyle = '#214c78'; ctx.font = '800 44px Arial'; ctx.textAlign = 'center'; ctx.fillText(customerInitials(customerName), 164, 386); ctx.textAlign = 'left'; }
+      ctx.restore();
+      ctx.fillStyle = '#6b7d93'; ctx.font = '700 22px Arial'; ctx.fillText('CUSTOMER', 274, 326);
+      ctx.fillStyle = '#173452'; ctx.font = '800 40px Arial'; drawShareText(ctx, customerName, 274, 378, 680, 46, 2);
+      ctx.fillStyle = '#40546b'; ctx.font = '26px Arial'; ctx.fillText(String(phone), 274, 438);
+      if (identity) { ctx.fillStyle = '#6b7d93'; ctx.font = '22px Arial'; ctx.fillText(`ID: ${identity}`, 274, 480); }
+
+      const line = y => { ctx.strokeStyle = '#e4ebf3'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(88,y); ctx.lineTo(992,y); ctx.stroke(); };
+      line(510);
+      ctx.fillStyle = '#6b7d93'; ctx.font = '700 20px Arial'; ctx.fillText('CYCLE', 92, 558); ctx.fillText('RENTAL ID', 568, 558);
+      ctx.fillStyle = '#183957'; ctx.font = '800 32px Arial'; drawShareText(ctx, plate, 92, 604, 420, 38, 2); ctx.font = '700 25px Arial'; drawShareText(ctx, String(rental.id), 568, 604, 420, 32, 2);
+      line(650);
+      const detail = (label, value, x, y, maxWidth=420) => { ctx.fillStyle='#6b7d93';ctx.font='700 19px Arial';ctx.fillText(label.toUpperCase(),x,y);ctx.fillStyle='#263f5c';ctx.font='700 25px Arial';drawShareText(ctx,String(value || 'Not recorded'),x,y+38,maxWidth,31,2); };
+      detail('Start date', shortActiveRentalDate(rental.start_date), 92, 704);
+      detail('Return by', shortActiveRentalDate(rental.expected_return), 568, 704);
+      detail(expired ? 'Rental status' : 'Time remaining', expired ? duration.label : duration.label, 92, 808);
+      detail('Delivered by', deliveredBy, 568, 808);
+      line(914);
+
+      rounded(82, 952, 916, 300, 24, '#f4f8fd');
+      ctx.fillStyle = '#173452'; ctx.font = '800 30px Arial'; ctx.fillText('Payment summary', 116, 1006);
+      const paymentRows = [
+        ['Rental total', money(Number(rental.total_amount || 0))],
+        ['Extensions', money(extensionTotal)],
+        ['Total paid', state.paymentsError ? 'History unavailable' : money(paid)],
+        ['Balance due', state.paymentsError || state.extensionsError ? 'History unavailable' : money(balance)]
+      ];
+      paymentRows.forEach((row, index) => {
+        const y = 1060 + index * 45;
+        ctx.fillStyle = '#60758d'; ctx.font = '24px Arial'; ctx.fillText(row[0], 116, y);
+        ctx.fillStyle = index === 3 && balance > 0 ? '#b42318' : '#243f5c'; ctx.font = '800 24px Arial'; ctx.textAlign = 'right'; ctx.fillText(row[1], 964, y); ctx.textAlign = 'left';
+      });
+      ctx.fillStyle = '#8595a8'; ctx.font = '20px Arial'; ctx.fillText(`Created ${new Date().toLocaleString()}`, 88, 1310);
+
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .92));
+      if (!blob) { alert('Could not create the rental JPG. Please try again.'); return; }
+      const safeName = String(customerName).trim().replace(/[^a-z0-9_-]+/gi, '-').replace(/^-|-$/g, '') || 'customer';
+      const file = new File([blob], `Saiku-Rental-${safeName}.jpg`, {type:'image/jpeg'});
+      try {
+        if (navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+          await navigator.share({files:[file], title:`Saiku Rentals - ${plate}`, text:`Rental summary for ${customerName} · ${plate}`});
+          return;
+        }
+      } catch (error) {
+        if (error.name === 'AbortError') return;
+      }
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob); link.download = file.name; link.click();
+      window.setTimeout(() => URL.revokeObjectURL(link.href), 30000);
+      alert('Rental JPG downloaded. Attach it to your WhatsApp or Viber group message.');
     }
 
     async function copyReminderMessage(rentalId) {
@@ -2970,6 +3095,11 @@ body, .main-area { background:#f4f7fc !important; }
         return;
       }
       if (button.closest('#activeRentalManageModal')) closeActiveRentalManageModal();
+
+      if (action === 'shareRental') {
+        await shareRentalJpg(id);
+        return;
+      }
 
       if (action === 'extend') {
         if (typeof window.openDashboardExtensionPopup === 'function') {
