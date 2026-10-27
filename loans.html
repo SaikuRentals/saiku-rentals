@@ -166,7 +166,10 @@
 <style id="loans-responsive-layout">
   /* Keep loan totals clear and loan details balanced across screen sizes. */
   .page-content { min-width: 0; max-width: 100%; }
-  .page-content > .dashboard-grid { margin-top: 0 !important; margin-bottom: 16px; }
+  .page-content > .dashboard-grid { margin-top: 0 !important; margin-bottom: 14px; gap: 9px !important; }
+  .page-content > .dashboard-grid > .stat-card { padding: 12px !important; border-radius: 13px !important; }
+  .page-content > .dashboard-grid > .stat-card span { margin-bottom: 5px !important; font-size: 11px !important; }
+  .page-content > .dashboard-grid > .stat-card strong { font-size: clamp(14px, 1.5vw, 19px) !important; line-height: 1.2 !important; }
   .loan-card { min-width: 0; overflow: hidden; border-radius: 16px; }
   .loan-card > .dashboard-grid {
     display: grid !important;
@@ -177,12 +180,14 @@
   .loan-card > .dashboard-grid > .stat-card { min-width: 0; padding: 14px !important; }
   .loan-card > .dashboard-grid > .stat-card span { display: block; margin-bottom: 6px; color: var(--text-secondary, #687386); font-size: 11px; }
   .loan-card > .dashboard-grid > .stat-card strong { display: block; overflow-wrap: anywhere; font-size: clamp(15px, 1.5vw, 19px); line-height: 1.3; }
+  .loan-card > .loan-actions { width: min(100%, 430px); margin: 12px 0 0 auto !important; padding-top: 10px; border-top: 1px solid rgba(113,163,211,.18); }
+  .loan-card > .loan-actions button { min-height: 40px; border-radius: 10px; }
   @media (max-width: 760px) {
     .page-content { padding: 14px 12px 26px !important; }
-    .page-content > .dashboard-grid { gap: 9px !important; margin-bottom: 13px; }
-    .page-content > .dashboard-grid > .stat-card { padding: 12px !important; border-radius: 13px !important; }
-    .page-content > .dashboard-grid > .stat-card span { margin-bottom: 6px !important; font-size: 11px !important; }
-    .page-content > .dashboard-grid > .stat-card strong { font-size: clamp(13px, 3.7vw, 17px) !important; }
+    .page-content > .dashboard-grid { gap: 7px !important; margin-bottom: 11px; }
+    .page-content > .dashboard-grid > .stat-card { padding: 10px !important; border-radius: 12px !important; }
+    .page-content > .dashboard-grid > .stat-card span { margin-bottom: 4px !important; font-size: 10px !important; }
+    .page-content > .dashboard-grid > .stat-card strong { font-size: clamp(12px, 3.4vw, 15px) !important; line-height: 1.2 !important; }
     .loan-card { padding: 14px !important; border-radius: 14px !important; }
     .loan-card > .card-header { gap: 9px !important; margin-bottom: 12px !important; }
     .loan-card > .card-header h3 { margin-bottom: 4px; font-size: 17px; }
@@ -191,13 +196,100 @@
     .loan-card > .dashboard-grid > .stat-card { padding: 11px !important; border-radius: 11px !important; }
     .loan-card > .dashboard-grid > .stat-card:first-child { grid-column: 1 / -1; }
     .loan-card > .dashboard-grid > .stat-card strong { font-size: clamp(14px, 4vw, 18px) !important; }
+    .loan-card > .loan-actions { width: 100%; margin: 10px 0 0 !important; padding-top: 9px; }
     .loan-card .loan-actions button { min-height: 42px !important; border-radius: 10px !important; }
   }
   @media (max-width: 380px) {
     .page-content { padding-right: 9px !important; padding-left: 9px !important; }
-    .page-content > .dashboard-grid > .stat-card { padding: 10px !important; }
+    .page-content > .dashboard-grid > .stat-card { padding: 8px !important; }
+    .page-content > .dashboard-grid > .stat-card span { font-size: 9px !important; }
+    .page-content > .dashboard-grid > .stat-card strong { font-size: 11px !important; }
     .loan-card { padding: 11px !important; }
     .loan-card .loan-actions button { padding-right: 3px !important; padding-left: 3px !important; font-size: 11px !important; }
+  }
+  /* Compact payment history popup, styled like the Rentals history card. */
+  #loanHistoryModal.show { padding: 12px !important; }
+  #loanHistoryModal .modal-content {
+    width: min(500px, calc(100vw - 24px)) !important;
+    max-width: 500px !important;
+    max-height: min(82vh, 700px) !important;
+    padding: 16px !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border: 1px solid #dce7f5 !important;
+    border-radius: 16px !important;
+    background: linear-gradient(160deg, #fff, #f7fbff) !important;
+  }
+  #loanHistoryModal .modal-header {
+    flex: 0 0 auto;
+    margin-bottom: 10px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 1px solid #e0e9f5 !important;
+  }
+  #loanHistoryModal .modal-header h2 { margin: 0 !important; font-size: 18px !important; }
+  #loanHistoryModal #historyLoanName { display: block; margin-top: 3px; color: #71829a; font-size: 11px; }
+  #loanHistoryModal .history-summary {
+    flex: 0 0 auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    margin: 0 0 10px !important;
+  }
+  #loanHistoryModal .history-summary > div {
+    min-width: 0;
+    padding: 9px 7px !important;
+    border: 1px solid #dce7f5;
+    border-radius: 10px;
+    background: rgba(255,255,255,.9) !important;
+    text-align: left !important;
+  }
+  #loanHistoryModal .history-summary span { margin-bottom: 4px !important; color: #74849b; font-size: 10px !important; font-weight: 700; }
+  #loanHistoryModal .history-summary strong { display: block; overflow-wrap: anywhere; color: #203d63; font-size: 12px !important; line-height: 1.25; }
+  #loanHistoryModal #historyTotalPaid { color: #16803c !important; }
+  #loanHistoryModal #historyRemaining { color: #b42323 !important; }
+  #loanHistoryModal .loan-history-list {
+    display: flex;
+    flex: 0 1 auto;
+    flex-direction: column;
+    gap: 7px;
+    min-height: 0;
+    max-height: min(42vh, 340px);
+    overflow-y: auto;
+    padding: 1px 3px 2px 0;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  #loanHistoryModal .loan-history-item {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 6px 10px !important;
+    margin: 0 !important;
+    padding: 10px 11px !important;
+    border: 1px solid #e0e8f3 !important;
+    border-radius: 11px !important;
+    background: rgba(255,255,255,.94) !important;
+  }
+  #loanHistoryModal .loan-history-info { min-width: 0; }
+  #loanHistoryModal .loan-history-info strong { display: block; color: #1f3c61; font-size: 12px; line-height: 1.25; }
+  #loanHistoryModal .loan-history-info small { display: block; margin-top: 3px; color: #71829a; font-size: 10px; line-height: 1.4; overflow-wrap: anywhere; }
+  #loanHistoryModal .loan-history-amount { grid-column: 1; grid-row: 2; color: #203d63; font-size: 13px; }
+  #loanHistoryModal .loan-history-actions { grid-column: 2; grid-row: 1 / span 2; flex-direction: column; justify-content: center; gap: 5px !important; }
+  #loanHistoryModal .loan-history-actions button { min-height: 32px !important; padding: 6px 10px !important; border-radius: 8px !important; font-size: 11px !important; }
+  @media (max-width: 480px) {
+    #loanHistoryModal.show { padding: 8px !important; }
+    #loanHistoryModal .modal-content { width: calc(100vw - 16px) !important; max-height: min(84dvh, 680px) !important; padding: 12px !important; border-radius: 14px !important; }
+    #loanHistoryModal .modal-header { margin-bottom: 8px !important; padding-bottom: 8px !important; }
+    #loanHistoryModal .modal-header h2 { font-size: 16px !important; }
+    #loanHistoryModal .history-summary { gap: 5px !important; margin-bottom: 8px !important; }
+    #loanHistoryModal .history-summary > div { padding: 7px 6px !important; }
+    #loanHistoryModal .history-summary span { font-size: 9px !important; }
+    #loanHistoryModal .history-summary strong { font-size: 10px !important; }
+    #loanHistoryModal .loan-history-list { max-height: min(48vh, 320px); }
+    #loanHistoryModal .loan-history-item { gap: 5px 7px !important; padding: 8px 9px !important; }
+    #loanHistoryModal .loan-history-actions { width: auto !important; }
+    #loanHistoryModal .loan-history-amount { font-size: 12px; }
+    #loanHistoryModal .loan-history-actions button { min-height: 30px !important; padding: 5px 9px !important; }
   }
 </style>
 </head>
@@ -1749,14 +1841,6 @@ async function loadLoans() {
 
 
 
-                        <div class="loan-actions">
-                        <button type="button" class="primary-button loan-payment-button" onclick="openPaymentForm('${loan.id}')"><span aria-hidden="true">＋</span> Payment</button>
-                        <button type="button" class="secondary-button loan-edit-button" onclick="openEditLoan('${loan.id}')"><span aria-hidden="true">✏️</span> Edit</button>
-                        <button type="button" class="secondary-button loan-history-button" onclick="openLoanHistory('${loan.id}')"><span aria-hidden="true">📋</span> History</button>
-                        </div>
-
-
-
                     </div>
 
 
@@ -1803,6 +1887,11 @@ async function loadLoans() {
 
 
 
+                    </div>
+                    <div class="loan-actions">
+                        <button type="button" class="primary-button loan-payment-button" onclick="openPaymentForm('${loan.id}')">+ Payment</button>
+                        <button type="button" class="secondary-button loan-edit-button" onclick="openEditLoan('${loan.id}')">Edit</button>
+                        <button type="button" class="secondary-button loan-history-button" onclick="openLoanHistory('${loan.id}')">History</button>
                     </div>
 
 
@@ -2592,17 +2681,11 @@ async function openLoanHistory(loanId) {
 
 
 
-            const date =
-
-                payment.payment_date
-
-                    ? new Date(
-
-                        payment.payment_date
-
-                    ).toLocaleDateString()
-
-                    : "-";
+            const dateValue = payment.payment_date ? String(payment.payment_date).slice(0, 10) : "";
+            const dateParts = dateValue.split("-");
+            const date = dateParts.length === 3
+                ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`
+                : "Date not set";
 
 
 
@@ -2628,13 +2711,13 @@ async function openLoanHistory(loanId) {
 
 
 
-            ${description ? `<strong>${description}</strong>` : ""}
+            <strong>${date} payment</strong>
 
 
 
             <small>
 
-                ${date} · Paid using: ${(payment.payment_method || "Source not set").toString()}
+                Paid using: ${(payment.payment_method || "Source not set").toString()}${description ? ` | ${description}` : ""}
 
             </small>
 
