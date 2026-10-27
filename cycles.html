@@ -60,7 +60,7 @@
         .cycle-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;min-width:0}.cycle-card-plate{font-size:15px;line-height:1.25;font-weight:800;overflow-wrap:anywhere;color:var(--text-primary,#15243a)}.cycle-card-meta{font-size:11px;color:var(--text-secondary,#687386);margin-top:4px}
         .cycle-status{font-size:10px;font-weight:800;padding:5px 7px;border-radius:999px;white-space:nowrap;background:#e8f7ed;color:#16803c}.cycle-status.rented{background:#feeceb;color:#b42318}.cycle-status.maintenance{background:#fff3d6;color:#a15c00}
         .cycle-doc-list{display:grid;grid-template-columns:1fr;gap:7px}.cycle-doc-item{padding:8px 9px;border-radius:10px;background:rgba(222,235,252,.42);border:1px solid rgba(126,155,195,.16);min-width:0}.cycle-doc-label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary,#687386);font-weight:700;margin-bottom:4px}.cycle-doc-value{font-size:12px;font-weight:700;overflow-wrap:anywhere}.cycle-card-notes{font-size:11px;color:var(--text-secondary,#687386);overflow-wrap:anywhere;line-height:1.4}
-        .cycle-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:auto}.cycle-card-actions button,.cycle-document-button{min-width:0;border-radius:9px;padding:8px 7px;font-size:11px;font-weight:700;cursor:pointer}.cycle-document-button{width:100%;border:1px solid rgba(34,112,210,.22);background:#edf5ff;color:#1558a6}.cycle-edit-button{border:0;background:#e9f2ff;color:#1558a6}.cycle-delete-button{border:0;background:#fff0ef;color:#b42318}.cycle-document-link{display:inline-block;font-size:11px;color:#1558a6;text-decoration:none;font-weight:700;margin-top:5px}.cycle-upload-input{display:none}.cycle-document-help{font-size:11px;color:var(--text-secondary,#687386);margin:0 0 8px}
+        .cycle-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:auto}.cycle-card-actions button,.cycle-document-button{min-width:0;border-radius:9px;padding:8px 7px;font-size:11px;font-weight:700;cursor:pointer}.cycle-document-button{width:100%;border:1px solid rgba(34,112,210,.22);background:#edf5ff;color:#1558a6}.cycle-edit-button{border:0;background:#e9f2ff;color:#1558a6}.cycle-delete-button{border:0;background:#fff0ef;color:#b42318}.cycle-document-link{display:inline-block;font-size:11px;color:#1558a6;text-decoration:none;font-weight:700;margin-top:5px}.cycle-document-entry{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:5px;min-width:0}.cycle-document-entry .cycle-document-link{min-width:0;overflow-wrap:anywhere}.cycle-document-remove{flex:0 0 auto;border:0;border-radius:7px;padding:4px 7px;background:#fff0ef;color:#b42318;font-size:10px;font-weight:700;cursor:pointer}.cycle-upload-input{display:none}.cycle-document-help{font-size:11px;color:var(--text-secondary,#687386);margin:0 0 8px}
         .section-header{gap:12px;flex-wrap:wrap}.section-header .search-input{max-width:230px;min-width:0}
         /* Keep the four summary tiles compact and aligned */
         .cycle-stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;align-items:stretch!important}
@@ -1383,11 +1383,13 @@ function renderCycles(cycles) {
         const status = cycle.status || "available";
         const statusText = status.charAt(0).toUpperCase() + status.slice(1);
         const createdDate = cycle.created_at ? new Date(cycle.created_at).toLocaleDateString() : "-";
-        const stickerUrl = cycle.sticker_document_url || "";
+        const documents = getCycleDocuments(cycle.sticker_document_url);
         const id = escapeHtml(cycle.id);
+        const stickerUrl = documents.length ? documents[0].url : "";
         const documentMarkup = stickerUrl
             ? '<a class="cycle-document-link" href="' + escapeHtml(stickerUrl) + '" target="_blank" rel="noopener">View document ↗</a>'
             : '<span class="cycle-doc-value">Not uploaded</span>';
+        const documentListMarkup = documents.length ? documents.map((doc, index) => '<div class="cycle-document-entry"><a class="cycle-document-link" href="' + escapeHtml(doc.url) + '" target="_blank" rel="noopener">' + escapeHtml(doc.name || ('View document ' + (index + 1))) + '</a><button class="cycle-document-remove" type="button" onclick="removeCycleDocument(\'' + id + '\',' + index + ')">Remove</button></div>').join('') : '';
         const notesMarkup = cycle.notes
             ? '<div class="cycle-card-notes">' + escapeHtml(cycle.notes) + '</div>'
             : "";
@@ -1399,11 +1401,11 @@ function renderCycles(cycles) {
             <div class="cycle-doc-item"><span class="cycle-doc-label">Annual fee</span><div class="cycle-doc-value">${escapeHtml(formatMoney(cycle.annual_fee_amount))}</div>${renderExpiry(cycle.annual_fee_expiry)}</div>
             <div class="cycle-doc-item"><span class="cycle-doc-label">Insurance</span>${renderExpiry(cycle.insurance_expiry)}</div>
             <div class="cycle-doc-item"><span class="cycle-doc-label">Roadworthiness</span>${renderExpiry(cycle.roadworthiness_expiry)}</div>
-            <div class="cycle-doc-item"><span class="cycle-doc-label">Sticker / document</span>${documentMarkup}</div>
+            <div class="cycle-doc-item"><span class="cycle-doc-label">Sticker / document</span>${documentListMarkup || documentMarkup}</div>
           </div>
           ${notesMarkup}
           <button class="cycle-document-button" type="button" onclick="chooseCycleDocument('${id}')">＋ ${stickerUrl ? "Replace sticker / document" : "Add sticker / document"}</button>
-          <input class="cycle-upload-input" type="file" id="cycleDocument-${id}" accept="image/*,.pdf" onchange="uploadCycleDocument('${id}', this.files[0])">
+          <input class="cycle-upload-input" type="file" id="cycleDocument-${id}" accept="image/*,.pdf" multiple onchange="uploadCycleDocument('${id}', this.files)">
           <div class="cycle-card-actions"><button class="cycle-edit-button" type="button" onclick="editCycle('${id}')">✏️ Edit details</button><button class="cycle-delete-button" type="button" onclick="deleteCycle('${id}')">🗑️ Delete</button></div>`;
         grid.appendChild(card);
     });
@@ -2144,24 +2146,58 @@ async function deleteCycle(id) {
 // ==============================
 
 
-// Uploads sticker images/PDFs to Supabase Storage. Requires bucket "cycle-documents"
-// and public.cycles.sticker_document_url (text).
-function chooseCycleDocument(id) { const input = document.getElementById("cycleDocument-" + id); if (input) input.click(); }
-async function uploadCycleDocument(id, file) {
- if (!file) return;
- if (!(file.type.startsWith("image/") || file.type === "application/pdf")) { alert("Please select an image or PDF document."); return; }
- if (file.size > 10 * 1024 * 1024) { alert("Please choose a file smaller than 10 MB."); return; }
+// Supports legacy single URLs and JSON arrays in the existing text column.
+function getCycleDocuments(value) {
+ if (!value) return [];
  try {
-  const ext = (file.name.split(".").pop() || "file").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-  const path = `${id}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-  const {data, error} = await supabaseClient.storage.from("cycle-documents").upload(path, file, {upsert:false, contentType:file.type || "application/octet-stream"});
-  if (error) throw error;
-  const {data:urlData} = supabaseClient.storage.from("cycle-documents").getPublicUrl(data.path);
-  const {error:updateError} = await supabaseClient.from("cycles").update({sticker_document_url:urlData.publicUrl}).eq("id", id);
+  const parsed = JSON.parse(value);
+  if (Array.isArray(parsed)) return parsed.filter(item => item && item.url).map(item => ({url:String(item.url), path:item.path || storagePathFromUrl(item.url), name:item.name || ""}));
+ } catch (_) {}
+ return [{url:String(value), path:storagePathFromUrl(value), name:""}];
+}
+function storagePathFromUrl(url) {
+ try { const parsed = new URL(url); const marker = "/storage/v1/object/public/cycle-documents/"; const index = parsed.pathname.indexOf(marker); return index < 0 ? "" : decodeURIComponent(parsed.pathname.slice(index + marker.length)); }
+ catch (_) { return ""; }
+}
+function chooseCycleDocument(id) { const input = document.getElementById("cycleDocument-" + id); if (input) input.click(); }
+async function uploadCycleDocument(id, files) {
+ const selected = Array.from(files || []);
+ if (!selected.length) return;
+ const invalid = selected.find(file => !(file.type.startsWith("image/") || file.type === "application/pdf") || file.size > 10 * 1024 * 1024);
+ if (invalid) { alert("Each file must be an image or PDF smaller than 10 MB. No files were uploaded."); return; }
+ try {
+  const cycle = allCycles.find(item => String(item.id) === String(id));
+  if (!cycle) throw new Error("Cycle not found. Refresh and try again.");
+  const documents = getCycleDocuments(cycle.sticker_document_url);
+  const uploaded = [];
+  for (const file of selected) {
+   const ext = (file.name.split(".").pop() || "file").replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+   const path = `${id}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+   const {data, error} = await supabaseClient.storage.from("cycle-documents").upload(path, file, {upsert:false, contentType:file.type || "application/octet-stream"});
+   if (error) throw error;
+   const {data:urlData} = supabaseClient.storage.from("cycle-documents").getPublicUrl(data.path);
+   uploaded.push({url:urlData.publicUrl, path:data.path, name:file.name});
+  }
+  const {error:updateError} = await supabaseClient.from("cycles").update({sticker_document_url:JSON.stringify(documents.concat(uploaded))}).eq("id", id);
   if (updateError) throw updateError;
-  alert("Cycle document uploaded successfully."); await loadCycles();
+  alert(`${uploaded.length} cycle document${uploaded.length === 1 ? "" : "s"} uploaded successfully.`); await loadCycles();
  } catch (error) { console.error(error); alert("Unable to save cycle document. Confirm the Storage bucket, permissions, and cycles.sticker_document_url column. " + (error.message || "")); }
  finally { const input = document.getElementById("cycleDocument-" + id); if (input) input.value = ""; }
+}
+async function removeCycleDocument(id, index) {
+ const cycle = allCycles.find(item => String(item.id) === String(id));
+ if (!cycle) return;
+ const documents = getCycleDocuments(cycle.sticker_document_url);
+ const documentToRemove = documents[index];
+ if (!documentToRemove || !confirm(`Remove ${documentToRemove.name || "this cycle document"}?`)) return;
+ const remaining = documents.filter((_, itemIndex) => itemIndex !== index);
+ const {error} = await supabaseClient.from("cycles").update({sticker_document_url:remaining.length ? JSON.stringify(remaining) : null}).eq("id", id);
+ if (error) { alert("Unable to remove cycle document: " + error.message); return; }
+ if (documentToRemove.path) {
+  const {error:storageError} = await supabaseClient.storage.from("cycle-documents").remove([documentToRemove.path]);
+  if (storageError) console.error("The document link was removed, but its stored file could not be deleted:", storageError);
+ }
+ await loadCycles();
 }
 
 // DOCUMENT EXPIRY COUNTDOWNS
