@@ -1401,6 +1401,7 @@ section[aria-labelledby="loanSummaryHeading"]{
   .fleet-manage-action.reminder { color:#8b4a13; background:#fff2df; border-color:#f5d39c; }
   .fleet-manage-action.expiry-reminder { color:#6d3ca0; background:#f4eaff; border-color:#dfc6f8; }
   .fleet-manage-action.share-rental { color:#fff; background:#16845b; }
+  .fleet-manage-action.share-payment-reminder { color:#fff; background:#c3453a; }
   .fleet-manage-footnote { margin:12px 0 0; color:#8190a5; font-size:.69rem; line-height:1.4; text-align:center; }
   @media(max-width:760px) {
     #activeRentalCards .active-rental-card-grid.fleet-unified-grid { grid-template-columns:repeat(3,minmax(0,1fr)) !important; gap:6px !important; }
@@ -2749,6 +2750,7 @@ body, .main-area { background:#f4f7fc !important; }
               <button type="button" class="fleet-manage-action reminder" data-active-action="paymentReminder" data-rental-id="">Copy payment reminder</button>
               <button type="button" class="fleet-manage-action expiry-reminder" data-active-action="expiryReminder" data-rental-id="">Copy expiry reminder</button>
               <button type="button" class="fleet-manage-action share-rental" data-active-action="shareRental" data-rental-id="">Share rental JPG</button>
+              <button type="button" class="fleet-manage-action share-payment-reminder" data-active-action="sharePaymentReminder" data-rental-id="">Share payment reminder JPG</button>
             </div>
             <p class="fleet-manage-footnote">Changes are handled by the existing Rentals page workflow.</p>
           </section>
@@ -2809,6 +2811,11 @@ body, .main-area { background:#f4f7fc !important; }
         <div class="fleet-manage-countdown ${expired ? 'expired' : ''}"><span>${expired ? 'Overdue time' : 'Time remaining'}</span><strong>${escapeHtml(duration.label)}</strong></div>
         <div class="fleet-manage-payment"><span>Payment status</span><strong class="${paymentClass}">${escapeHtml(paymentText)}</strong>${hasLedgerIssue ? '<small>Open Rentals to verify current balance.</small>' : ''}</div>`;
       modal.querySelectorAll('[data-active-action]').forEach(button => button.setAttribute('data-rental-id', String(rental.id)));
+      const paymentReminderButton = modal.querySelector('[data-active-action="sharePaymentReminder"]');
+      if (paymentReminderButton) {
+        paymentReminderButton.disabled = hasLedgerIssue || balance <= 0.009;
+        paymentReminderButton.title = hasLedgerIssue ? 'Payment history must be available to share the balance' : balance <= 0.009 ? 'There is no outstanding payment for this rental' : 'Create a payment reminder JPG for the customer';
+      }
       modal.hidden = false;
       const closeButton = modal.querySelector('[data-manage-close]');
       if (closeButton) closeButton.focus();
@@ -2845,7 +2852,7 @@ body, .main-area { background:#f4f7fc !important; }
       return y + lines.length * lineHeight;
     }
 
-    async function shareRentalJpg(rentalId) {
+    async function shareRentalJpg(rentalId, paymentReminder = false) {
       const state = activeRentalCardState;
       const rental = state?.rentals.find(item => String(item.id) === String(rentalId));
       if (!rental) { alert('This rental is no longer active. Refresh the dashboard.'); return; }
@@ -2864,6 +2871,14 @@ body, .main-area { background:#f4f7fc !important; }
       const extensionTotal = extensions.reduce((sum, row) => sum + (readAmount(row, ['amount','extension_amount','total_amount']) || 0), 0);
       const totalDue = Number(rental.total_amount || 0) + extensionTotal;
       const balance = Math.max(totalDue - paid, 0);
+      if (paymentReminder && (state.paymentsError || state.extensionsError)) {
+        alert('Payment or extension history could not be loaded. Refresh and verify the balance before sending a reminder.');
+        return;
+      }
+      if (paymentReminder && balance <= 0.009) {
+        alert('This rental has no outstanding balance to remind the customer about.');
+        return;
+      }
       const duration = liveCountdownDuration(rental.expected_return || '');
       const expired = String(rental.status || '').toLowerCase() === 'overdue' || duration.expired;
       const photo = await loadRentalSharePhoto(customerPhotoUrl(customer));
@@ -2878,8 +2893,8 @@ body, .main-area { background:#f4f7fc !important; }
       const rounded = (x,y,w,h,r,color) => { ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fillStyle=color; ctx.fill(); };
       rounded(42, 42, 996, 1316, 34, '#ffffff');
       rounded(42, 42, 996, 220, 34, '#14365d');
-      ctx.fillStyle = '#a9d9ff'; ctx.font = '700 24px Arial'; ctx.fillText('SAIKU RENTALS  /  RENTAL SUMMARY', 88, 104);
-      ctx.fillStyle = '#ffffff'; ctx.font = '800 52px Arial'; ctx.fillText('Rental information', 88, 178);
+      ctx.fillStyle = '#a9d9ff'; ctx.font = '700 24px Arial'; ctx.fillText(paymentReminder ? 'SAIKU RENTALS  /  PAYMENT REMINDER' : 'SAIKU RENTALS  /  RENTAL SUMMARY', 88, 104);
+      ctx.fillStyle = '#ffffff'; ctx.font = '800 52px Arial'; ctx.fillText(paymentReminder ? 'Payment reminder' : 'Rental information', 88, 178);
       rounded(818, 88, 166, 54, 27, expired ? '#fee2e2' : '#dcfce7');
       ctx.fillStyle = expired ? '#b42318' : '#166534'; ctx.font = '800 22px Arial'; ctx.textAlign = 'center'; ctx.fillText(expired ? 'OVERDUE' : 'RENTED', 901, 123); ctx.textAlign = 'left';
 
@@ -2890,22 +2905,22 @@ body, .main-area { background:#f4f7fc !important; }
       ctx.fillStyle = '#6b7d93'; ctx.font = '700 22px Arial'; ctx.fillText('CUSTOMER', 274, 326);
       ctx.fillStyle = '#173452'; ctx.font = '800 40px Arial'; drawShareText(ctx, customerName, 274, 378, 680, 46, 2);
       ctx.fillStyle = '#40546b'; ctx.font = '26px Arial'; ctx.fillText(String(phone), 274, 438);
-      if (identity) { ctx.fillStyle = '#6b7d93'; ctx.font = '22px Arial'; ctx.fillText(`ID: ${identity}`, 274, 480); }
+      if (identity && !paymentReminder) { ctx.fillStyle = '#6b7d93'; ctx.font = '22px Arial'; ctx.fillText(`ID: ${identity}`, 274, 480); }
 
       const line = y => { ctx.strokeStyle = '#e4ebf3'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(88,y); ctx.lineTo(992,y); ctx.stroke(); };
       line(510);
-      ctx.fillStyle = '#6b7d93'; ctx.font = '700 20px Arial'; ctx.fillText('CYCLE', 92, 558); ctx.fillText('RENTAL ID', 568, 558);
-      ctx.fillStyle = '#183957'; ctx.font = '800 32px Arial'; drawShareText(ctx, plate, 92, 604, 420, 38, 2); ctx.font = '700 25px Arial'; drawShareText(ctx, String(rental.id), 568, 604, 420, 32, 2);
+      ctx.fillStyle = '#6b7d93'; ctx.font = '700 20px Arial'; ctx.fillText('CYCLE', 92, 558); ctx.fillText(paymentReminder ? 'RENTAL STATUS' : 'RENTAL ID', 568, 558);
+      ctx.fillStyle = '#183957'; ctx.font = '800 32px Arial'; drawShareText(ctx, plate, 92, 604, 420, 38, 2); ctx.font = '700 25px Arial'; drawShareText(ctx, paymentReminder ? (expired ? 'Overdue' : 'Active rental') : String(rental.id), 568, 604, 420, 32, 2);
       line(650);
       const detail = (label, value, x, y, maxWidth=420) => { ctx.fillStyle='#6b7d93';ctx.font='700 19px Arial';ctx.fillText(label.toUpperCase(),x,y);ctx.fillStyle='#263f5c';ctx.font='700 25px Arial';drawShareText(ctx,String(value || 'Not recorded'),x,y+38,maxWidth,31,2); };
       detail('Start date', shortActiveRentalDate(rental.start_date), 92, 704);
       detail('Return by', shortActiveRentalDate(rental.expected_return), 568, 704);
-      detail(expired ? 'Rental status' : 'Time remaining', expired ? duration.label : duration.label, 92, 808);
-      detail('Delivered by', deliveredBy, 568, 808);
+      detail(expired ? 'Rental status' : 'Time remaining', duration.label, 92, 808);
+      detail(paymentReminder ? 'Customer phone' : 'Delivered by', paymentReminder ? phone : deliveredBy, 568, 808);
       line(914);
 
-      rounded(82, 952, 916, 300, 24, '#f4f8fd');
-      ctx.fillStyle = '#173452'; ctx.font = '800 30px Arial'; ctx.fillText('Payment summary', 116, 1006);
+      rounded(82, 952, 916, 300, 24, paymentReminder ? '#fff5f3' : '#f4f8fd');
+      ctx.fillStyle = '#173452'; ctx.font = '800 30px Arial'; ctx.fillText(paymentReminder ? 'Outstanding payment' : 'Payment summary', 116, 1006);
       const paymentRows = [
         ['Rental total', money(Number(rental.total_amount || 0))],
         ['Extensions', money(extensionTotal)],
@@ -2917,15 +2932,22 @@ body, .main-area { background:#f4f7fc !important; }
         ctx.fillStyle = '#60758d'; ctx.font = '24px Arial'; ctx.fillText(row[0], 116, y);
         ctx.fillStyle = index === 3 && balance > 0 ? '#b42318' : '#243f5c'; ctx.font = '800 24px Arial'; ctx.textAlign = 'right'; ctx.fillText(row[1], 964, y); ctx.textAlign = 'left';
       });
-      ctx.fillStyle = '#8595a8'; ctx.font = '20px Arial'; ctx.fillText(`Created ${new Date().toLocaleString()}`, 88, 1310);
+      if (paymentReminder) {
+        rounded(82, 1272, 916, 64, 18, '#fff0ed');
+        ctx.fillStyle = '#8d4038'; ctx.font = '700 19px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('If you have already paid, please disregard this reminder. Contact Saiku Rentals if you need help.', 540, 1312);
+        ctx.textAlign = 'left';
+      } else {
+        ctx.fillStyle = '#8595a8'; ctx.font = '20px Arial'; ctx.fillText(`Created ${new Date().toLocaleString()}`, 88, 1310);
+      }
 
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .92));
       if (!blob) { alert('Could not create the rental JPG. Please try again.'); return; }
       const safeName = String(customerName).trim().replace(/[^a-z0-9_-]+/gi, '-').replace(/^-|-$/g, '') || 'customer';
-      const file = new File([blob], `Saiku-Rental-${safeName}.jpg`, {type:'image/jpeg'});
+      const file = new File([blob], `Saiku-${paymentReminder ? 'Payment-Reminder' : 'Rental'}-${safeName}.jpg`, {type:'image/jpeg'});
       try {
         if (navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
-          await navigator.share({files:[file], title:`Saiku Rentals - ${plate}`, text:`Rental summary for ${customerName} · ${plate}`});
+          await navigator.share({files:[file], title:paymentReminder ? `Payment reminder - ${customerName}` : `Saiku Rentals - ${plate}`, text:paymentReminder ? `Payment reminder for ${customerName}, cycle ${plate}. Outstanding balance: ${money(balance)}.` : `Rental summary for ${customerName} · ${plate}`});
           return;
         }
       } catch (error) {
@@ -2934,7 +2956,7 @@ body, .main-area { background:#f4f7fc !important; }
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob); link.download = file.name; link.click();
       window.setTimeout(() => URL.revokeObjectURL(link.href), 30000);
-      alert('Rental JPG downloaded. Attach it to your WhatsApp or Viber group message.');
+      alert(paymentReminder ? 'Payment reminder JPG downloaded. Attach it to a message for the customer.' : 'Rental JPG downloaded. Attach it to your WhatsApp or Viber group message.');
     }
 
     async function copyReminderMessage(rentalId) {
@@ -3098,6 +3120,11 @@ body, .main-area { background:#f4f7fc !important; }
 
       if (action === 'shareRental') {
         await shareRentalJpg(id);
+        return;
+      }
+
+      if (action === 'sharePaymentReminder') {
+        await shareRentalJpg(id, true);
         return;
       }
 
