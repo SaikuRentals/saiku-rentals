@@ -3144,13 +3144,51 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         return `INV-${stamp}`;
     }
 
-    function buildPaymentReceiptHtml(rental, payment) {
+    function resolvePaymentReceiptPeriod(rental, payment, payments = [], extensions = []) {
+        const validDate = value => value && Number.isFinite(new Date(value).getTime());
+        const orderedExtensions = [...extensions].filter(item => validDate(item.old_return_date) && validDate(item.new_return_date))
+            .sort((a, b) => new Date(a.old_return_date) - new Date(b.old_return_date));
+        const originalEnd = orderedExtensions[0]?.old_return_date || rental?.expected_return;
+        const charges = [];
+        if (validDate(rental?.start_date) && validDate(originalEnd)) {
+            charges.push({ start:rental.start_date, end:originalEnd, amount:Math.max(0, Number(rental.total_amount) || 0), remaining:Math.max(0, Number(rental.total_amount) || 0) });
+        }
+        orderedExtensions.forEach(item => {
+            const amount = Math.max(0, Number(item.amount) || 0);
+            charges.push({ start:item.old_return_date, end:item.new_return_date, amount, remaining:amount });
+        });
+
+        const orderedPayments = [...payments];
+        if (!orderedPayments.some(item => (payment?.id != null && String(item.id) === String(payment.id)) || item === payment)) orderedPayments.push(payment);
+        orderedPayments.sort((a, b) => new Date(a.created_at || a.payment_date || a.paid_at || 0) - new Date(b.created_at || b.payment_date || b.paid_at || 0));
+        let targetPeriod = null;
+        for (const item of orderedPayments) {
+            let remaining = Math.max(0, Number(item.amount) || 0);
+            let firstCharge = null;
+            let lastCharge = null;
+            for (const charge of charges) {
+                if (remaining <= 0.009) break;
+                if (charge.remaining <= 0.009) continue;
+                const applied = Math.min(remaining, charge.remaining);
+                if (applied > 0) { firstCharge ||= charge; lastCharge = charge; }
+                charge.remaining -= applied;
+                remaining -= applied;
+            }
+            if (item === payment || (payment?.id != null && String(item.id) === String(payment.id))) {
+                targetPeriod = firstCharge && lastCharge ? { start:firstCharge.start, end:lastCharge.end } : null;
+                break;
+            }
+        }
+        return targetPeriod || { start:rental?.start_date, end:rental?.expected_return };
+    }
+
+    function buildPaymentReceiptHtml(rental, payment, period) {
         const fullCustomer = allCustomers.find(c => String(c.id) === String(rental?.customer_id)) || rental?.customers || {};
         const customerName = fullCustomer.name || rental?.customer_name || "Customer";
         const customerIdentity = getCustomerIdentity(fullCustomer);
         const greeting = customerIdentity ? `${customerName} ${customerIdentity}` : customerName;
-        const startDate = receiptDateTime(rental?.start_date);
-        const endDate = receiptDateTime(rental?.expected_return);
+        const startDate = receiptDateTime(period?.start || rental?.start_date);
+        const endDate = receiptDateTime(period?.end || rental?.expected_return);
         const amount = Number(payment?.amount || 0);
         const amountText = `MVR ${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const invoice = receiptInvoiceNumber(payment);
@@ -3161,7 +3199,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
           <div class="receipt-letter">
             <p class="receipt-greeting">Dear ${escapeHtml(greeting)},</p>
             <p class="receipt-thanks">Thank you for choosing Saiku Rental.</p>
-            <p class="receipt-period-title">Rental Period Details:</p>
+            <p class="receipt-period-title">Period Covered by This Payment:</p>
             <p class="receipt-period-row"><strong>Start Date &amp; Time:</strong> [${escapeHtml(startDate)}]</p>
             <p class="receipt-period-row"><strong>End Date &amp; Time:</strong> [${escapeHtml(endDate)}]</p>
             <p class="receipt-extension-note">If you need to extend your rental period, kindly contact us in advance.</p>
@@ -3177,7 +3215,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         `;
     }
 
-    function paymentReceiptShareText(rental, payment) {
+    function paymentReceiptShareText(rental, payment, period) {
         const fullCustomer = allCustomers.find(c => String(c.id) === String(rental?.customer_id)) || rental?.customers || {};
         const customerName = fullCustomer.name || rental?.customer_name || "Customer";
         const customerIdentity = getCustomerIdentity(fullCustomer);
@@ -3187,8 +3225,8 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
             "SAIKU RENTALS — PAYMENT RECEIVED",
             `Dear ${customerName}${customerIdentity ? " " + customerIdentity : ""},`,
             "Thank you for choosing Saiku Rental.",
-            `Start Date & Time: ${receiptDateTime(rental?.start_date)}`,
-            `End Date & Time: ${receiptDateTime(rental?.expected_return)}`,
+            `Start Date & Time: ${receiptDateTime(period?.start || rental?.start_date)}`,
+            `End Date & Time: ${receiptDateTime(period?.end || rental?.expected_return)}`,
             `Amount Received: MVR ${amount}`,
             `Invoice No: ${invoice}`,
             `Payment Date: ${receiptDate(payment?.payment_date || payment?.paid_at || payment?.created_at)}`,
@@ -3197,10 +3235,11 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         ].join("\n");
     }
 
-    function showPaymentReceipt(rental, payment) {
+    function showPaymentReceipt(rental, payment, payments = [], extensions = []) {
         if (!rental || !payment) { alert("Receipt details are unavailable."); return; }
-        currentReceiptContext = { rental, payment };
-        document.getElementById("receiptPrintArea").innerHTML = buildPaymentReceiptHtml(rental, payment);
+        const period = resolvePaymentReceiptPeriod(rental, payment, payments, extensions);
+        currentReceiptContext = { rental, payment, period };
+        document.getElementById("receiptPrintArea").innerHTML = buildPaymentReceiptHtml(rental, payment, period);
         document.getElementById("receiptModal").classList.add("show");
     }
 
@@ -3278,7 +3317,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
     function sharePaymentReceipt() {
         if (!currentReceiptContext) { alert("Open a payment receipt first."); return; }
-        const text = paymentReceiptShareText(currentReceiptContext.rental, currentReceiptContext.payment);
+        const text = paymentReceiptShareText(currentReceiptContext.rental, currentReceiptContext.payment, currentReceiptContext.period);
         const url = "https://wa.me/?text=" + encodeURIComponent(text);
         window.open(url, "_blank", "noopener,noreferrer");
     }
@@ -3941,6 +3980,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
     let managedRentalRecordId = null;
     let viewingHistoryRental = null;
     let viewingHistoryPayments = [];
+    let viewingHistoryExtensions = [];
 
     function findRentalRecord(id) {
         return (allRentals || []).find(item => String(item.id) === String(id));
@@ -4110,6 +4150,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         if (modal.parentElement !== document.body) document.body.appendChild(modal);
         viewingHistoryRental = rental;
         viewingHistoryPayments = [];
+        viewingHistoryExtensions = [];
         document.getElementById("rentalPaymentHistoryTitle").textContent = `${rental.customers?.name || "Customer"} · Payment History`;
         document.getElementById("rentalPaymentHistoryMeta").textContent = `${rental.cycles?.plate_number || "Cycle not assigned"} · Started ${formatDate(rental.start_date)}`;
         document.getElementById("rentalPaymentHistoryList").innerHTML = '<div class="rental-history-empty">Loading payment history…</div>';
@@ -4121,7 +4162,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
         const [paymentsResult, extensionsResult] = await Promise.all([
             supabaseClient.from("rental_payments").select("*").eq("rental_id", rental.id).order("payment_date", { ascending: false }),
-            supabaseClient.from("rental_extensions").select("amount").eq("rental_id", rental.id)
+            supabaseClient.from("rental_extensions").select("*").eq("rental_id", rental.id)
         ]);
         if (paymentsResult.error || extensionsResult.error) {
             console.error("Could not load rental payment history", paymentsResult.error || extensionsResult.error);
@@ -4134,6 +4175,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         const payments = paymentsResult.data || [];
         const extensions = extensionsResult.data || [];
         viewingHistoryPayments = payments;
+        viewingHistoryExtensions = extensions;
         const extensionTotal = extensions.reduce((sum, item) => sum + Number(item.amount || 0), 0);
         const totalDue = Number(rental.total_amount || 0) + extensionTotal;
         const totalPaid = payments.reduce((sum, item) => sum + Number(item.amount || 0), 0);
@@ -4166,7 +4208,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
                 const payment = viewingHistoryPayments[Number(button.getAttribute("data-rental-history-receipt"))];
                 if (payment && viewingHistoryRental) {
                     closeRentalPaymentHistory();
-                    showPaymentReceipt(viewingHistoryRental, payment);
+                    showPaymentReceipt(viewingHistoryRental, payment, viewingHistoryPayments, viewingHistoryExtensions);
                 }
             });
         });
@@ -6519,7 +6561,7 @@ async function loadPaymentSummary(rentalId) {
 
             .from("rental_extensions")
 
-            .select("amount")
+            .select("*")
 
             .eq("rental_id", rentalId);
 
@@ -6668,7 +6710,7 @@ async function loadPaymentSummary(rentalId) {
     historyContainer.querySelectorAll("[data-payment-receipt-index]").forEach(button => {
         button.addEventListener("click", () => {
             const payment = payments[Number(button.getAttribute("data-payment-receipt-index"))];
-            if (payment) showPaymentReceipt(rental, payment);
+            if (payment) showPaymentReceipt(rental, payment, payments, extensions);
         });
     });
 
@@ -6810,7 +6852,7 @@ async function savePayment(event) {
 
             .from("rental_extensions")
 
-            .select("amount")
+            .select("*")
 
             .eq("rental_id", rentalId);
 
@@ -6834,7 +6876,7 @@ async function savePayment(event) {
 
             .from("rental_payments")
 
-            .select("amount")
+            .select("*")
 
             .eq("rental_id", rentalId);
 
@@ -6979,13 +7021,14 @@ async function savePayment(event) {
 
     document.getElementById("paymentAmount").value = "";
     closeModal("paymentModal");
-    showPaymentReceipt(rental, savedPayment || {
+    const receiptPayment = savedPayment || {
         rental_id: rentalId,
         amount: amount,
         payment_method: paymentMethod,
         payment_date: new Date(paymentDate).toISOString(),
         notes: notes
-    });
+    };
+    showPaymentReceipt(rental, receiptPayment, [...(payments || []), receiptPayment], extensions || []);
 
 }
 
