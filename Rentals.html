@@ -85,6 +85,50 @@
  .receipt-footer{padding:0 20px 20px}
  .receipt-history-action{display:none!important}
 }
+@media screen{
+ .receipt-modal-backdrop{background:rgba(15,23,42,.68)}
+ .receipt-modal-window{background:#edf2f8;color:#172b45;border-radius:18px;width:min(920px,100%);box-shadow:0 25px 80px rgba(0,0,0,.28)}
+ .receipt-preview{width:min(760px,calc(100% - 32px));margin:18px auto 26px;background:#fff;color:#20364f;border:1px solid #dce5ef;border-radius:18px;overflow:hidden;box-shadow:0 12px 32px rgba(18,48,82,.12);font-family:Arial,Helvetica,sans-serif}
+ .receipt-logo-strip{min-height:104px;height:auto;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px 28px;background:#fff;border-bottom:1px solid #e8edf3}
+ .receipt-logo{width:240px;max-width:62%}
+ .receipt-document-label{text-align:right;color:#75869a;font:800 11px Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase}
+ .receipt-document-label strong{display:block;margin-top:5px;color:#173a63;font-size:17px;letter-spacing:.04em}
+ .receipt-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(120deg,#14365d,#20578b);color:#fff;text-align:left;padding:20px 28px;font:800 clamp(21px,3.4vw,29px)/1.2 Arial,sans-serif}
+ .receipt-banner span{display:block;margin-top:5px;color:#cfe4fb;font-size:12px;font-weight:500}
+ .receipt-paid-badge{flex:0 0 auto;padding:8px 12px;border:1px solid rgba(255,255,255,.3);border-radius:999px;background:rgba(255,255,255,.12);font-size:11px;letter-spacing:.08em}
+ .receipt-customer-panel{display:grid;grid-template-columns:92px minmax(0,1fr);align-items:center;gap:18px;margin:22px 28px 0;padding:17px 19px;background:#f4f8fc;border:1px solid #e2eaf3;border-radius:14px;font-family:Arial,sans-serif}
+ .receipt-customer-photo{position:relative;width:88px;height:88px;display:grid;place-items:center;overflow:hidden;border-radius:50%;background:#dcecff;color:#1b4a77;font:850 25px Arial,sans-serif}
+ .receipt-customer-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+ .receipt-customer-copy small,.receipt-section-label{display:block;color:#75869a;font:800 10px Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase}
+ .receipt-customer-copy strong{display:block;margin:5px 0;color:#183b62;font-size:21px;line-height:1.25;overflow-wrap:anywhere}
+ .receipt-customer-copy span{color:#60738a;font-size:13px;overflow-wrap:anywhere}
+ .receipt-letter{padding:20px 28px 4px;font:14px/1.55 Arial,sans-serif;color:#20364f}
+ .receipt-greeting{font-weight:700;margin:0 0 4px;color:#213a57}
+ .receipt-thanks{margin:0;color:#64768c}
+ .receipt-period-card{margin:14px 28px 0;padding:17px 19px;background:#fff;border:1px solid #e1e8f0;border-radius:14px;font-family:Arial,sans-serif}
+ .receipt-period-title{font:800 14px Arial,sans-serif;color:#183b62;margin:0 0 12px}
+ .receipt-period-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ .receipt-period-cell{padding:11px 12px;background:#f6f9fc;border-radius:10px;min-width:0}
+ .receipt-period-cell span{display:block;margin-bottom:5px;color:#78899c;font:800 10px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+ .receipt-period-cell strong{color:#263f5c;font:700 13px/1.35 Arial,sans-serif;overflow-wrap:anywhere}
+ .receipt-extension-note{margin:13px 0 0;color:#6d7e91;font:12px/1.5 Arial,sans-serif}
+ .receipt-payment-card{margin:14px 28px 22px;padding:19px;background:#fff;border:1px solid #dbe5f0;border-radius:14px;font-family:Arial,sans-serif}
+ .receipt-card-title{text-align:left;font:800 14px Arial,sans-serif;color:#183b62;margin:0 0 4px}
+ .receipt-amount{text-align:left;color:#16834a;font:850 clamp(27px,4vw,36px)/1.2 Arial,sans-serif;margin:0 0 15px;overflow-wrap:anywhere}
+ .receipt-divider{height:1px;background:#e4ebf3;margin:0 0 8px}
+ .receipt-meta-row{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px;padding:9px 2px;border-bottom:1px solid #edf1f6;font:13px Arial,sans-serif}
+ .receipt-meta-row:last-child{border-bottom:0}
+ .receipt-meta-row span{color:#73849a}
+ .receipt-meta-row strong{text-align:right;color:#243d5b;overflow-wrap:anywhere}
+ .receipt-footer{display:flex;justify-content:space-between;gap:16px;padding:14px 28px 20px;background:#f7f9fc;border-top:1px solid #e8edf3;color:#73849a;font:12px/1.5 Arial,sans-serif}
+ .receipt-footer p{margin:0}
+}
+@media screen and (max-width:600px){
+ .receipt-preview{width:calc(100% - 14px);margin:7px auto 12px}
+ .receipt-logo-strip{min-height:78px;padding:12px 15px}.receipt-logo{width:160px}.receipt-document-label{font-size:9px}.receipt-document-label strong{font-size:13px}
+ .receipt-banner{padding:15px;font-size:21px}.receipt-customer-panel{grid-template-columns:62px minmax(0,1fr);gap:12px;margin:12px 14px 0;padding:12px}.receipt-customer-photo{width:60px;height:60px;font-size:19px}.receipt-customer-copy strong{font-size:17px}
+ .receipt-letter{padding:15px 15px 2px}.receipt-period-card{margin:12px 14px 0;padding:13px}.receipt-period-grid{gap:7px}.receipt-period-cell{padding:9px}.receipt-payment-card{margin:12px 14px 14px;padding:14px}.receipt-footer{padding:12px 15px 16px}
+}
 </style>
 
 
@@ -1499,6 +1543,12 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
 
 
+        <nav class="dashboard-page-switcher" aria-label="Main pages">
+            <a href="dashboard.html">Dashboard</a>
+            <a href="Rentals.html" aria-current="page">Rentals</a>
+            <a href="customers.html">Customers</a>
+        </nav>
+
         <!-- PAGE CONTENT -->
 
 
@@ -1620,21 +1670,6 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
 
 
-
-            <!-- Return reminder panel: due in the next 3 hours and overdue rentals -->
-            <section class="return-reminder-panel" aria-labelledby="returnReminderHeading">
-                <div class="return-reminder-heading">
-                    <div>
-                        <h2 id="returnReminderHeading">Return Reminders</h2>
-                        <p>Rentals due within the next 3 hours or already overdue. Review each message in WhatsApp before sending.</p>
-                    </div>
-                    <span id="returnReminderCount" class="return-reminder-count">Checking…</span>
-                </div>
-                <div id="returnReminderList" class="return-reminder-list">
-                    <div class="return-reminder-empty">Loading return reminders…</div>
-                </div>
-                <p class="return-reminder-footnote">Messages are never sent automatically. The button opens WhatsApp with a draft message for you to review.</p>
-            </section>
 
             <!-- =========================
 
@@ -3187,31 +3222,37 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         const customerName = fullCustomer.name || rental?.customer_name || "Customer";
         const customerIdentity = getCustomerIdentity(fullCustomer);
         const greeting = customerIdentity ? `${customerName} ${customerIdentity}` : customerName;
+        const photoUrl = fullCustomer.photo_url || fullCustomer.customer_photo_url || fullCustomer.profile_photo_url || fullCustomer.image_url || fullCustomer.avatar_url || "";
+        const initials = customerName.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "C";
+        const customerPhone = fullCustomer.phone || fullCustomer.phone_number || fullCustomer.mobile || "Not recorded";
+        const cycle = rental?.cycles || allCycles.find(item => String(item.id) === String(rental?.cycle_id)) || {};
+        const cycleName = cycle.plate_number || cycle.name || "Cycle not recorded";
         const startDate = receiptDateTime(period?.start || rental?.start_date);
         const endDate = receiptDateTime(period?.end || rental?.expected_return);
         const amount = Number(payment?.amount || 0);
         const amountText = `MVR ${amount.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const invoice = receiptInvoiceNumber(payment);
         const paidDate = receiptDate(payment?.payment_date || payment?.paid_at || payment?.created_at);
+        const method = String(payment?.payment_method || "Not recorded").replace(/[_-]+/g, " ").replace(/\b\w/g, char => char.toUpperCase());
         return `
-          <div class="receipt-logo-strip"><img class="receipt-logo" src="${SAIKU_RECEIPT_LOGO}" alt="Saiku Rentals"></div>
-          <div class="receipt-banner">Payment Received</div>
+          <div class="receipt-logo-strip"><img class="receipt-logo" src="assets/saiku-rentals-logo.jpg" alt="Saiku Rentals"><div class="receipt-document-label">Customer copy<strong>PAYMENT RECEIPT</strong></div></div>
+          <div class="receipt-banner"><div>Payment received<span>Thank you for choosing Saiku Rentals</span></div><div class="receipt-paid-badge">PAID</div></div>
+          <div class="receipt-customer-panel"><div class="receipt-customer-photo"><span>${escapeHtml(initials)}</span>${photoUrl ? `<img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(customerName)}" crossorigin="anonymous" onerror="this.remove()">` : ""}</div><div class="receipt-customer-copy"><small>Received from</small><strong>${escapeHtml(customerName)}</strong><span>${escapeHtml(customerPhone)}${customerIdentity ? ` · ${escapeHtml(customerIdentity)}` : ""}</span></div></div>
           <div class="receipt-letter">
             <p class="receipt-greeting">Dear ${escapeHtml(greeting)},</p>
-            <p class="receipt-thanks">Thank you for choosing Saiku Rental.</p>
-            <p class="receipt-period-title">Period Covered by This Payment:</p>
-            <p class="receipt-period-row"><strong>Start Date &amp; Time:</strong> [${escapeHtml(startDate)}]</p>
-            <p class="receipt-period-row"><strong>End Date &amp; Time:</strong> [${escapeHtml(endDate)}]</p>
-            <p class="receipt-extension-note">If you need to extend your rental period, kindly contact us in advance.</p>
+            <p class="receipt-thanks">This receipt confirms that your rental payment has been received.</p>
           </div>
+          <div class="receipt-period-card"><h2 class="receipt-period-title">Rental period covered by this payment</h2><div class="receipt-period-grid"><div class="receipt-period-cell"><span>Start date &amp; time</span><strong>${escapeHtml(startDate)}</strong></div><div class="receipt-period-cell"><span>End date &amp; time</span><strong>${escapeHtml(endDate)}</strong></div></div><p class="receipt-extension-note">Please contact Saiku Rentals in advance if you need to extend your rental period.</p></div>
           <div class="receipt-payment-card">
-            <h2 class="receipt-card-title">Payment Received</h2>
+            <h2 class="receipt-card-title">Amount received</h2>
             <p class="receipt-amount">${escapeHtml(amountText)}</p>
             <div class="receipt-divider"></div>
+            <div class="receipt-meta-row"><span>Rental cycle</span><strong>${escapeHtml(cycleName)}</strong></div>
+            <div class="receipt-meta-row"><span>Payment method</span><strong>${escapeHtml(method)}</strong></div>
             <div class="receipt-meta-row"><span>Invoice No</span><strong>${escapeHtml(invoice)}</strong></div>
             <div class="receipt-meta-row"><span>Payment Date</span><strong>${escapeHtml(paidDate)}</strong></div>
           </div>
-          <div class="receipt-footer"><p>Regards,</p><p>Saiku Rentals</p><p>Saiku Rentals</p></div>
+          <div class="receipt-footer"><p>Saiku Rentals · Official payment receipt</p><p>We appreciate your business.</p></div>
         `;
     }
 
@@ -3263,20 +3304,58 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         if (!currentReceiptContext) throw new Error("Open a payment receipt first.");
         if (typeof html2canvas !== "function") throw new Error("JPG export library did not load. Check your internet connection and refresh the page.");
         const receipt = document.getElementById("receiptPrintArea");
-        const canvas = await html2canvas(receipt, {
-            scale: Math.max(2, Math.min(3, window.devicePixelRatio || 2)),
+        if (document.fonts?.ready) await document.fonts.ready;
+        await Promise.all(Array.from(receipt.querySelectorAll("img")).map(image => {
+            if (image.complete) return Promise.resolve();
+            return new Promise(resolve => {
+                image.addEventListener("load", resolve, { once:true });
+                image.addEventListener("error", resolve, { once:true });
+                setTimeout(resolve, 2500);
+            });
+        }));
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const bounds = receipt.getBoundingClientRect();
+        const captureWidth = Math.ceil(Math.max(bounds.width, receipt.scrollWidth));
+        const captureHeight = Math.ceil(Math.max(bounds.height, receipt.scrollHeight));
+        if (captureWidth < 200 || captureHeight < 200) {
+            throw new Error("The receipt has not finished laying out. Close it, reopen the receipt, and try downloading again.");
+        }
+        const dashboardPopup = new URLSearchParams(window.location.search).has("dashboardPopup");
+        const captureOptions = {
+            scale: dashboardPopup ? 2 : Math.max(2, Math.min(3, window.devicePixelRatio || 2)),
+            width: captureWidth,
+            height: captureHeight,
+            windowWidth: Math.max(document.documentElement.clientWidth, captureWidth),
+            windowHeight: Math.max(document.documentElement.clientHeight, captureHeight),
             backgroundColor: "#ffffff",
             useCORS: true,
             logging: false,
             scrollX: 0,
             scrollY: 0
-        });
+        };
+        let canvas;
+        try {
+            canvas = await html2canvas(receipt, captureOptions);
+        } catch (error) {
+            if (!dashboardPopup) throw error;
+            console.warn("Receipt JPG capture failed inside the dashboard popup; retrying without the customer photo.", error);
+            canvas = await html2canvas(receipt, {
+                ...captureOptions,
+                onclone: clonedDocument => {
+                    clonedDocument.querySelectorAll("#receiptPrintArea .receipt-customer-photo img").forEach(image => image.remove());
+                }
+            });
+        }
         return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Could not create the receipt image.")), "image/jpeg", 0.94));
     }
 
     async function downloadPaymentReceiptJpg() {
         try {
             const blob = await renderPaymentReceiptJpg();
+            if (new URLSearchParams(window.location.search).has("dashboardPopup") && window.parent !== window && typeof window.parent.downloadDashboardReceiptJpg === "function") {
+                window.parent.downloadDashboardReceiptJpg(blob, paymentReceiptJpgName());
+                return;
+            }
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
@@ -3713,10 +3792,6 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
 
         renderRentals();
-
-        renderReturnReminders();
-
-
 
         updateStats();
 
@@ -7243,7 +7318,6 @@ document.getElementById("paymentForm").addEventListener(
 
 
         await loadRentals();
-        window.setInterval(renderReturnReminders, 60000);
 
         // Dashboard card links: open the selected rental's existing workflow.
         const params = new URLSearchParams(window.location.search);

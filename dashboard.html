@@ -115,6 +115,13 @@
     .active-rentals-dashboard .active-rentals-heading { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:14px; }
     .active-rentals-dashboard .active-rentals-heading h2 { margin:0 0 5px; }
     .active-rentals-dashboard .active-rentals-heading p { margin:0; color:var(--text-muted,#64748b); font-size:.9rem; line-height:1.45; }
+    .fleet-share-all-button{display:inline-grid!important;place-items:center!important;flex:0 0 40px!important;width:40px!important;min-width:40px!important;height:40px!important;min-height:40px!important;padding:0!important;border:1px solid #176b54!important;border-radius:12px!important;background:linear-gradient(135deg,#19875b,#126b50)!important;color:#fff!important;box-shadow:0 5px 13px rgba(18,107,80,.16)!important;cursor:pointer;transition:filter .15s ease,transform .15s ease;align-self:flex-start}
+    .fleet-share-all-button:hover{filter:brightness(1.07);transform:translateY(-1px)}
+    .fleet-share-all-button:focus-visible{outline:3px solid rgba(30,151,114,.35);outline-offset:2px}
+    .fleet-share-all-button:disabled{opacity:.6;cursor:wait;transform:none}
+    .fleet-share-all-button svg{display:block;width:19px;height:19px}
+    .active-rentals-title-group{min-width:0}
+    @media(max-width:760px){.active-rentals-dashboard .active-rentals-heading{flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:11px!important}}
     .active-rental-card-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
     .active-rental-dashboard-card { min-width:0; border:1px solid var(--border-color,#e2e8f0); border-radius:16px; padding:16px; background:var(--card-bg,#fff); box-shadow:0 5px 18px rgba(15,23,42,.055); }
     .active-rental-dashboard-card.is-overdue { border-color:#fecaca; background:linear-gradient(180deg,#fff 0%,#fffafa 100%); }
@@ -565,10 +572,12 @@
 .saiku-banner-copy p{color:#bed3ef!important;font-size:13px;margin:0!important;line-height:1.45}
 .saiku-banner-actions{display:flex;align-items:center;gap:10px;flex:0 0 auto}
 .saiku-banner-refresh{background:rgba(255,255,255,.09)!important;color:#f5f9ff!important;border:1px solid rgba(151,206,255,.35)!important}
-.saiku-banner-user{display:grid!important;place-items:center!important;width:42px!important;height:42px!important;min-width:42px!important;border-radius:50%!important;
-  background:linear-gradient(145deg,#178fff,#0758c9)!important;color:#fff!important;border:1px solid rgba(143,220,255,.7)!important;
-  box-shadow:0 5px 18px rgba(0,119,255,.28)!important;font-weight:800!important}
-.saiku-banner-menu{flex:0 0 auto}
+.saiku-banner-menu{display:grid!important;place-items:center!important;flex:0 0 42px!important;width:42px!important;min-width:42px!important;height:42px!important;padding:0!important;
+  border:1px solid rgba(164,210,255,.42)!important;border-radius:13px!important;background:linear-gradient(145deg,rgba(58,139,209,.32),rgba(17,65,120,.48))!important;
+  color:#f2f8ff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 5px 14px rgba(0,10,28,.18)!important;cursor:pointer;transition:background .16s ease,border-color .16s ease,transform .16s ease!important}
+.saiku-banner-menu:hover{background:linear-gradient(145deg,rgba(73,160,233,.45),rgba(22,82,145,.58))!important;border-color:rgba(190,225,255,.68)!important;transform:translateY(-1px)}
+.saiku-banner-menu:focus-visible{outline:3px solid rgba(96,202,255,.75)!important;outline-offset:2px}
+.saiku-banner-menu svg{display:block;width:19px;height:19px}
 .saiku-sidebar-brand{display:flex!important;align-items:center!important;gap:11px!important}
 .saiku-sidebar-logo{
   display:block;width:56px;height:43px;object-fit:contain;flex:0 0 56px;
@@ -588,7 +597,6 @@
   .saiku-banner-kicker{font-size:8px;letter-spacing:1.5px}
   .saiku-banner-actions{margin-left:auto}
   .saiku-banner-refresh{padding:7px 9px!important;font-size:12px!important}
-  .saiku-banner-user{width:36px!important;height:36px!important;min-width:36px!important}
   .saiku-banner-menu{position:absolute!important;right:12px!important;top:12px!important;z-index:2}
   .saiku-banner-brand{padding-right:38px}
 }
@@ -2285,7 +2293,7 @@ body, .main-area { background:#f4f7fc !important; }
 
     <div class="main-area">
       <header class="topbar saiku-main-banner">
-        <button class="menu-button saiku-banner-menu" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
+        <button class="menu-button saiku-banner-menu" type="button" onclick="toggleSidebar()" aria-label="Open navigation menu" title="Open navigation menu"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
         <div class="saiku-banner-brand">
           <img src="assets/assets/saiku-rentals-logo.png" alt="Saiku Rentals logo" class="saiku-banner-logo">
           <div class="saiku-banner-copy">
@@ -2296,12 +2304,15 @@ body, .main-area { background:#f4f7fc !important; }
         </div>
         <div class="topbar-right saiku-banner-actions">
           <button class="secondary-action saiku-banner-refresh" id="refreshButton" type="button" onclick="loadDashboard()">↻ Refresh</button>
-          <button class="user-avatar saiku-banner-user" type="button" aria-label="User account">A</button>
         </div>
       </header>
 
       <main class="dashboard-content">
-        <div class="dashboard-shortcuts"><button class="primary-button" type="button" onclick="window.location.href='Rentals.html'">+ New Rental</button></div>
+        <nav class="dashboard-page-switcher" aria-label="Main pages">
+          <a href="dashboard.html" aria-current="page">Dashboard</a>
+          <a href="Rentals.html">Rentals</a>
+          <a href="customers.html">Customers</a>
+        </nav>
 
         <div id="dashboardNotice" class="notice" role="status" hidden></div>
 
@@ -2310,7 +2321,7 @@ body, .main-area { background:#f4f7fc !important; }
           <article class="key-metric-card"><span>Total Expenses</span><strong id="dashboardTotalExpenses">—</strong></article>
           <article class="key-metric-card"><span>Net Profit</span><strong id="dashboardNetProfit">—</strong></article>
           <article class="key-metric-card"><span>Current Bank Balance</span><strong id="currentBankBalance">—</strong></article>
-          <article class="key-metric-card"><span>Available Cash</span><strong id="dashboardAvailableCash">—</strong><small>Tracked cash remaining after outflows and deposits</small></article>
+          <article class="key-metric-card"><span>Available Cash</span><strong id="dashboardAvailableCash">—</strong></article>
           <article class="key-metric-card is-warning"><span>Pending Payments</span><strong id="dashboardPendingPayments">—</strong></article>
           <article class="key-metric-card is-warning"><span>Unpaid Rentals</span><strong id="dashboardUnpaidRentals">—</strong></article>
           <article class="key-metric-card"><span>Total Invoices</span><strong id="dashboardTotalInvoices">—</strong></article>
@@ -2322,11 +2333,11 @@ body, .main-area { background:#f4f7fc !important; }
 
         <section class="active-rentals-dashboard liquid-glass-panel" aria-labelledby="activeRentalCardsHeading">
           <div class="active-rentals-heading">
-            <div>
+            <button type="button" class="fleet-share-all-button" id="shareFleetOverviewButton" onclick="shareFleetOverviewJpg()" aria-label="Send a JPG overview of all active rentals and available cycles" title="Send fleet overview JPG"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15V3m0 0 4 4m-4-4L8 7M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="active-rentals-title-group">
               <div class="live-section-eyebrow"><span class="live-status-dot"></span> LIVE FLEET</div>
               <h2 id="activeRentalCardsHeading">Active Rentals</h2>
             </div>
-
           </div>
           <div id="activeRentalCards" class="live-rentals-content"><div class="empty-state">Loading active rentals and available cycles…</div></div>
         </section>
@@ -2660,7 +2671,7 @@ body, .main-area { background:#f4f7fc !important; }
       const customerMap = new Map((customers || []).map(c => [String(c.id), c]));
       const cycleMap = new Map((cycles || []).map(c => [String(c.id), c]));
       const staffMap = new Map((staffMembers || []).map(staff => [String(staff.id), staff]));
-      activeRentalCardState = { rentals:active, customers:customerMap, cycles:cycleMap, staff:staffMap, payments:payments || [], extensions:extensions || [], paymentsError:Boolean(paymentsError), extensionsError:Boolean(extensionsError) };
+      activeRentalCardState = { rentals:active, customers:customerMap, cycles:cycleMap, staff:staffMap, payments:payments || [], extensions:extensions || [], rentalsError:Boolean(rentalsError), cyclesError:Boolean(cyclesError), paymentsError:Boolean(paymentsError), extensionsError:Boolean(extensionsError) };
 
       const paymentTotals = new Map();
       for (const payment of (payments || [])) {
@@ -2957,6 +2968,197 @@ body, .main-area { background:#f4f7fc !important; }
       link.href = URL.createObjectURL(blob); link.download = file.name; link.click();
       window.setTimeout(() => URL.revokeObjectURL(link.href), 30000);
       alert(paymentReminder ? 'Payment reminder JPG downloaded. Attach it to a message for the customer.' : 'Rental JPG downloaded. Attach it to your WhatsApp or Viber group message.');
+    }
+
+    let preparedFleetOverviewShare = null;
+
+    async function shareFleetOverviewJpg() {
+      if (preparedFleetOverviewShare && navigator.share) {
+        try {
+          await navigator.share({
+            files:[preparedFleetOverviewShare.file],
+            title:'Saiku Rentals fleet overview',
+            text:preparedFleetOverviewShare.text
+          });
+          preparedFleetOverviewShare = null;
+          return;
+        } catch(error) {
+          if (error.name === 'AbortError') return;
+          console.warn('The phone blocked the prepared fleet JPG share.',error);
+        }
+      }
+      const state = activeRentalCardState;
+      if (!state) { alert('Fleet information is still loading. Please try again in a moment.'); return; }
+      if (state.rentalsError || state.cyclesError) {
+        alert('Rental or cycle information could not be loaded completely. Refresh the dashboard and try again.');
+        return;
+      }
+
+      const button = document.getElementById('shareFleetOverviewButton');
+      if (button) { button.disabled = true; button.setAttribute('aria-busy','true'); button.title = 'Preparing fleet overview JPG…'; }
+      try {
+        const activeCycleIds = new Set(state.rentals.map(rental => String(rental.cycle_id || '')).filter(Boolean));
+        const activeItems = state.rentals.map(rental => {
+          const customer = state.customers.get(String(rental.customer_id)) || rental.customers || {};
+          const cycle = state.cycles.get(String(rental.cycle_id)) || rental.cycles || {};
+          const payments = state.payments.filter(row => String(row.rental_id) === String(rental.id));
+          const extensions = state.extensions.filter(row => String(row.rental_id) === String(rental.id));
+          const paid = payments.reduce((sum, row) => sum + (readAmount(row, ['amount','paid_amount','amount_paid','payment_amount','total_amount']) || 0), 0);
+          const extensionTotal = extensions.reduce((sum, row) => sum + (readAmount(row, ['amount','extension_amount','total_amount']) || 0), 0);
+          const balance = Math.max(Number(rental.total_amount || 0) + extensionTotal - paid, 0);
+          const duration = liveCountdownDuration(rental.expected_return || '');
+          const expired = String(rental.status || '').toLowerCase() === 'overdue' || duration.expired;
+          return {
+            kind:'rented', rental, customer, cycle,
+            plate:cycle.plate_number || cycle.name || 'Cycle',
+            customerName:customer.name || customer.full_name || 'Customer',
+            phone:customer.phone || customer.phone_number || customer.mobile || 'Phone not recorded',
+            photo:customerPhotoUrl(customer), duration, expired, balance,
+            balanceText:state.paymentsError||state.extensionsError?'History unavailable':money(balance)
+          };
+        });
+        const availableItems = [...state.cycles.values()]
+          .filter(cycle => ['available','free'].includes(String(cycle.status || '').trim().toLowerCase()) && !activeCycleIds.has(String(cycle.id || '')))
+          .map(cycle => ({
+            kind:'available', cycle,
+            plate:cycle.plate_number || cycle.name || 'Cycle',
+            cycleType:cycle.cycle_type || cycle.vehicle_type || cycle.type || cycle.model || cycle.brand || ''
+          }))
+          .sort((a,b) => String(a.plate).localeCompare(String(b.plate)));
+        const items = [...activeItems, ...availableItems];
+        const withPhotoTimeout = url => Promise.race([
+          loadRentalSharePhoto(url),
+          new Promise(resolve => window.setTimeout(() => resolve(null), 4000))
+        ]);
+        const photoResults = await Promise.all(activeItems.map(item => withPhotoTimeout(item.photo)));
+        activeItems.forEach((item, index) => { item.photoImage = photoResults[index]; });
+        const logo = await withPhotoTimeout('assets/saiku-rentals-logo.jpg');
+
+        const columns = 2;
+        const margin = 42;
+        const gap = 18;
+        const cardWidth = (1080 - margin * 2 - gap) / columns;
+        const cardHeight = 226;
+        const rowGap = 16;
+        const rowCount = Math.ceil(items.length / columns);
+        const listTop = 310;
+        const footerHeight = 94;
+        const height = Math.max(560, listTop + rowCount * (cardHeight + rowGap) - rowGap + footerHeight);
+        const canvas = document.createElement('canvas');
+        canvas.width = 1080;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Could not create the fleet JPG. Please try again.');
+        const rounded = (x,y,w,h,r,color) => { ctx.beginPath(); ctx.roundRect(x,y,w,h,r); ctx.fillStyle=color; ctx.fill(); };
+
+        const bg = ctx.createLinearGradient(0,0,1080,height);
+        bg.addColorStop(0,'#eef4fa'); bg.addColorStop(1,'#e5edf5');
+        ctx.fillStyle=bg; ctx.fillRect(0,0,1080,height);
+        rounded(28,28,1024,height-56,30,'#ffffff');
+        rounded(28,28,1024,246,30,'#12375f');
+        rounded(48,265,984,5,3,'#1684c7');
+        rounded(58,62,230,74,15,'#ffffff');
+        if (logo) ctx.drawImage(logo,72,72,202,54);
+        else { ctx.fillStyle='#173a63';ctx.font='800 26px Arial';ctx.fillText('SAIKU RENTALS',74,108); }
+        ctx.fillStyle='#8fc9f2';ctx.font='800 19px Arial';ctx.fillText('LIVE FLEET',326,86);
+        ctx.fillStyle='#ffffff';ctx.font='800 42px Arial';ctx.fillText('Fleet overview',326,140);
+        ctx.fillStyle='#d6e5f5';ctx.font='22px Arial';ctx.fillText(`Updated ${new Date().toLocaleString('en-MV',{dateStyle:'medium',timeStyle:'short'})}`,326,180);
+        const countBadge=(x,label,value,color)=>{
+          rounded(x,204,310,48,15,'rgba(255,255,255,.12)');
+          ctx.strokeStyle='rgba(255,255,255,.22)';ctx.lineWidth=1;ctx.stroke();
+          ctx.fillStyle=color;ctx.font='800 23px Arial';ctx.fillText(String(value),x+16,236);
+          ctx.fillStyle='#eaf3fc';ctx.font='700 16px Arial';ctx.fillText(label,x+69,235);
+        };
+        countBadge(62,'RENTED',activeItems.length,'#ffb39d');
+        countBadge(385,'AVAILABLE',availableItems.length,'#8df0c5');
+        countBadge(708,'TOTAL SHOWN',items.length,'#a9d6ff');
+
+        const drawLabelValue=(label,value,x,y,maxWidth,color='#263f5c')=>{
+          ctx.fillStyle='#7b8b9d';ctx.font='800 13px Arial';ctx.fillText(label.toUpperCase(),x,y);
+          ctx.fillStyle=color;ctx.font='700 17px Arial';drawShareText(ctx,String(value || 'Not recorded'),x,y+25,maxWidth,21,2);
+        };
+        items.forEach((item,index)=>{
+          const col=index%columns;
+          const row=Math.floor(index/columns);
+          const x=margin+col*(cardWidth+gap);
+          const y=listTop+row*(cardHeight+rowGap);
+          const available=item.kind==='available';
+          const color=available?'#138258':item.expired?'#c53a45':'#d45a3e';
+          const background=available?'#f2fbf6':item.expired?'#fff4f3':'#fff8f5';
+          rounded(x,y,cardWidth,cardHeight,20,background);
+          ctx.strokeStyle=available?'#c8ead7':item.expired?'#f0c9ca':'#f0d1c6';ctx.lineWidth=2;ctx.stroke();
+          rounded(x,y,8,cardHeight,4,color);
+          ctx.fillStyle='#20344b';ctx.font='800 24px Arial';drawShareText(ctx,String(item.plate),x+22,y+37,cardWidth-150,27,1);
+          rounded(x+cardWidth-132,y+17,112,31,15,available?'#dff5e8':item.expired?'#fde3e2':'#ffeadf');
+          ctx.fillStyle=color;ctx.font='800 13px Arial';ctx.textAlign='center';ctx.fillText(available?'AVAILABLE':item.expired?'OVERDUE':'RENTED',x+cardWidth-76,y+38);ctx.textAlign='left';
+          ctx.strokeStyle='#e2e9f0';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+22,y+55);ctx.lineTo(x+cardWidth-22,y+55);ctx.stroke();
+          if (available) {
+            ctx.fillStyle='#168258';ctx.font='800 20px Arial';ctx.fillText('Ready to rent',x+22,y+97);
+            ctx.fillStyle='#61776b';ctx.font='16px Arial';drawShareText(ctx,item.cycleType?`${item.cycleType} · Available now`:'Available now',x+22,y+128,cardWidth-44,21,2);
+            drawLabelValue('Cycle status','Available',x+22,y+177,cardWidth-44,'#138258');
+          } else {
+            const avatarX=x+48, avatarY=y+94;
+            ctx.beginPath();ctx.arc(avatarX,avatarY,27,0,Math.PI*2);ctx.fillStyle='#dcecff';ctx.fill();
+            if (item.photoImage) { ctx.save();ctx.beginPath();ctx.arc(avatarX,avatarY,25,0,Math.PI*2);ctx.clip();ctx.drawImage(item.photoImage,avatarX-25,avatarY-25,50,50);ctx.restore(); }
+            else { ctx.fillStyle='#214c78';ctx.font='800 17px Arial';ctx.textAlign='center';ctx.fillText(customerInitials(item.customerName),avatarX,avatarY+6);ctx.textAlign='left'; }
+            ctx.fillStyle='#7b8b9d';ctx.font='800 12px Arial';ctx.fillText('CUSTOMER',x+88,y+79);
+            ctx.fillStyle='#203d5c';ctx.font='800 17px Arial';drawShareText(ctx,item.customerName,x+88,y+103,cardWidth-124,20,1);
+            ctx.fillStyle='#60738a';ctx.font='14px Arial';drawShareText(ctx,String(item.phone),x+88,y+125,cardWidth-124,18,1);
+            ctx.strokeStyle='#e2e9f0';ctx.beginPath();ctx.moveTo(x+22,y+143);ctx.lineTo(x+cardWidth-22,y+143);ctx.stroke();
+            drawLabelValue('Return by',shortActiveRentalDate(item.rental.expected_return),x+22,y+168,cardWidth*.45);
+            drawLabelValue('Payment balance',item.balanceText,x+cardWidth*.52,y+168,cardWidth*.42,item.balance>0?'#b42318':'#168258');
+            ctx.fillStyle='#72839a';ctx.font='13px Arial';drawShareText(ctx,`${item.expired?'Overdue':'Time left'}: ${item.duration.label}`,x+22,y+213,cardWidth-44,16,1);
+          }
+        });
+
+        if (!items.length) {
+          ctx.fillStyle='#52677e';ctx.font='700 25px Arial';ctx.textAlign='center';ctx.fillText('No active rentals or available cycles right now.',540,listTop+48);ctx.textAlign='left';
+        }
+        const footerY=height-78;
+        ctx.strokeStyle='#e2e9f0';ctx.beginPath();ctx.moveTo(62,footerY-15);ctx.lineTo(1018,footerY-15);ctx.stroke();
+        ctx.fillStyle='#75869a';ctx.font='15px Arial';ctx.fillText('SAIKU RENTALS  ·  ACTIVE RENTALS AND AVAILABLE CYCLES',62,footerY+12);
+        ctx.textAlign='right';ctx.fillText(`Page overview · ${items.length} cycle${items.length===1?'':'s'}`,1018,footerY+12);ctx.textAlign='left';
+
+        const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.93));
+        if(!blob) throw new Error('Could not create the fleet JPG. Please try again.');
+        const file=new File([blob],'Saiku-Rentals-Fleet-Overview.jpg',{type:'image/jpeg'});
+        const shareText=`${activeItems.length} active rentals and ${availableItems.length} available cycles.`;
+        preparedFleetOverviewShare={file,text:shareText};
+        if(navigator.share) {
+          const canShareFile=typeof navigator.canShare!=='function'||navigator.canShare({files:[file]});
+          if(canShareFile) {
+            try {
+              await navigator.share({files:[file],title:'Saiku Rentals fleet overview',text:shareText});
+              preparedFleetOverviewShare=null;
+              return;
+            } catch(error) {
+              if(error.name==='AbortError') return;
+              console.warn('Native fleet JPG share was blocked; keeping the prepared image available for a direct retry.',error);
+              if(error.name==='NotAllowedError') {
+                alert('Your phone blocked the share sheet while the JPG was being prepared. Tap the share icon again to open the app chooser.');
+                return;
+              }
+            }
+          } else {
+            try {
+              await navigator.share({title:'Saiku Rentals fleet overview',text:shareText});
+            } catch(error) {
+              if(error.name==='AbortError') return;
+              console.warn('Native text share was blocked.',error);
+            }
+          }
+        }
+        const url=URL.createObjectURL(blob);
+        const link=document.createElement('a');link.href=url;link.download=file.name;document.body.appendChild(link);link.click();link.remove();
+        window.setTimeout(()=>URL.revokeObjectURL(url),30000);
+        const secureShareHint=navigator.share?'':' Native app sharing needs this page to be opened over HTTPS; the JPG was downloaded instead.';
+        alert(`Fleet overview JPG downloaded. Attach it to a message to send.${secureShareHint}`);
+      } catch(error) {
+        console.error('Fleet overview JPG failed:',error);
+        alert(error.message||'Could not prepare the fleet JPG. Please try again.');
+      } finally {
+        if(button){button.disabled=false;button.removeAttribute('aria-busy');button.title='Send fleet overview JPG';button.innerHTML='<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15V3m0 0 4 4m-4-4L8 7M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>';}
+      }
     }
 
     async function copyReminderMessage(rentalId) {
@@ -4331,13 +4533,26 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
   const popup=document.getElementById('dashboardPaymentPopup');
   const frame=document.getElementById('dashboardPaymentFrame');
   const closeButton=document.getElementById('dashboardPaymentPopupClose');
+  window.downloadDashboardReceiptJpg=function(blob,filename){
+    if(!blob||typeof blob.size!=='number'||blob.size<=0) throw new Error('The receipt image is empty. Please reopen the receipt and try again.');
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;
+    link.download=filename||'Saiku-Rentals-Receipt.jpg';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(function(){URL.revokeObjectURL(url);},30000);
+  };
   let closeObserver=null;
+  let receiptObserver=null;
   let openAttemptTimer=null;
   function closePaymentPopup(){
     popup.hidden=true;
     frame.onload=null;
     frame.src='about:blank';
     if(closeObserver){closeObserver.disconnect();closeObserver=null;}
+    if(receiptObserver){receiptObserver.disconnect();receiptObserver=null;}
     if(openAttemptTimer){clearInterval(openAttemptTimer);openAttemptTimer=null;}
     if(typeof loadDashboard==='function') loadDashboard().catch(()=>{});
   }
@@ -4352,12 +4567,17 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
         const win=frame.contentWindow;
         if(!doc||!win) return;
         const style=doc.createElement('style');
-        style.textContent='html,body{margin:0!important;padding:0!important;min-height:100%!important;background:transparent!important;overflow:auto!important}body>*:not(#paymentModal){display:none!important}#paymentModal{position:fixed!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:auto!important;padding:8px!important;background:transparent!important;z-index:999999!important}#paymentModal .modal-content{margin:auto!important;max-height:calc(100vh - 16px)!important;overflow:auto!important;width:min(520px,100%)!important}';
+        style.textContent='html,body{margin:0!important;padding:0!important;min-height:100%!important;background:transparent!important;overflow:auto!important}body>*:not(#paymentModal):not(#receiptModal){display:none!important}#paymentModal{position:fixed!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:auto!important;padding:8px!important;background:transparent!important;z-index:999999!important}#paymentModal .modal-content{margin:auto!important;max-height:calc(100vh - 16px)!important;overflow:auto!important;width:min(520px,100%)!important}#receiptModal{position:fixed!important;inset:0!important;z-index:1000000!important;padding:8px!important;align-items:center!important;justify-content:center!important;background:rgba(15,23,42,.72)!important}#receiptModal.show{display:flex!important}#receiptModal .receipt-modal-window{width:min(880px,100%)!important;max-height:calc(100vh - 16px)!important;overflow:auto!important;background:#f5f7fb!important;border-radius:16px!important;box-shadow:0 25px 80px rgba(0,0,0,.26)!important}';
         doc.head.appendChild(style);
         const modal=doc.getElementById('paymentModal');
+        const receipt=doc.getElementById('receiptModal');
         if(modal){
-          closeObserver=new MutationObserver(function(){if(!modal.classList.contains('show')&&!popup.hidden) closePaymentPopup();});
+          closeObserver=new MutationObserver(function(){if(!modal.classList.contains('show')&&!(receipt&&receipt.classList.contains('show'))&&!popup.hidden) closePaymentPopup();});
           closeObserver.observe(modal,{attributes:true,attributeFilter:['class','style']});
+        }
+        if(receipt){
+          receiptObserver=new MutationObserver(function(){if(!receipt.classList.contains('show')&&!popup.hidden) closePaymentPopup();});
+          receiptObserver.observe(receipt,{attributes:true,attributeFilter:['class','style']});
         }
         openAttemptTimer=setInterval(function(){
           attempts++;
@@ -4874,13 +5094,13 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
     display:flex !important;
     align-items:center !important;
     justify-content:center !important;
-    flex:0 0 30px !important;
-    width:30px !important;
-    min-width:30px !important;
-    height:30px !important;
+    flex:0 0 36px !important;
+    width:36px !important;
+    min-width:36px !important;
+    height:36px !important;
     padding:0 !important;
     margin:0 !important;
-    font-size:16px !important;
+    border-radius:11px !important;
   }
   header.topbar.saiku-main-banner > .saiku-banner-brand {
     order:1 !important;
@@ -4890,6 +5110,7 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
     flex:1 1 auto !important;
     min-width:0 !important;
     gap:0 !important;
+    padding-right:52px !important;
   }
   header.topbar.saiku-main-banner .saiku-banner-logo {
     display:block !important;
@@ -4901,7 +5122,7 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
     object-fit:contain !important;
     object-position:left center !important;
   }
-  /* Mobile banner: show only the menu, full logo and user profile. */
+  /* Keep the mobile banner compact while leaving the navigation control easy to tap. */
   header.topbar.saiku-main-banner .saiku-banner-copy {
     display:none !important;
   }
@@ -4930,12 +5151,6 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
     flex:0 0 auto !important;
   }
   header.topbar.saiku-main-banner .saiku-banner-refresh { display:none !important; }
-  header.topbar.saiku-main-banner .saiku-banner-user {
-    width:27px !important;
-    min-width:27px !important;
-    height:27px !important;
-    font-size:11px !important;
-  }
 }
 @media (max-width:380px) {
   header.topbar.saiku-main-banner {
