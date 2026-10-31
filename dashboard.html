@@ -2726,7 +2726,7 @@ body, .main-area { background:#f4f7fc !important; }
               : 'Fully paid';
           return `<article class="active-rental-dashboard-card fleet-rental-card${expired ? ' is-overdue' : ''}" data-active-rental-card="${escapeHtml(id)}">
             <div class="fleet-card-heading"><strong class="fleet-cycle-plate">${escapeHtml(plate)}</strong><span class="fleet-pill ${expired ? 'expired' : 'rented'}">${expired ? 'Expired' : 'Rented'}</span></div>
-            <div class="fleet-customer-row">${avatar}<div class="active-rental-person"><h3 title="${escapeHtml(name)}">${escapeHtml(name)}</h3><div class="active-rental-phone">${escapeHtml(phone || 'Phone not recorded')}</div></div></div>
+            <div class="fleet-customer-row">${avatar}<div class="active-rental-person"><h3 class="${name.trim().split(/\s+/).length >= 3 ? 'has-three-names' : ''}" title="${escapeHtml(name)}">${escapeHtml(name)}</h3><div class="active-rental-phone">${escapeHtml(phone || 'Phone not recorded')}</div></div></div>
             <div class="fleet-card-return"><span>Return by</span><strong>${escapeHtml(shortActiveRentalDate(end))}</strong></div>
             <div class="fleet-time-line" data-countdown-for="${escapeHtml(id)}" data-start-time="${escapeHtml(rental.start_date || '')}" data-end-time="${escapeHtml(end)}"><div class="fleet-time-label"><span>${expired ? 'Overdue' : 'Time left'}</span><strong data-countdown-label-for="${escapeHtml(id)}">${escapeHtml(duration.label)}</strong></div><div class="rental-time-track" role="progressbar" aria-label="Rental time remaining" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(percent)}"><span class="rental-time-fill${expired ? ' is-overdue' : (percent <= 20 ? ' is-low' : '')}" data-progress-fill-for="${escapeHtml(id)}" style="width:${percent}%"></span></div></div>
             <div class="fleet-payment"><span>Payment</span><strong class="fleet-payment-status ${paymentClass}">${escapeHtml(paymentText)}</strong></div>
@@ -4785,6 +4785,24 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
 @media(max-width:760px) {
   #activeRentalCards .fleet-rental-card .fleet-customer-row > .active-rental-avatar {
     width:40px !important; height:40px !important; flex-basis:40px !important;
+  }
+}
+</style>
+
+<style id="saiku-active-rental-three-part-name">
+/* Slightly reduce long, three-part customer names so they remain visible in the existing card. */
+#activeRentalCards .fleet-rental-card .fleet-customer-row .active-rental-person h3.has-three-names {
+  font-size:.88rem !important;
+}
+@media(max-width:760px) {
+  #activeRentalCards .fleet-rental-card .fleet-customer-row .active-rental-person h3.has-three-names {
+    font-size:.78rem !important;
+    white-space:normal !important;
+    height:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+    overflow-wrap:anywhere !important;
+    word-break:normal !important;
   }
 }
 </style>
