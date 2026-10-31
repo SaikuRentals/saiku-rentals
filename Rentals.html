@@ -3281,12 +3281,33 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         const period = resolvePaymentReceiptPeriod(rental, payment, payments, extensions);
         currentReceiptContext = { rental, payment, period };
         document.getElementById("receiptPrintArea").innerHTML = buildPaymentReceiptHtml(rental, payment, period);
-        document.getElementById("receiptModal").classList.add("show");
+        const dashboardPopup = new URLSearchParams(window.location.search).has("dashboardPopup");
+        const paymentModal = document.getElementById("paymentModal");
+        const receiptModal = document.getElementById("receiptModal");
+        window.paymentFormWasOpenBeforeReceipt = Boolean(dashboardPopup && paymentModal?.classList.contains("show"));
+        if (dashboardPopup) {
+            paymentModal?.style.setProperty("z-index", "2147482000", "important");
+            paymentModal?.style.setProperty("display", "none", "important");
+            receiptModal.style.setProperty("z-index", "2147483000", "important");
+            // Older injected dashboard styles can force the payment modal to
+            // display even when hidden. Detach it while the receipt is open so
+            // the two dialogs cannot overlap.
+            paymentModal?.remove();
+        }
+        receiptModal.classList.add("show");
+        if (window.paymentFormWasOpenBeforeReceipt) paymentModal.classList.remove("show");
     }
 
     function closeReceiptModal() {
         document.getElementById("receiptModal").classList.remove("show");
         currentReceiptContext = null;
+        if (window.paymentFormWasOpenBeforeReceipt) {
+            const paymentModal = document.getElementById("paymentModal");
+            if (paymentModal && !paymentModal.isConnected) document.body.appendChild(paymentModal);
+            paymentModal?.classList.add("show");
+            paymentModal?.style.setProperty("display", "flex", "important");
+        }
+        window.paymentFormWasOpenBeforeReceipt = false;
     }
 
     function printPaymentReceipt() {
@@ -3300,8 +3321,161 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         return `Saiku-Rentals-Receipt-${String(raw).replace(/[^a-z0-9_-]/gi, "-")}.jpg`;
     }
 
+    async function renderDashboardPaymentReceiptJpg() {
+        const { rental, payment, period } = currentReceiptContext;
+        const fullCustomer = allCustomers.find(customer => String(customer.id) === String(rental?.customer_id)) || rental?.customers || {};
+        const cycle = rental?.cycles || allCycles.find(item => String(item.id) === String(rental?.cycle_id)) || {};
+        const customerName = fullCustomer.name || rental?.customer_name || "Customer";
+        const identity = getCustomerIdentity(fullCustomer);
+        const phone = fullCustomer.phone || fullCustomer.phone_number || fullCustomer.mobile || "Not recorded";
+        const initials = customerName.trim().split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase() || "C";
+        const amount = `MVR ${Number(payment?.amount || 0).toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 })}`;
+        const method = String(payment?.payment_method || "Not recorded").replace(/[_-]+/g, " ").replace(/\b\w/g, char => char.toUpperCase());
+        const cycleName = cycle.plate_number || cycle.name || "Cycle not recorded";
+        const photoUrl = fullCustomer.photo_url || fullCustomer.customer_photo_url || fullCustomer.profile_photo_url || fullCustomer.image_url || fullCustomer.avatar_url || "";
+        const loadImage = url => new Promise(resolve => {
+            if (!url) return resolve(null);
+            const image = new Image();
+            image.crossOrigin = "anonymous";
+            let settled = false;
+            const timeout = setTimeout(() => finish(null), 3000);
+            const finish = result => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(timeout);
+                resolve(result);
+            };
+            image.onload = () => finish(image);
+            image.onerror = () => finish(null);
+            image.src = url;
+            if (image.complete && image.naturalWidth) finish(image);
+        });
+        const [logo, photo] = await Promise.all([
+            loadImage(new URL("assets/saiku-rentals-logo.jpg", document.baseURI).href),
+            loadImage(photoUrl)
+        ]);
+
+        const canvas = document.createElement("canvas");
+        canvas.width = 2000;
+        canvas.height = 3040;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Could not prepare the receipt image.");
+        ctx.scale(2, 2);
+        const box = (x, y, width, height, radius, fill, stroke = null) => {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + width, y, x + width, y + height, radius);
+            ctx.arcTo(x + width, y + height, x, y + height, radius);
+            ctx.arcTo(x, y + height, x, y, radius);
+            ctx.arcTo(x, y, x + width, y, radius);
+            ctx.closePath();
+            ctx.fillStyle = fill;
+            ctx.fill();
+            if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+        };
+        const write = (text, x, y, maxWidth, font, color, align = "left", lineHeight = 26, maxLines = 2) => {
+            ctx.font = font;
+            ctx.fillStyle = color;
+            ctx.textAlign = align;
+            const words = String(text || "").split(/\s+/).filter(Boolean);
+            const lines = [];
+            let line = "";
+            for (const word of words) {
+                const next = line ? `${line} ${word}` : word;
+                if (line && ctx.measureText(next).width > maxWidth) { lines.push(line); line = word; }
+                else line = next;
+            }
+            if (line) lines.push(line);
+            const shown = lines.slice(0, maxLines);
+            if (lines.length > maxLines && shown.length) shown[shown.length - 1] = `${shown[shown.length - 1].replace(/[.…]+$/, "")}…`;
+            shown.forEach((value, index) => ctx.fillText(value, x, y + index * lineHeight, maxWidth));
+            ctx.textAlign = "left";
+            return shown.length * lineHeight;
+        };
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, 1000, 1520);
+        ctx.strokeStyle = "#e1e8f0";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(18, 18, 964, 1484);
+        if (logo) {
+            const ratio = Math.min(285 / logo.naturalWidth, 82 / logo.naturalHeight);
+            const width = logo.naturalWidth * ratio;
+            const height = logo.naturalHeight * ratio;
+            ctx.drawImage(logo, 54, 52, width, height);
+        } else {
+            write("SAIKU RENTALS", 58, 91, 360, "italic 800 34px Arial", "#f04a2b");
+        }
+        ctx.textAlign = "right";
+        write("CUSTOMER COPY", 940, 67, 330, "800 14px Arial", "#75869a", "right", 20, 1);
+        write("PAYMENT RECEIPT", 940, 100, 360, "800 23px Arial", "#173a63", "right", 26, 1);
+        ctx.textAlign = "left";
+        ctx.strokeStyle = "#e8edf3"; ctx.beginPath(); ctx.moveTo(48, 140); ctx.lineTo(952, 140); ctx.stroke();
+
+        box(32, 142, 936, 126, 0, "#20578b");
+        write("Payment received", 58, 195, 680, "800 34px Arial", "#ffffff", "left", 40, 1);
+        write("Thank you for choosing Saiku Rentals", 58, 232, 680, "16px Arial", "#d7e8f7", "left", 22, 1);
+        box(850, 182, 88, 40, 20, "#2c699c", "#91b9dc");
+        write("PAID", 894, 207, 76, "800 13px Arial", "#ffffff", "center", 18, 1);
+
+        box(48, 290, 904, 150, 18, "#f4f8fc", "#e2eaf3");
+        ctx.save(); ctx.beginPath(); ctx.arc(122, 365, 48, 0, Math.PI * 2); ctx.clip();
+        ctx.fillStyle = "#dcecff"; ctx.fillRect(70, 313, 104, 104);
+        if (photo) {
+            const size = Math.min(photo.naturalWidth, photo.naturalHeight);
+            const sx = (photo.naturalWidth - size) / 2; const sy = (photo.naturalHeight - size) / 2;
+            ctx.drawImage(photo, sx, sy, size, size, 74, 317, 96, 96);
+        } else {
+            ctx.font = "800 27px Arial"; ctx.fillStyle = "#1b4a77"; ctx.textAlign = "center"; ctx.fillText(initials, 122, 375); ctx.textAlign = "left";
+        }
+        ctx.restore();
+        write("RECEIVED FROM", 202, 337, 690, "800 13px Arial", "#75869a", "left", 18, 1);
+        write(customerName, 202, 372, 690, "800 26px Arial", "#183b62", "left", 31, 2);
+        write(`${phone}${identity ? ` · ${identity}` : ""}`, 202, 412, 690, "16px Arial", "#60738a", "left", 21, 2);
+
+        write(`Dear ${customerName}${identity ? ` ${identity}` : ""},`, 52, 493, 896, "700 20px Arial", "#213a57", "left", 27, 2);
+        write("This receipt confirms that your rental payment has been received.", 52, 529, 896, "17px Arial", "#64768c", "left", 24, 2);
+
+        box(48, 575, 904, 220, 16, "#ffffff", "#e1e8f0");
+        write("Rental period covered by this payment", 74, 614, 850, "800 20px Arial", "#183b62", "left", 25, 1);
+        box(72, 638, 414, 78, 12, "#f6f9fc");
+        box(514, 638, 414, 78, 12, "#f6f9fc");
+        write("START DATE & TIME", 92, 665, 370, "800 12px Arial", "#78899c", "left", 16, 1);
+        write(receiptDateTime(period?.start || rental?.start_date), 92, 696, 370, "700 16px Arial", "#263f5c", "left", 20, 1);
+        write("END DATE & TIME", 534, 665, 370, "800 12px Arial", "#78899c", "left", 16, 1);
+        write(receiptDateTime(period?.end || rental?.expected_return), 534, 696, 370, "700 16px Arial", "#263f5c", "left", 20, 1);
+        write("Please contact Saiku Rentals in advance if you need to extend your rental period.", 74, 754, 850, "14px Arial", "#6d7e91", "left", 20, 2);
+
+        box(48, 825, 904, 520, 16, "#ffffff", "#dbe5f0");
+        write("Amount received", 78, 865, 844, "800 20px Arial", "#183b62", "left", 25, 1);
+        write(amount, 78, 925, 844, "800 42px Arial", "#16834a", "left", 48, 2);
+        ctx.strokeStyle = "#e4ebf3"; ctx.beginPath(); ctx.moveTo(78, 953); ctx.lineTo(922, 953); ctx.stroke();
+        const details = [
+            ["Rental cycle", cycleName],
+            ["Payment method", method],
+            ["Invoice No", receiptInvoiceNumber(payment)],
+            ["Payment Date", receiptDate(payment?.payment_date || payment?.paid_at || payment?.created_at)]
+        ];
+        details.forEach(([label, value], index) => {
+            const y = 995 + index * 78;
+            write(label.toUpperCase(), 80, y, 340, "800 12px Arial", "#73849a", "left", 17, 1);
+            write(value, 440, y, 458, "700 17px Arial", "#243d5b", "right", 22, 2);
+            if (index < details.length - 1) { ctx.strokeStyle = "#edf1f6"; ctx.beginPath(); ctx.moveTo(78, y + 28); ctx.lineTo(922, y + 28); ctx.stroke(); }
+        });
+        ctx.fillStyle = "#f7f9fc"; ctx.fillRect(32, 1380, 936, 85);
+        ctx.strokeStyle = "#e8edf3"; ctx.beginPath(); ctx.moveTo(32, 1380); ctx.lineTo(968, 1380); ctx.stroke();
+        write("Saiku Rentals · Official payment receipt", 54, 1420, 540, "14px Arial", "#73849a", "left", 20, 1);
+        write("We appreciate your business.", 946, 1420, 460, "14px Arial", "#73849a", "right", 20, 1);
+
+        return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Could not create the receipt image.")), "image/jpeg", 0.94));
+    }
+
     async function renderPaymentReceiptJpg() {
         if (!currentReceiptContext) throw new Error("Open a payment receipt first.");
+        // The dashboard runs Rentals inside an iframe. Use the direct renderer
+        // for any embedded instance instead of relying on a query flag that can
+        // be missing from older dashboard links or cached popup URLs.
+        if (window.parent !== window) return renderDashboardPaymentReceiptJpg();
         if (typeof html2canvas !== "function") throw new Error("JPG export library did not load. Check your internet connection and refresh the page.");
         const receipt = document.getElementById("receiptPrintArea");
         if (document.fonts?.ready) await document.fonts.ready;
@@ -3331,8 +3505,81 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
             useCORS: true,
             logging: false,
             scrollX: 0,
-            scrollY: 0
+            scrollY: 0,
+            onclone: clonedDocument => {
+                if (!dashboardPopup) return;
+                // In the dashboard, the receipt sits inside two fixed, scrolling
+                // popup layers. html2canvas can inherit those clipping bounds and
+                // produce a blank/partial image even though the preview is visible.
+                // Flatten those layers in the cloned document so the capture is
+                // laid out as a standalone receipt.
+                const clonedGradientPrototype = clonedDocument.defaultView?.CanvasGradient?.prototype;
+                if (clonedGradientPrototype && !clonedGradientPrototype.__saikuSafeStop) {
+                    const originalAddColorStop = clonedGradientPrototype.addColorStop;
+                    const safeAddColorStop = function(offset, color) {
+                        const safeOffset = Number.isFinite(offset) ? Math.max(0, Math.min(1, offset)) : 0;
+                        return originalAddColorStop.call(this, safeOffset, color);
+                    };
+                    Object.defineProperty(clonedGradientPrototype, "__saikuSafeStop", { value:true });
+                    clonedGradientPrototype.addColorStop = safeAddColorStop;
+                }
+                const gradientReset = clonedDocument.createElement("style");
+                gradientReset.textContent = `html,body,body *,html::before,html::after,body::before,body::after,body *::before,body *::after{background-image:none!important}#receiptPrintArea .receipt-banner{background:#20578b!important}`;
+                clonedDocument.head.appendChild(gradientReset);
+                const clonedModal = clonedDocument.getElementById("receiptModal");
+                const clonedWindow = clonedModal?.querySelector(".receipt-modal-window");
+                const clonedReceipt = clonedDocument.getElementById("receiptPrintArea");
+                if (clonedModal) {
+                    clonedModal.style.setProperty("position", "static", "important");
+                    clonedModal.style.setProperty("display", "block", "important");
+                    clonedModal.style.setProperty("inset", "auto", "important");
+                    clonedModal.style.setProperty("overflow", "visible", "important");
+                    clonedModal.style.setProperty("padding", "0", "important");
+                    clonedModal.style.setProperty("background", "transparent", "important");
+                }
+                if (clonedWindow) {
+                    clonedWindow.style.setProperty("position", "static", "important");
+                    clonedWindow.style.setProperty("width", "auto", "important");
+                    clonedWindow.style.setProperty("max-height", "none", "important");
+                    clonedWindow.style.setProperty("overflow", "visible", "important");
+                    clonedWindow.style.setProperty("box-shadow", "none", "important");
+                }
+                if (clonedReceipt) {
+                    clonedReceipt.style.setProperty("width", `${captureWidth}px`, "important");
+                    clonedReceipt.style.setProperty("max-width", "none", "important");
+                    clonedReceipt.style.setProperty("height", "auto", "important");
+                    clonedReceipt.style.setProperty("max-height", "none", "important");
+                    clonedReceipt.style.setProperty("overflow", "visible", "important");
+                    clonedReceipt.style.setProperty("margin", "0", "important");
+                    clonedReceipt.style.setProperty("box-shadow", "none", "important");
+                    clonedReceipt.style.setProperty("background", "#ffffff", "important");
+                    // html2canvas can throw on some gradients in the dashboard
+                    // iframe. Keep the receipt colors while using solid fills.
+                    clonedReceipt.style.setProperty("background-image", "none", "important");
+                    clonedReceipt.querySelectorAll("*").forEach(element => {
+                        element.style.setProperty("background-image", "none", "important");
+                    });
+                    const banner = clonedReceipt.querySelector(".receipt-banner");
+                    if (banner) banner.style.setProperty("background-color", "#20578b", "important");
+                }
+            }
         };
+        let liveGradientReset = null;
+        if (dashboardPopup) {
+            liveGradientReset = document.createElement("style");
+            liveGradientReset.textContent = `html,body,body *,body *::before,body *::after{background-image:none!important}#receiptPrintArea .receipt-banner{background:#20578b!important}`;
+            document.head.appendChild(liveGradientReset);
+        }
+        let restoreGradientStop = null;
+        if (dashboardPopup && typeof CanvasGradient !== "undefined" && CanvasGradient.prototype) {
+            const gradientPrototype = CanvasGradient.prototype;
+            const originalAddColorStop = gradientPrototype.addColorStop;
+            gradientPrototype.addColorStop = function(offset, color) {
+                const safeOffset = Number.isFinite(offset) ? Math.max(0, Math.min(1, offset)) : 0;
+                return originalAddColorStop.call(this, safeOffset, color);
+            };
+            restoreGradientStop = () => { gradientPrototype.addColorStop = originalAddColorStop; };
+        }
         let canvas;
         try {
             canvas = await html2canvas(receipt, captureOptions);
@@ -3342,9 +3589,13 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
             canvas = await html2canvas(receipt, {
                 ...captureOptions,
                 onclone: clonedDocument => {
+                    captureOptions.onclone(clonedDocument);
                     clonedDocument.querySelectorAll("#receiptPrintArea .receipt-customer-photo img").forEach(image => image.remove());
                 }
             });
+        } finally {
+            liveGradientReset?.remove();
+            restoreGradientStop?.();
         }
         return new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Could not create the receipt image.")), "image/jpeg", 0.94));
     }
@@ -3352,18 +3603,21 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
     async function downloadPaymentReceiptJpg() {
         try {
             const blob = await renderPaymentReceiptJpg();
-            if (new URLSearchParams(window.location.search).has("dashboardPopup") && window.parent !== window && typeof window.parent.downloadDashboardReceiptJpg === "function") {
-                window.parent.downloadDashboardReceiptJpg(blob, paymentReceiptJpgName());
+            const filename = paymentReceiptJpgName();
+            if (typeof navigator.msSaveOrOpenBlob === "function") {
+                navigator.msSaveOrOpenBlob(blob, filename);
                 return;
             }
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = paymentReceiptJpgName();
+            link.download = filename;
+            link.style.position = "fixed";
+            link.style.left = "-10000px";
             document.body.appendChild(link);
             link.click();
             link.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 1500);
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
         } catch (error) {
             console.error("Payment receipt JPG export failed:", error);
             alert(error.message || "Unable to export the payment receipt as JPG.");

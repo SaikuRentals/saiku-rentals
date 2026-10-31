@@ -4567,16 +4567,24 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
         const win=frame.contentWindow;
         if(!doc||!win) return;
         const style=doc.createElement('style');
-        style.textContent='html,body{margin:0!important;padding:0!important;min-height:100%!important;background:transparent!important;overflow:auto!important}body>*:not(#paymentModal):not(#receiptModal){display:none!important}#paymentModal{position:fixed!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:auto!important;padding:8px!important;background:transparent!important;z-index:999999!important}#paymentModal .modal-content{margin:auto!important;max-height:calc(100vh - 16px)!important;overflow:auto!important;width:min(520px,100%)!important}#receiptModal{position:fixed!important;inset:0!important;z-index:1000000!important;padding:8px!important;align-items:center!important;justify-content:center!important;background:rgba(15,23,42,.72)!important}#receiptModal.show{display:flex!important}#receiptModal .receipt-modal-window{width:min(880px,100%)!important;max-height:calc(100vh - 16px)!important;overflow:auto!important;background:#f5f7fb!important;border-radius:16px!important;box-shadow:0 25px 80px rgba(0,0,0,.26)!important}';
+        style.textContent='html,body{margin:0!important;padding:0!important;min-height:100%!important;background:transparent!important;overflow:auto!important}body>*:not(#paymentModal):not(#receiptModal){display:none!important}#paymentModal{position:fixed!important;inset:0!important;align-items:center!important;justify-content:center!important;overflow:auto!important;padding:8px!important;background:transparent!important;z-index:999999!important}#paymentModal.show{display:flex!important}#paymentModal:not(.show){display:none!important}#paymentModal .modal-content{margin:auto!important;max-height:calc(100vh - 16px)!important;overflow:auto!important;width:min(520px,100%)!important}#receiptModal{position:fixed!important;inset:0!important;z-index:1000000!important;padding:8px!important;align-items:center!important;justify-content:center!important;background:rgba(15,23,42,.72)!important}#receiptModal.show{display:flex!important}#receiptModal .receipt-modal-window{width:min(880px,100%)!important;max-height:calc(100vh - 16px)!important;overflow:auto!important;background:#f5f7fb!important;border-radius:16px!important;box-shadow:0 25px 80px rgba(0,0,0,.26)!important}';
         doc.head.appendChild(style);
         const modal=doc.getElementById('paymentModal');
         const receipt=doc.getElementById('receiptModal');
+        const syncPaymentReceiptLayers=function(){
+          if(!modal||!receipt||popup.hidden) return;
+          const receiptOpen=receipt.classList.contains('show');
+          const paymentOpen=modal.classList.contains('show');
+          const display=receiptOpen?'none':paymentOpen?'flex':'none';
+          if(modal.style.getPropertyValue('display')!==display||modal.style.getPropertyPriority('display')!=='important') modal.style.setProperty('display',display,'important');
+          if(!receiptOpen&&!paymentOpen&&!popup.hidden) closePaymentPopup();
+        };
         if(modal){
-          closeObserver=new MutationObserver(function(){if(!modal.classList.contains('show')&&!(receipt&&receipt.classList.contains('show'))&&!popup.hidden) closePaymentPopup();});
+          closeObserver=new MutationObserver(syncPaymentReceiptLayers);
           closeObserver.observe(modal,{attributes:true,attributeFilter:['class','style']});
         }
         if(receipt){
-          receiptObserver=new MutationObserver(function(){if(!receipt.classList.contains('show')&&!popup.hidden) closePaymentPopup();});
+          receiptObserver=new MutationObserver(syncPaymentReceiptLayers);
           receiptObserver.observe(receipt,{attributes:true,attributeFilter:['class','style']});
         }
         openAttemptTimer=setInterval(function(){
@@ -4605,7 +4613,7 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
         },300);
       }catch(e){console.error('Could not display payment form in dashboard popup',e);}
     };
-    frame.src='Rentals.html?dashboardPopup=1&payment='+encodeURIComponent(String(rentalId));
+    frame.src='Rentals.html?dashboardPopup=1&payment='+encodeURIComponent(String(rentalId))+'&_popupReload='+Date.now();
   };
   closeButton.addEventListener('click',closePaymentPopup);
   popup.addEventListener('click',function(e){if(e.target===popup)closePaymentPopup();});
