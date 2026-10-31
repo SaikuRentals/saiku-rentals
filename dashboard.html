@@ -4807,10 +4807,15 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
 }
 </style>
 
-<style id="saiku-active-rental-paid-status-color">
-/* Increase Fully paid text contrast without changing its typography or layout. */
+<style id="saiku-active-rental-payment-status-colors">
+/* Strengthen payment status text contrast without changing typography or layout. */
 #activeRentalCards .fleet-payment-status.paid {
-  color:#14532d !important;
+  color:#064e3b !important;
+  -webkit-text-fill-color:#064e3b !important;
+}
+#activeRentalCards .fleet-rental-card.is-overdue .fleet-payment-status.due {
+  color:#9f1239 !important;
+  -webkit-text-fill-color:#9f1239 !important;
 }
 </style>
 
