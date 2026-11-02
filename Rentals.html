@@ -4048,6 +4048,25 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
 
         allRentals = data || [];
+        if (allRentals.length) {
+            const rentalIds = allRentals.map(rental => rental.id).filter(Boolean);
+            const { data: extensionRows, error: extensionLoadError } = await supabaseClient
+                .from("rental_extensions")
+                .select("rental_id, amount")
+                .in("rental_id", rentalIds);
+            const extensionTotals = new Map();
+            if (extensionLoadError) {
+                console.warn("Could not load rental extension totals:", extensionLoadError);
+            } else {
+                (extensionRows || []).forEach(extension => {
+                    const key = String(extension.rental_id);
+                    extensionTotals.set(key, (extensionTotals.get(key) || 0) + Number(extension.amount || 0));
+                });
+            }
+            allRentals.forEach(rental => {
+                rental.extension_total_amount = extensionTotals.get(String(rental.id)) || 0;
+            });
+        }
 
 
 
@@ -4339,7 +4358,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         const status = String(rental.status || "active");
         document.getElementById("rentalRecordManageStatus").textContent = status.charAt(0).toUpperCase() + status.slice(1);
         document.getElementById("rentalRecordManageReturn").textContent = rental.expected_return ? formatDate(rental.expected_return) : "—";
-        document.getElementById("rentalRecordManageTotal").textContent = formatMoney(rental.total_amount);
+        document.getElementById("rentalRecordManageTotal").textContent = formatMoney(getRentalRecordTotalAmount(rental));
         const rentalStatus = String(rental.status || "active").toLowerCase();
         const canOperate = rentalStatus === "active" || rentalStatus === "overdue";
         const extendButton = document.getElementById("recordManageExtendButton");
@@ -4549,6 +4568,27 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
         });
     }
 
+    function getRentalRecordDayCount(rental) {
+        const storedDays = Math.max(1, Number.parseInt(rental?.days, 10) || 1);
+        const start = new Date(rental?.start_date || "");
+        const endValue = String(rental?.status || "").toLowerCase() === "returned" && rental?.actual_return
+            ? rental.actual_return
+            : rental?.expected_return;
+        const end = new Date(endValue || "");
+
+        if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || end <= start) {
+            return storedDays;
+        }
+
+        // expected_return is updated when an extension is saved, so this displays
+        // the original rental period plus any extensions without changing the record.
+        return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000) - 1e-9));
+    }
+
+    function getRentalRecordTotalAmount(rental) {
+        return Math.max(0, Number(rental?.total_amount) || 0) + Math.max(0, Number(rental?.extension_total_amount) || 0);
+    }
+
     function renderMobileRentalLogs(filteredRentals) {
         const host = document.getElementById("mobileRentalLogs");
         if (!host) return;
@@ -4570,9 +4610,9 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
               <td class="mobile-rental-cycle"><strong>${escapeHtml(plate)}</strong></td>
               <td>${escapeHtml(formatDate(rental.start_date))}</td>
               <td>${escapeHtml(formatDate(rental.expected_return))}</td>
-              <td>${escapeHtml(String(rental.days ?? "—"))}</td>
+              <td>${escapeHtml(String(getRentalRecordDayCount(rental)))}</td>
               <td>${escapeHtml(formatMoney(rental.daily_rate))}</td>
-              <td class="mobile-rental-total"><strong>${escapeHtml(formatMoney(rental.total_amount))}</strong></td>
+              <td class="mobile-rental-total"><strong>${escapeHtml(formatMoney(getRentalRecordTotalAmount(rental)))}</strong></td>
               <td><span class="mobile-log-badge payment-${escapeHtml(payment)}">${escapeHtml(payment.charAt(0).toUpperCase() + payment.slice(1))}</span></td>
               <td><span class="mobile-log-badge ${escapeHtml(status)}">${escapeHtml(status.charAt(0).toUpperCase() + status.slice(1))}</span></td>
               <td class="mobile-rental-actions-cell">
@@ -4800,7 +4840,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
                         <td>
 
-                            ${rental.days}
+                            ${getRentalRecordDayCount(rental)}
 
                         </td>
 
@@ -4828,7 +4868,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 
                                 ${formatMoney(
 
-                                    rental.total_amount
+                                    getRentalRecordTotalAmount(rental)
 
                                 )}
 
