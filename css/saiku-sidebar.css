@@ -114,3 +114,75 @@ html body #sidebar .sidebar-bottom .logout-button:hover { background:#fff !impor
   html body #sidebar .navigation { padding:10px 7px !important; gap:4px !important; }
   html body #sidebar .navigation .nav-item { min-height:42px !important; padding:10px !important; font-size:12px !important; }
 }
+
+/* Shared app dark theme. Receipt previews remain white for clear customer copies. */
+html[data-saiku-theme="dark"] { color-scheme:dark; }
+html[data-saiku-theme="dark"] body { background:#0b1422!important; color:#e6edf7!important; }
+html[data-saiku-theme="dark"] body :is(.app-layout,.main-area,.main-content,.dashboard-content,.page-content,.content,.main,.layout) { background-color:#0b1422!important; color:#e6edf7!important; }
+html[data-saiku-theme="dark"] body header.topbar { background:#111e30!important; color:#edf4ff!important; border-color:#263950!important; box-shadow:0 4px 18px rgba(0,0,0,.2)!important; }
+html[data-saiku-theme="dark"] body header.topbar :is(h1,h2,p) { color:#edf4ff!important; }
+html[data-saiku-theme="dark"] body #sidebar.sidebar { background:linear-gradient(165deg,#14243a,#101b2c)!important; border-color:#263950!important; color:#dce8f7!important; }
+html[data-saiku-theme="dark"] body #sidebar .sidebar-logo.saiku-sidebar-brand,
+html[data-saiku-theme="dark"] body #sidebar .sidebar-bottom { border-color:#2b3c52!important; }
+html[data-saiku-theme="dark"] body #sidebar .saiku-sidebar-caption h2 { color:#f1f6ff!important; }
+html[data-saiku-theme="dark"] body #sidebar .saiku-sidebar-caption span { color:#9fb3cc!important; }
+html[data-saiku-theme="dark"] body #sidebar .navigation .nav-item { color:#c6d4e6!important; }
+html[data-saiku-theme="dark"] body #sidebar .navigation .nav-item:hover { background:#20334c!important; color:#fff!important; }
+html[data-saiku-theme="dark"] body #sidebar .navigation .nav-item.active { background:#294763!important; border-color:#3a6288!important; color:#fff!important; box-shadow:inset 3px 0 #60b5f2!important; }
+html[data-saiku-theme="dark"] body #sidebar .sidebar-bottom .logout-button { background:#1c2c41!important; border-color:#344961!important; color:#e0ebf8!important; }
+html[data-saiku-theme="dark"] body :is(.content-card,.card,.panel,.content-panel,.settings-card,.finance-card,.stat-card,.summary-card,.summary-panel,.form-card,.metric-card,.deposit-panel,.expense-panel,.loan-card,.cycle-card,.customer-card,.report-card,.table-container,.table-card,.filter-panel,.filters-card) { background:#142238!important; background-image:none!important; border-color:#2a3e59!important; color:#e4edf8!important; box-shadow:0 10px 28px rgba(0,0,0,.16)!important; }
+html[data-saiku-theme="dark"] body :is(h1,h2,h3,h4,h5,label,legend,.label,.card-title,.section-title,.page-title,.pagehead p,.muted,.description,.subtitle) { color:#e6edf7!important; }
+html[data-saiku-theme="dark"] body :is(.card p,.panel p,.content-card p,.settings-card p,.finance-card p,.stat-card span,.summary-card span,.helper-text,.empty-state,.empty,.footnote) { color:#aabbd0!important; }
+html[data-saiku-theme="dark"] body :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) { background:#0d1a2b!important; border-color:#344b66!important; color:#edf4ff!important; color-scheme:dark; }
+html[data-saiku-theme="dark"] body :is(input,select,textarea)::placeholder { color:#8296af!important; }
+html[data-saiku-theme="dark"] body :is(table,.table-container table,.tablewrap) { color:#dce7f5!important; }
+html[data-saiku-theme="dark"] body :is(th,thead th) { background:#1d3048!important; border-color:#304660!important; color:#b8c9dd!important; }
+html[data-saiku-theme="dark"] body :is(td,tbody td) { border-color:#2a3e56!important; color:#dce7f5!important; }
+html[data-saiku-theme="dark"] body tbody tr:hover { background:#1b2d43!important; }
+html[data-saiku-theme="dark"] body :is(.modal-content,.modal-panel,.popup-panel,.dialog-panel,.rental-history-panel,.loan-payment-panel,.deposit-modal,.customer-form-modal,.staff-modal-card):not(.receipt-modal-window) { background:#142238!important; border-color:#30445f!important; color:#e6edf7!important; }
+html[data-saiku-theme="dark"] body :is(.modal-content,.modal-panel,.popup-panel,.dialog-panel,.rental-history-panel,.loan-payment-panel,.deposit-modal,.customer-form-modal,.staff-modal-card):not(.receipt-modal-window) :is(h1,h2,h3,p,label,span,strong,small) { color:inherit; }
+html[data-saiku-theme="dark"] body :is(.modal-header,.modal-footer,.panel-head,.panel-heading,.section-heading) { border-color:#2b3f58!important; }
+html[data-saiku-theme="dark"] body :is(.secondary-action,.secondary-button,.btn:not(.primary),.action-button:not(.primary-button),.icon-button) { background:#20334b!important; border-color:#3a506b!important; color:#e6edf7!important; }
+html[data-saiku-theme="dark"] body :is(.notice,.alert,.empty-state,.empty) { background:#17283e!important; border-color:#30455e!important; color:#b9c9dc!important; }
+html[data-saiku-theme="dark"] body :is(hr,.divider,.section-divider) { border-color:#2b3f58!important; background-color:#2b3f58!important; }
+
+/* Stronger card selectors override page-specific light card gradients and inline rules. */
+html[data-saiku-theme="dark"] body [class*="card"]:not([class*="cards"]):not([class*="receipt"]):not([class*="button"]):not([class*="badge"]):not([class*="icon"]):not([class*="title"]):not([class*="actions"]):not([class*="grid"]):not([class*="label"]):not([class*="tabs"]):not([class*="list"]):not([class*="heading"]) {
+  background:#142238!important;
+  background-image:none!important;
+  border-color:#2a3e59!important;
+  color:#e4edf8!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.18)!important;
+}
+html[data-saiku-theme="dark"] body [class*="card"]:not([class*="cards"]):not([class*="receipt"]):not([class*="button"]):not([class*="badge"]):not([class*="icon"]):not([class*="title"]):not([class*="actions"]):not([class*="grid"]):not([class*="label"]):not([class*="tabs"]):not([class*="list"]):not([class*="heading"]) :is(h1,h2,h3,h4,p,span,strong,small,label) { color:#dce8f6!important; }
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-rental-card,
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-rental-card.is-overdue,
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-rental-card.fleet-available-card,
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-rental-card.fleet-available-card.is-unavailable {
+  background:linear-gradient(145deg,#1a2d45,#132238)!important;
+  background-image:linear-gradient(145deg,#1a2d45,#132238)!important;
+  border-color:#354c68!important;
+}
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-rental-card.is-overdue { border-color:#99586d!important; }
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-rental-card.fleet-available-card { border-color:#35685e!important; }
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-customer-row .active-rental-person,
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-customer-row .active-rental-person h3,
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-rental-meta span,
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-rental-meta strong,
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-payment span,
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-payment strong { color:#e4edf8!important;-webkit-text-fill-color:#e4edf8!important; }
+html[data-saiku-theme="dark"] body #activeRentalCards .fleet-rental-meta>div { background:#0e1b2d!important; border-color:#30455e!important; }
+html[data-saiku-theme="dark"] body #loansContainer .loan-card,
+html[data-saiku-theme="dark"] body #loansContainer .loan-card .stat-card,
+html[data-saiku-theme="dark"] body #financeOverview .finance-card,
+html[data-saiku-theme="dark"] body #cashManagement .finance-card,
+html[data-saiku-theme="dark"] body .dashboard-content .dashboard-key-metrics .key-metric-card,
+html[data-saiku-theme="dark"] body .dashboard-content .monthly-summary-section .stat-card {
+  background:#142238!important;background-image:none!important;border-color:#2a3e59!important;color:#e4edf8!important;
+}
+
+.saiku-theme-toggle { display:inline-grid!important; place-items:center!important; flex:0 0 38px!important; width:38px!important; height:38px!important; min-width:38px!important; min-height:38px!important; padding:0!important; margin-left:8px!important; border:1px solid #b9d2e8!important; border-radius:12px!important; background:#edf6ff!important; color:#244e71!important; box-shadow:0 3px 10px rgba(31,74,111,.12)!important; cursor:pointer!important; }
+.saiku-theme-toggle:hover { background:#dceeff!important; transform:translateY(-1px); }
+.saiku-theme-toggle svg { display:block; width:19px; height:19px; }
+html[data-saiku-theme="dark"] .saiku-theme-toggle { background:#20344c!important; border-color:#3b5470!important; color:#ffdf8a!important; box-shadow:0 3px 10px rgba(0,0,0,.18)!important; }
+html[data-saiku-theme="dark"] .saiku-theme-toggle:hover { background:#2a4360!important; }
