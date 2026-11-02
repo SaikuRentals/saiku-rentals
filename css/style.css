@@ -2195,6 +2195,9 @@ button:hover {
 
 /* Shared page switcher for Dashboard, Rentals, and Customers. */
 .dashboard-page-switcher {
+    position: sticky;
+    top: 0;
+    z-index: 500;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 5px;
