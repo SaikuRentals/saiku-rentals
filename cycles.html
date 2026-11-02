@@ -61,6 +61,7 @@
         .cycle-status{font-size:10px;font-weight:800;padding:5px 7px;border-radius:999px;white-space:nowrap;background:#e8f7ed;color:#16803c}.cycle-status.rented{background:#feeceb;color:#b42318}.cycle-status.maintenance{background:#fff3d6;color:#a15c00}
         .cycle-doc-list{display:grid;grid-template-columns:1fr;gap:7px}.cycle-doc-item{padding:8px 9px;border-radius:10px;background:rgba(222,235,252,.42);border:1px solid rgba(126,155,195,.16);min-width:0}.cycle-doc-label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary,#687386);font-weight:700;margin-bottom:4px}.cycle-doc-value{font-size:12px;font-weight:700;overflow-wrap:anywhere}.cycle-card-notes{font-size:11px;color:var(--text-secondary,#687386);overflow-wrap:anywhere;line-height:1.4}
         .cycle-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:auto}.cycle-card-actions button,.cycle-document-button{min-width:0;border-radius:9px;padding:8px 7px;font-size:11px;font-weight:700;cursor:pointer}.cycle-document-button{width:100%;border:1px solid rgba(34,112,210,.22);background:#edf5ff;color:#1558a6}.cycle-edit-button{border:0;background:#e9f2ff;color:#1558a6}.cycle-delete-button{border:0;background:#fff0ef;color:#b42318}.cycle-document-link{display:inline-block;font-size:11px;color:#1558a6;text-decoration:none;font-weight:700;margin-top:5px}.cycle-document-entry{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:5px;min-width:0}.cycle-document-entry .cycle-document-link{min-width:0;overflow-wrap:anywhere}.cycle-document-remove{flex:0 0 auto;border:0;border-radius:7px;padding:4px 7px;background:#fff0ef;color:#b42318;font-size:10px;font-weight:700;cursor:pointer}.cycle-upload-input{display:none}.cycle-document-help{font-size:11px;color:var(--text-secondary,#687386);margin:0 0 8px}
+        .cycle-maintenance-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.cycle-maintenance-actions button{min-width:0;border:1px solid rgba(21,88,166,.18);border-radius:9px;padding:8px 7px;background:#f0f6ff;color:#1558a6;font-size:11px;font-weight:700;cursor:pointer}.cycle-maintenance-actions button:first-child{background:#eaf7ef;border-color:#ccebd6;color:#176b39}
         .section-header{gap:12px;flex-wrap:wrap}.section-header .search-input{max-width:230px;min-width:0}
         /* Keep the four summary tiles compact and aligned */
         .cycle-stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;align-items:stretch!important}
@@ -1119,6 +1120,44 @@ const supabaseClient =
 
 let allCycles = [];
 
+function ensureMaintenanceHistoryModal() {
+    if (document.getElementById("maintenanceHistoryModal")) return;
+    const modal = document.createElement("div");
+    modal.id = "maintenanceHistoryModal";
+    modal.className = "modal-overlay";
+    modal.style.zIndex = "11000";
+    modal.innerHTML = `<div class="modal-card" style="width:min(620px,calc(100vw - 24px));max-height:88vh;overflow:auto"><div class="modal-header"><div><h2 id="maintenanceHistoryTitle">Maintenance history</h2><p>Maintenance expenses recorded for this cycle</p></div><button class="modal-close" type="button" onclick="closeMaintenanceHistory()">×</button></div><div style="padding:14px 18px 18px"><p id="maintenanceHistoryMessage" class="form-message"></p><div id="maintenanceHistoryContent"></div></div></div>`;
+    modal.addEventListener("click", event => { if (event.target === modal) closeMaintenanceHistory(); });
+    document.body.appendChild(modal);
+}
+
+function recordCycleMaintenance(cycleId) {
+    window.location.href = "expenses.html?maintenanceCycle=" + encodeURIComponent(cycleId);
+}
+
+async function openMaintenanceHistory(cycleId) {
+    ensureMaintenanceHistoryModal();
+    const cycle = allCycles.find(item => String(item.id) === String(cycleId));
+    document.getElementById("maintenanceHistoryTitle").textContent = "Maintenance history · " + (cycle?.plate_number || "Cycle");
+    document.getElementById("maintenanceHistoryMessage").textContent = "Loading maintenance records…";
+    document.getElementById("maintenanceHistoryContent").innerHTML = "";
+    document.getElementById("maintenanceHistoryModal").classList.add("show");
+    const { data, error } = await supabaseClient.from("expenses").select("expense_date,category,description,amount,payment_method").eq("cycle_id", cycleId).ilike("category", "maintenance").order("expense_date", {ascending:false});
+    if (error) {
+        console.error("Could not load maintenance history:", error);
+        document.getElementById("maintenanceHistoryMessage").textContent = /cycle_id|schema cache/i.test(error.message || "") ? "Cycle maintenance tracking needs setup. Run expense_cycle_link.sql in the Supabase SQL Editor, then reload this page." : "Could not load maintenance history: " + error.message;
+        return;
+    }
+    document.getElementById("maintenanceHistoryMessage").textContent = data?.length ? "" : "No maintenance expenses recorded for this cycle yet.";
+    const safeText = value => String(value ?? "").replace(/[&<>\"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[char]));
+    const moneyText = value => "MVR " + Number(value || 0).toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2});
+    document.getElementById("maintenanceHistoryContent").innerHTML = data?.length ? `<div style="overflow:auto"><table style="width:100%;border-collapse:collapse;min-width:440px"><thead><tr><th style="text-align:left;padding:10px;border-bottom:1px solid #dce4ef">Date</th><th style="text-align:left;padding:10px;border-bottom:1px solid #dce4ef">Details</th><th style="text-align:left;padding:10px;border-bottom:1px solid #dce4ef">Paid using</th><th style="text-align:right;padding:10px;border-bottom:1px solid #dce4ef">Amount</th></tr></thead><tbody>${data.map(row => `<tr><td style="padding:10px;border-bottom:1px solid #edf1f6">${safeText(row.expense_date ? new Date(row.expense_date).toLocaleDateString() : "—")}</td><td style="padding:10px;border-bottom:1px solid #edf1f6">${safeText(row.description || "—")}</td><td style="padding:10px;border-bottom:1px solid #edf1f6">${safeText(row.payment_method || "—")}</td><td style="padding:10px;text-align:right;border-bottom:1px solid #edf1f6;font-weight:700">${safeText(moneyText(row.amount))}</td></tr>`).join("")}</tbody></table></div>` : "";
+}
+
+function closeMaintenanceHistory() {
+    document.getElementById("maintenanceHistoryModal")?.classList.remove("show");
+}
+
 
 
 // ==============================
@@ -1406,6 +1445,7 @@ function renderCycles(cycles) {
           ${notesMarkup}
           <button class="cycle-document-button" type="button" onclick="chooseCycleDocument('${id}')">＋ ${stickerUrl ? "Replace sticker / document" : "Add sticker / document"}</button>
           <input class="cycle-upload-input" type="file" id="cycleDocument-${id}" accept="image/*,.pdf" multiple onchange="uploadCycleDocument('${id}', this.files)">
+          <div class="cycle-maintenance-actions"><button type="button" onclick="recordCycleMaintenance('${id}')">＋ Record maintenance</button><button type="button" onclick="openMaintenanceHistory('${id}')">View maintenance history</button></div>
           <div class="cycle-card-actions"><button class="cycle-edit-button" type="button" onclick="editCycle('${id}')">✏️ Edit details</button><button class="cycle-delete-button" type="button" onclick="deleteCycle('${id}')">🗑️ Delete</button></div>`;
         grid.appendChild(card);
     });
