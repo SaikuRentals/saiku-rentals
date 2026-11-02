@@ -2730,7 +2730,7 @@ body, .main-area { background:#f4f7fc !important; }
             <div class="fleet-card-return"><span>Return by</span><strong>${escapeHtml(shortActiveRentalDate(end))}</strong></div>
             <div class="fleet-time-line" data-countdown-for="${escapeHtml(id)}" data-start-time="${escapeHtml(rental.start_date || '')}" data-end-time="${escapeHtml(end)}"><div class="fleet-time-label"><span>${expired ? 'Overdue' : 'Time left'}</span><strong data-countdown-label-for="${escapeHtml(id)}">${escapeHtml(duration.label)}</strong></div><div class="rental-time-track" role="progressbar" aria-label="Rental time remaining" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(percent)}"><span class="rental-time-fill${expired ? ' is-overdue' : (percent <= 20 ? ' is-low' : '')}" data-progress-fill-for="${escapeHtml(id)}" style="width:${percent}%"></span></div></div>
             <div class="fleet-payment"><span>Payment</span><strong class="fleet-payment-status ${paymentClass}">${escapeHtml(paymentText)}</strong></div>
-            <button type="button" class="fleet-manage-button" data-active-action="manage" data-rental-id="${escapeHtml(id)}" aria-haspopup="dialog" title="Manage this rental">Manage</button>
+            <div class="fleet-card-button-stack"><button type="button" class="fleet-manage-button" data-active-action="manage" data-rental-id="${escapeHtml(id)}" aria-haspopup="dialog" title="Manage this rental">Manage</button><button type="button" class="fleet-manage-button fleet-change-cycle-button" data-active-action="replaceCycle" data-rental-id="${escapeHtml(id)}" title="Replace the cycle while keeping this rental unchanged">Change cycle</button></div>
           </article>`;
         }
         const status = String(cycle.status || '').trim().toLowerCase();
@@ -2763,7 +2763,7 @@ body, .main-area { background:#f4f7fc !important; }
               <button type="button" class="fleet-manage-action share-rental" data-active-action="shareRental" data-rental-id="">Share rental JPG</button>
               <button type="button" class="fleet-manage-action share-payment-reminder" data-active-action="sharePaymentReminder" data-rental-id="">Share payment reminder JPG</button>
             </div>
-            <p class="fleet-manage-footnote">Changes are handled by the existing Rentals page workflow.</p>
+            <p class="fleet-manage-footnote">Cycle replacements preserve the rental period and payment history.</p>
           </section>
         </div>`;
       // Move the dialog outside the Live Fleet card so fixed positioning covers the whole viewport,
@@ -2781,6 +2781,108 @@ body, .main-area { background:#f4f7fc !important; }
     function closeActiveRentalManageModal() {
       const modal = document.getElementById('activeRentalManageModal');
       if (modal) modal.hidden = true;
+    }
+
+    function openCycleReplacementChooser(rentalId) {
+      const state = activeRentalCardState;
+      const rental = state?.rentals.find(item => String(item.id) === String(rentalId));
+      if (!rental) { alert('This rental is no longer active. Refresh the dashboard.'); return; }
+      if (state.rentalsError || state.cyclesError) {
+        alert('Rental and cycle availability must be loaded before replacing a cycle. Refresh the dashboard and try again.');
+        return;
+      }
+      const currentCycleId = String(rental.cycle_id || '');
+      const currentCycle = state.cycles.get(currentCycleId) || rental.cycles || {};
+      const inUseCycleIds = new Set(state.rentals
+        .filter(item => String(item.id) !== String(rental.id))
+        .map(item => String(item.cycle_id || '')));
+      const available = [...state.cycles.values()].filter(cycle => {
+        const status = String(cycle.status || '').trim().toLowerCase();
+        const id = String(cycle.id || '');
+        return id && id !== currentCycleId && ['available','free'].includes(status) && !inUseCycleIds.has(id);
+      });
+      if (!available.length) {
+        alert('There are no available cycles to assign right now. Mark a replacement cycle as Available, then try again.');
+        return;
+      }
+
+      openActiveRentalManageModal(rentalId);
+      const modal = document.getElementById('activeRentalManageModal');
+      const content = modal?.querySelector('#fleetManageContent');
+      if (!modal || !content) return;
+      const currentName = currentCycle.plate_number || currentCycle.name || 'Current cycle';
+      const options = available.map(cycle => {
+        const name = cycle.plate_number || cycle.name || `Cycle ${String(cycle.id).slice(0, 6)}`;
+        const type = cycle.cycle_type || cycle.type || cycle.model || '';
+        const label = type ? `${name} · ${type}` : name;
+        return `<option value="${escapeHtml(String(cycle.id))}">${escapeHtml(label)}</option>`;
+      }).join('');
+      content.insertAdjacentHTML('beforeend', `<section class="fleet-cycle-replacement-panel" aria-labelledby="fleetCycleReplaceTitle">
+        <h3 id="fleetCycleReplaceTitle">Change rental cycle</h3>
+        <p>Choose an available replacement for <strong>${escapeHtml(currentName)}</strong>. The customer, rental period, remaining time, and payment history will stay unchanged. The current cycle will be marked for maintenance.</p>
+        <label for="fleetReplacementCycleSelect">Available replacement</label>
+        <select id="fleetReplacementCycleSelect">${options}</select>
+        <div class="fleet-cycle-replacement-actions">
+          <button type="button" data-active-action="cancelCycleReplacement" data-rental-id="${escapeHtml(String(rental.id))}">Cancel</button>
+          <button type="button" data-active-action="confirmCycleReplacement" data-rental-id="${escapeHtml(String(rental.id))}">Replace cycle</button>
+        </div>
+      </section>`);
+      const actions = modal.querySelector('.fleet-manage-actions');
+      const footnote = modal.querySelector('.fleet-manage-footnote');
+      if (actions) actions.hidden = true;
+      if (footnote) footnote.hidden = true;
+      modal.querySelector('#fleetReplacementCycleSelect')?.focus();
+    }
+
+    async function replaceRentalCycle(rentalId, replacementCycleId) {
+      const state = activeRentalCardState;
+      const rental = state?.rentals.find(item => String(item.id) === String(rentalId));
+      if (!rental) { alert('This rental is no longer active. Refresh the dashboard.'); return; }
+      const oldCycleId = String(rental.cycle_id || '');
+      const newCycleId = String(replacementCycleId || '');
+      const replacement = state.cycles.get(newCycleId);
+      const oldCycle = state.cycles.get(oldCycleId) || rental.cycles || {};
+      const inUse = state.rentals.some(item => String(item.id) !== String(rental.id) && String(item.cycle_id || '') === newCycleId);
+      if (!newCycleId || newCycleId === oldCycleId || !replacement || !['available','free'].includes(String(replacement.status || '').trim().toLowerCase()) || inUse) {
+        alert('That cycle is no longer available. Close this window, refresh the dashboard, and choose another cycle.');
+        return;
+      }
+      const oldName = oldCycle.plate_number || oldCycle.name || 'current cycle';
+      const newName = replacement.plate_number || replacement.name || 'replacement cycle';
+      const customer = state.customers.get(String(rental.customer_id)) || rental.customers || {};
+      const customerName = customer.name || customer.full_name || 'this customer';
+      if (!confirm(`Replace ${oldName} with ${newName} for ${customerName}? Only the cycle assignment will change. The rental period, remaining time, customer, and payment history will stay unchanged. ${oldName} will be marked for maintenance.`)) return;
+
+      const replacementOriginalStatus = replacement.status || 'available';
+      const { data: claimedRows, error: claimError } = await supabaseClient.from('cycles')
+        .update({ status:'rented' }).eq('id', newCycleId).eq('status', replacementOriginalStatus).select('id');
+      if (claimError || !claimedRows?.length) {
+        console.error('Could not reserve the replacement cycle:', claimError);
+        alert('That cycle could not be reserved. It may have been assigned already; refresh the dashboard and try again.');
+        return;
+      }
+
+      const { data: rentalRows, error: rentalError } = await supabaseClient.from('rentals')
+        .update({ cycle_id:newCycleId }).eq('id', rental.id).eq('cycle_id', oldCycleId).select('id');
+      if (rentalError || !rentalRows?.length) {
+        const { error: restoreError } = await supabaseClient.from('cycles').update({ status:replacementOriginalStatus }).eq('id', newCycleId);
+        console.error('Could not update the rental cycle:', rentalError || 'Rental assignment changed before update.', restoreError);
+        alert('The rental was not changed. The replacement cycle reservation was released; refresh the dashboard and try again.');
+        return;
+      }
+
+      const { data: oldCycleRows, error: oldCycleError } = await supabaseClient.from('cycles')
+        .update({ status:'maintenance' }).eq('id', oldCycleId).eq('status', oldCycle.status || 'rented').select('id');
+      if (oldCycleError || !oldCycleRows?.length) {
+        const { error: rentalRollbackError } = await supabaseClient.from('rentals').update({ cycle_id:oldCycleId }).eq('id', rental.id).eq('cycle_id', newCycleId);
+        const { error: replacementRollbackError } = await supabaseClient.from('cycles').update({ status:replacementOriginalStatus }).eq('id', newCycleId);
+        console.error('Could not mark the replaced cycle for maintenance:', oldCycleError || 'Cycle row was not updated.', rentalRollbackError, replacementRollbackError);
+        alert('The cycle status could not be updated, so the rental change was rolled back. Refresh the dashboard and check both cycle statuses.');
+        return;
+      }
+
+      await loadDashboard();
+      alert(`${newName} is now assigned to ${customerName}. The existing rental period and payment history were preserved, and ${oldName} was marked for maintenance.`);
     }
 
     function openActiveRentalManageModal(rentalId) {
@@ -3316,6 +3418,19 @@ body, .main-area { background:#f4f7fc !important; }
       const action = button.getAttribute('data-active-action');
       if (action === 'manage') {
         openActiveRentalManageModal(id);
+        return;
+      }
+      if (action === 'replaceCycle') {
+        openCycleReplacementChooser(id);
+        return;
+      }
+      if (action === 'cancelCycleReplacement') {
+        openActiveRentalManageModal(id);
+        return;
+      }
+      if (action === 'confirmCycleReplacement') {
+        const replacementCycleId = document.getElementById('fleetReplacementCycleSelect')?.value;
+        await replaceRentalCycle(id, replacementCycleId);
         return;
       }
       if (button.closest('#activeRentalManageModal')) closeActiveRentalManageModal();
@@ -4816,6 +4931,49 @@ body{background:var(--saiku-page)!important;color:var(--saiku-ink)!important;}
 #activeRentalCards .fleet-rental-card.is-overdue .fleet-payment-status.due {
   color:#9f1239 !important;
   -webkit-text-fill-color:#9f1239 !important;
+}
+#activeRentalCards .fleet-card-button-stack {
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) !important;
+  gap:5px !important;
+  width:100% !important;
+  margin-top:auto !important;
+}
+#activeRentalCards .fleet-card-button-stack .fleet-manage-button {
+  width:100% !important;
+  min-width:0 !important;
+  margin-top:0 !important;
+}
+#activeRentalCards .fleet-rental-card .fleet-change-cycle-button {
+  min-height:29px !important;
+  padding:6px 4px !important;
+  border:1px solid #bdd1eb !important;
+  border-radius:8px !important;
+  background:#edf4ff !important;
+  color:#214f88 !important;
+  box-shadow:none !important;
+  font-size:clamp(.54rem,.84vw,.72rem) !important;
+  line-height:1.15 !important;
+  white-space:normal !important;
+}
+.fleet-cycle-replacement-panel {
+  margin-top:10px;
+  padding:12px;
+  border:1px solid #dbe5f1;
+  border-radius:12px;
+  background:#f7faff;
+}
+.fleet-cycle-replacement-panel h3 { margin:0 0 5px; color:#1d3554; font-size:.94rem; }
+.fleet-cycle-replacement-panel p { margin:0 0 10px; color:#64758c; font-size:.74rem; line-height:1.4; }
+.fleet-cycle-replacement-panel label { display:block; margin-bottom:5px; color:#425874; font-size:.72rem; font-weight:800; }
+.fleet-cycle-replacement-panel select { width:100%; min-height:39px; padding:8px 10px; border:1px solid #cbd8e8; border-radius:9px; background:#fff; color:#1e334d; font:inherit; font-size:.82rem; }
+.fleet-cycle-replacement-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+.fleet-cycle-replacement-actions button { min-height:38px; padding:8px; border:1px solid #d7e0ec; border-radius:9px; background:#fff; color:#40536d; font:inherit; font-size:.76rem; font-weight:800; cursor:pointer; }
+.fleet-cycle-replacement-actions button[data-active-action="confirmCycleReplacement"] { border-color:#137451; background:#12835b; color:#fff; }
+@media(max-width:760px) {
+  #activeRentalCards .fleet-rental-card .fleet-change-cycle-button { min-height:26px !important; font-size:clamp(.5rem,1.65vw,.66rem) !important; }
+  .fleet-cycle-replacement-panel { padding:9px; }
+  .fleet-cycle-replacement-panel p { font-size:.69rem; }
 }
 </style>
 
