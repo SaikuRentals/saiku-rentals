@@ -31,7 +31,7 @@
 .saiku-banner-user{display:grid!important;place-items:center!important;width:42px!important;height:42px!important;min-width:42px!important;border-radius:50%!important;
   background:linear-gradient(145deg,#178fff,#0758c9)!important;color:#fff!important;border:1px solid rgba(143,220,255,.7)!important;
   box-shadow:0 5px 18px rgba(0,119,255,.28)!important;font-weight:800!important}
-.saiku-banner-menu{flex:0 0 auto}
+.saiku-banner-menu{display:grid!important;place-items:center!important;position:static!important;left:auto!important;right:auto!important;top:auto!important;z-index:2;flex:0 0 42px!important;width:42px;height:42px}
 .saiku-sidebar-brand{display:flex!important;align-items:center!important;gap:11px!important}
 .saiku-sidebar-logo{
   display:block;width:56px;height:43px;object-fit:contain;flex:0 0 56px;
@@ -51,8 +51,11 @@
   .saiku-banner-actions{margin-left:auto}
   .saiku-banner-refresh{padding:7px 9px!important;font-size:12px!important}
   .saiku-banner-user{width:36px!important;height:36px!important;min-width:36px!important}
-  .saiku-banner-menu{position:absolute!important;right:12px!important;top:12px!important;z-index:2}
-  .saiku-banner-brand{padding-right:38px}
+  .saiku-main-banner{display:grid!important;grid-template-columns:42px minmax(0,1fr)!important;align-items:center!important;column-gap:10px!important}
+  .saiku-banner-menu{grid-column:1;grid-row:1;align-self:center!important}
+  .saiku-banner-brand{grid-column:2;grid-row:1;width:auto!important;min-width:0!important;flex:1 1 auto!important;padding-right:0!important;gap:9px!important}
+  .saiku-banner-logo{width:72px!important;max-height:44px!important}
+  .saiku-banner-copy{min-width:0!important}
 }
 </style>
 <style>
@@ -154,6 +157,7 @@ body{background:#f4f7fb!important;color:#1d2b42!important}
 </style>
 
   <link rel="stylesheet" href="css/unified-liquid-glass.css">
+  <link rel="stylesheet" href="css/saiku-sidebar.css?v=20261103">
 </head><body><div class="app-layout"><aside class="sidebar" id="sidebar">
       <div class="sidebar-logo saiku-sidebar-brand">
         <img src="assets/assets/saiku-rentals-logo.png" alt="Saiku Rentals" class="saiku-sidebar-logo">
@@ -173,7 +177,7 @@ body{background:#f4f7fb!important;color:#1d2b42!important}
         <a href="settings.html" class="nav-item"><span>⚙️</span><span>Company Settings</span></a>
       </nav>
     </aside><div class="main-area">
-<header class="topbar saiku-main-banner"><button class="menu-button saiku-banner-menu" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button><div class="saiku-banner-brand"><img src="assets/assets/saiku-rentals-logo.png" alt="Saiku Rentals logo" class="saiku-banner-logo"><div class="saiku-banner-copy"><span class="saiku-banner-kicker">TEAM OPERATIONS</span><h1>Staff Management</h1><p>Add team members, upload photos and maintain your staff list.</p></div></div><div class="saiku-banner-actions"><button class="secondary-action saiku-banner-refresh" type="button" onclick="loadStaff()">↻ Refresh</button><button class="user-avatar saiku-banner-user" type="button" aria-label="User account">A</button></div></header>
+<header class="topbar saiku-main-banner"><button class="menu-button saiku-banner-menu" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button><div class="saiku-banner-brand"><img src="assets/assets/saiku-rentals-logo.png" alt="Saiku Rentals logo" class="saiku-banner-logo"><div class="saiku-banner-copy"><span class="saiku-banner-kicker">TEAM OPERATIONS</span><h1>Staff Management</h1><p>Add team members, upload photos and maintain your staff list.</p></div></div></header>
 <main class="page-content staff-page">
 <section class="staff-box"><h2 id="staffFormHeading">Add Staff Member</h2><p>Enter a name and optionally add a profile photo. Photos appear on the Dashboard performance cards.</p>
 <form id="staffForm" class="staff-form"><label for="staffName">Staff name <input type="text" id="staffName" maxlength="80" placeholder="Enter full name" required autocomplete="name"></label>

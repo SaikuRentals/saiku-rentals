@@ -62,6 +62,14 @@
         .cycle-doc-list{display:grid;grid-template-columns:1fr;gap:7px}.cycle-doc-item{padding:8px 9px;border-radius:10px;background:rgba(222,235,252,.42);border:1px solid rgba(126,155,195,.16);min-width:0}.cycle-doc-label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary,#687386);font-weight:700;margin-bottom:4px}.cycle-doc-value{font-size:12px;font-weight:700;overflow-wrap:anywhere}.cycle-card-notes{font-size:11px;color:var(--text-secondary,#687386);overflow-wrap:anywhere;line-height:1.4}
         .cycle-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:auto}.cycle-card-actions button,.cycle-document-button{min-width:0;border-radius:9px;padding:8px 7px;font-size:11px;font-weight:700;cursor:pointer}.cycle-document-button{width:100%;border:1px solid rgba(34,112,210,.22);background:#edf5ff;color:#1558a6}.cycle-edit-button{border:0;background:#e9f2ff;color:#1558a6}.cycle-delete-button{border:0;background:#fff0ef;color:#b42318}.cycle-document-link{display:inline-block;font-size:11px;color:#1558a6;text-decoration:none;font-weight:700;margin-top:5px}.cycle-document-entry{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:5px;min-width:0}.cycle-document-entry .cycle-document-link{min-width:0;overflow-wrap:anywhere}.cycle-document-remove{flex:0 0 auto;border:0;border-radius:7px;padding:4px 7px;background:#fff0ef;color:#b42318;font-size:10px;font-weight:700;cursor:pointer}.cycle-upload-input{display:none}.cycle-document-help{font-size:11px;color:var(--text-secondary,#687386);margin:0 0 8px}
         .cycle-maintenance-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.cycle-maintenance-actions button{min-width:0;border:1px solid rgba(21,88,166,.18);border-radius:9px;padding:8px 7px;background:#f0f6ff;color:#1558a6;font-size:11px;font-weight:700;cursor:pointer}.cycle-maintenance-actions button:first-child{background:#eaf7ef;border-color:#ccebd6;color:#176b39}
+        .cycle-manage-button{width:100%;margin-top:auto;min-height:40px;border:1px solid #c6d9ed;border-radius:10px;background:linear-gradient(110deg,#eaf4ff,#f5faff);color:#14579a;font-size:13px;font-weight:800;cursor:pointer}.cycle-manage-button:hover{background:#e0efff;border-color:#9fc2e8}
+        .cycle-manage-modal-card{width:min(480px,calc(100vw - 24px));max-height:88vh;overflow:auto;padding:18px!important;border:1px solid #dce7f5!important;border-radius:18px!important;background:linear-gradient(155deg,#fff,#f6faff)!important;box-shadow:0 22px 65px rgba(13,39,75,.28)!important}
+        .cycle-manage-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:13px;border-bottom:1px solid #e4ebf4}
+        .cycle-manage-heading h2{margin:0;color:#183b63;font-size:19px}.cycle-manage-heading p{margin:5px 0 0;color:#75849a;font-size:12px}
+        .cycle-manage-section{margin-top:15px}.cycle-manage-section-title{display:block;margin-bottom:8px;color:#6f7f95;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+        .cycle-manage-docs{display:grid;gap:7px}.cycle-manage-doc{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:9px 10px;border:1px solid #e0e9f3;border-radius:10px;background:#f7faff}
+        .cycle-manage-doc a{min-width:0;color:#1558a6;font-size:12px;font-weight:700;overflow-wrap:anywhere}.cycle-manage-doc-tools{display:flex;flex:0 0 auto;gap:5px}.cycle-manage-doc-tools button{border:0;border-radius:7px;padding:7px 8px;font-size:10px;font-weight:700;cursor:pointer}.cycle-manage-doc-rename{background:#eaf3ff;color:#1558a6}.cycle-manage-doc-remove{background:#fff0ef;color:#b42318}
+        .cycle-manage-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cycle-manage-actions button{min-width:0;min-height:42px;padding:9px 10px;border:1px solid #d5e2f0;border-radius:10px;background:#fff;color:#234465;font-size:12px;font-weight:750;cursor:pointer}.cycle-manage-actions button:hover{background:#f0f6ff}.cycle-manage-actions .cycle-manage-doc-action{grid-column:1/-1;background:#edf5ff;border-color:#cbdff3;color:#1558a6}.cycle-manage-actions .cycle-manage-danger{background:#fff2f1;border-color:#f2d2cf;color:#b42318}
         .section-header{gap:12px;flex-wrap:wrap}.section-header .search-input{max-width:230px;min-width:0}
         /* Keep the four summary tiles compact and aligned */
         .cycle-stats{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;align-items:stretch!important}
@@ -87,8 +95,14 @@
           .main-content { overflow-x:hidden !important; }
         }
         @media (max-width:360px) {
-          .cycle-stats { grid-template-columns:minmax(0,1fr) !important; }
+          .cycle-stats { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:7px !important; }
         }
+
+        .cycles-topbar{justify-content:space-between!important;gap:12px!important;min-height:76px}
+        .cycles-topbar-title{margin-right:auto;min-width:0}
+        #addCycleTopButton{flex:0 0 auto;min-height:36px;padding:8px 12px!important;border-radius:9px!important;font-size:12px!important;white-space:nowrap}
+        .cycle-search-header{justify-content:flex-end}
+        @media(max-width:760px){.cycles-topbar{padding:12px!important;gap:8px!important}.cycles-topbar-title h1{font-size:20px}.cycles-topbar-title p{font-size:11px}#addCycleTopButton{min-height:34px;padding:7px 10px!important;font-size:11px!important}}
 
     
 /* ===== MOBILE ADD / EDIT CYCLE POPUP ===== */
@@ -403,6 +417,7 @@
 }
 </style>
 
+  <link rel="stylesheet" href="css/saiku-sidebar.css?v=20261103">
 </head>
 
 
@@ -471,7 +486,7 @@
 
 
 
-        <header class="topbar">
+        <header class="topbar cycles-topbar">
 
 
 
@@ -487,7 +502,7 @@
 
 
 
-            <div>
+            <div class="cycles-topbar-title">
 
 
 
@@ -503,7 +518,7 @@
 
 
 
-            <button class="primary-button" onclick="openCycleModal()">
+            <button id="addCycleTopButton" class="primary-button" onclick="openCycleModal()">
 
 
 
@@ -659,26 +674,7 @@
 
 
 
-                <div class="section-header">
-
-
-
-                    <div>
-
-
-
-                        <h2>Cycle List</h2>
-
-
-
-                        <p>View and manage your rental cycles</p>
-
-
-
-                    </div>
-
-
-
+                <div class="section-header cycle-search-header">
                     <input
 
 
@@ -1120,6 +1116,41 @@ const supabaseClient =
 
 let allCycles = [];
 
+function ensureCycleManageModal() {
+    if (document.getElementById("cycleManageModal")) return;
+    const modal = document.createElement("div");
+    modal.id = "cycleManageModal";
+    modal.className = "modal-overlay";
+    modal.style.zIndex = "10900";
+    modal.innerHTML = `<div class="modal-card cycle-manage-modal-card"><div class="cycle-manage-heading"><div><h2 id="cycleManageTitle">Manage cycle</h2><p>Documents, maintenance and cycle settings</p></div><button class="modal-close" type="button" onclick="closeCycleManage()" aria-label="Close">×</button></div><div class="cycle-manage-section"><span class="cycle-manage-section-title">Cycle documents</span><div id="cycleManageDocuments" class="cycle-manage-docs"></div></div><div class="cycle-manage-section"><span class="cycle-manage-section-title">Cycle actions</span><div id="cycleManageActions" class="cycle-manage-actions"></div></div></div>`;
+    modal.addEventListener("click", event => { if (event.target === modal) closeCycleManage(); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") closeCycleManage(); });
+    document.body.appendChild(modal);
+}
+
+function openCycleManage(cycleId) {
+    const cycle = allCycles.find(item => String(item.id) === String(cycleId));
+    if (!cycle) return;
+    ensureCycleManageModal();
+    const id = escapeHtml(cycle.id);
+    const documents = getCycleDocuments(cycle.sticker_document_url);
+    document.getElementById("cycleManageTitle").textContent = "Manage · " + (cycle.plate_number || "Cycle");
+    document.getElementById("cycleManageDocuments").innerHTML = documents.length
+        ? documents.map((doc, index) => `<div class="cycle-manage-doc"><a href="${escapeHtml(doc.url)}" target="_blank" rel="noopener">${escapeHtml(doc.name || `View document ${index + 1}`)}</a><div class="cycle-manage-doc-tools"><button class="cycle-manage-doc-rename" type="button" onclick="renameCycleDocument('${id}',${index})">Rename</button><button class="cycle-manage-doc-remove" type="button" onclick="closeCycleManage();removeCycleDocument('${id}',${index})">Remove</button></div></div>`).join("")
+        : '<div class="cycle-manage-doc"><span style="color:#71829a;font-size:12px">No cycle documents added</span></div>';
+    document.getElementById("cycleManageActions").innerHTML = `
+      <button class="cycle-manage-doc-action" type="button" onclick="closeCycleManage();chooseCycleDocument('${id}')">＋ ${documents.length ? "Add / replace cycle document" : "Add cycle document"}</button>
+      <button type="button" onclick="closeCycleManage();recordCycleMaintenance('${id}')">＋ Record maintenance</button>
+      <button type="button" onclick="closeCycleManage();openMaintenanceHistory('${id}')">View maintenance history</button>
+      <button type="button" onclick="closeCycleManage();editCycle('${id}')">✏️ Edit details</button>
+      <button class="cycle-manage-danger" type="button" onclick="closeCycleManage();deleteCycle('${id}')">🗑️ Delete cycle</button>`;
+    document.getElementById("cycleManageModal").classList.add("show");
+}
+
+function closeCycleManage() {
+    document.getElementById("cycleManageModal")?.classList.remove("show");
+}
+
 function ensureMaintenanceHistoryModal() {
     if (document.getElementById("maintenanceHistoryModal")) return;
     const modal = document.createElement("div");
@@ -1428,7 +1459,7 @@ function renderCycles(cycles) {
         const documentMarkup = stickerUrl
             ? '<a class="cycle-document-link" href="' + escapeHtml(stickerUrl) + '" target="_blank" rel="noopener">View document ↗</a>'
             : '<span class="cycle-doc-value">Not uploaded</span>';
-        const documentListMarkup = documents.length ? documents.map((doc, index) => '<div class="cycle-document-entry"><a class="cycle-document-link" href="' + escapeHtml(doc.url) + '" target="_blank" rel="noopener">' + escapeHtml(doc.name || ('View document ' + (index + 1))) + '</a><button class="cycle-document-remove" type="button" onclick="removeCycleDocument(\'' + id + '\',' + index + ')">Remove</button></div>').join('') : '';
+        const documentListMarkup = documents.length ? documents.map((doc, index) => '<div class="cycle-document-entry"><a class="cycle-document-link" href="' + escapeHtml(doc.url) + '" target="_blank" rel="noopener">' + escapeHtml(doc.name || ('View document ' + (index + 1))) + '</a></div>').join('') : '';
         const notesMarkup = cycle.notes
             ? '<div class="cycle-card-notes">' + escapeHtml(cycle.notes) + '</div>'
             : "";
@@ -1443,10 +1474,8 @@ function renderCycles(cycles) {
             <div class="cycle-doc-item"><span class="cycle-doc-label">Sticker / document</span>${documentListMarkup || documentMarkup}</div>
           </div>
           ${notesMarkup}
-          <button class="cycle-document-button" type="button" onclick="chooseCycleDocument('${id}')">＋ ${stickerUrl ? "Replace sticker / document" : "Add sticker / document"}</button>
           <input class="cycle-upload-input" type="file" id="cycleDocument-${id}" accept="image/*,.pdf" multiple onchange="uploadCycleDocument('${id}', this.files)">
-          <div class="cycle-maintenance-actions"><button type="button" onclick="recordCycleMaintenance('${id}')">＋ Record maintenance</button><button type="button" onclick="openMaintenanceHistory('${id}')">View maintenance history</button></div>
-          <div class="cycle-card-actions"><button class="cycle-edit-button" type="button" onclick="editCycle('${id}')">✏️ Edit details</button><button class="cycle-delete-button" type="button" onclick="deleteCycle('${id}')">🗑️ Delete</button></div>`;
+          <button class="cycle-manage-button" type="button" onclick="openCycleManage('${id}')">Manage cycle</button>`;
         grid.appendChild(card);
     });
 }
@@ -2200,6 +2229,28 @@ function storagePathFromUrl(url) {
  catch (_) { return ""; }
 }
 function chooseCycleDocument(id) { const input = document.getElementById("cycleDocument-" + id); if (input) input.click(); }
+async function renameCycleDocument(id, index) {
+ const cycle = allCycles.find(item => String(item.id) === String(id));
+ if (!cycle) return;
+ const documents = getCycleDocuments(cycle.sticker_document_url);
+ const documentToRename = documents[index];
+ if (!documentToRename) return;
+ let currentName = documentToRename.name || "";
+ if (!currentName) {
+  try { currentName = decodeURIComponent(new URL(documentToRename.url).pathname.split("/").pop()); }
+  catch (_) { currentName = `Cycle document ${index + 1}`; }
+ }
+ const nextName = prompt("Enter a new name for this cycle document:", currentName);
+ if (nextName === null) return;
+ const cleanName = nextName.trim().replace(/\s+/g, " ");
+ if (!cleanName) { alert("Enter a file name."); return; }
+ if (cleanName.length > 160) { alert("File names must be 160 characters or fewer."); return; }
+ documentToRename.name = cleanName;
+ const {error} = await supabaseClient.from("cycles").update({sticker_document_url:JSON.stringify(documents)}).eq("id", id);
+ if (error) { alert("Unable to rename the cycle document: " + error.message); return; }
+ await loadCycles();
+ openCycleManage(id);
+}
 async function uploadCycleDocument(id, files) {
  const selected = Array.from(files || []);
  if (!selected.length) return;

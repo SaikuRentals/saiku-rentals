@@ -20,6 +20,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 
     <script src="js/config.js"></script>
 
@@ -1387,6 +1388,10 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 .customer-rental-history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #e0e9f5}
 .customer-rental-history-head h2{margin:0;color:#18365f;font-size:18px;line-height:1.2}
 .customer-rental-history-head p{margin:5px 0 0;color:#71839e;font-size:12px;line-height:1.4}
+.customer-rental-history-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.customer-history-pdf-button{border:0;border-radius:10px;padding:9px 13px;background:#1769c2;color:#fff;font:inherit;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 5px 14px rgba(23,105,194,.18)}
+.customer-history-pdf-button:hover{background:#0f559f}
+.customer-history-pdf-button:disabled{opacity:.55;cursor:wait}
 .customer-rental-history-close{width:34px;height:34px;flex:0 0 34px;border:1px solid #d5e2f2;border-radius:10px;background:#fff;color:#35516f;font-size:22px;cursor:pointer}
 .customer-rental-history-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
 .customer-rental-history-stat{min-width:0;padding:9px;border:1px solid #dce7f5;border-radius:10px;background:#fff}
@@ -1398,7 +1403,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
 .customer-rental-history-table td{padding:10px;border-top:1px solid #e5edf6;color:#253951;vertical-align:top}
 .customer-rental-history-table td:last-child{white-space:nowrap;font-weight:800}
 .customer-rental-history-empty{padding:20px;text-align:center;color:#71839e;font-size:12px}
-@media(max-width:600px){#customerRentalHistoryModal{padding:8px!important}#customerRentalHistoryModal .customer-rental-history-panel{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;padding:11px!important;border-radius:14px!important}.customer-rental-history-head h2{font-size:16px}.customer-rental-history-stats{gap:5px}.customer-rental-history-stat{padding:7px}.customer-rental-history-stat span{font-size:9px}.customer-rental-history-stat strong{font-size:11px}.customer-rental-history-table{font-size:10px}.customer-rental-history-table th,.customer-rental-history-table td{padding:8px 7px}}
+@media(max-width:600px){#customerRentalHistoryModal{padding:8px!important}#customerRentalHistoryModal .customer-rental-history-panel{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important;padding:11px!important;border-radius:14px!important}.customer-rental-history-head h2{font-size:16px}.customer-rental-history-actions{gap:5px}.customer-history-pdf-button{padding:8px 9px;font-size:11px}.customer-rental-history-stats{gap:5px}.customer-rental-history-stat{padding:7px}.customer-rental-history-stat span{font-size:9px}.customer-rental-history-stat strong{font-size:11px}.customer-rental-history-table{font-size:10px}.customer-rental-history-table th,.customer-rental-history-table td{padding:8px 7px}}
 </style>
 
 
@@ -1438,6 +1443,7 @@ input,select,textarea{max-width:100%;min-width:0;box-sizing:border-box;border-ra
   #extensionModal #currentReturnDisplay{padding:7px 3px!important;font-size:10px!important;letter-spacing:-.2px!important}
 }
 </style>
+  <link rel="stylesheet" href="css/saiku-sidebar.css?v=20261103">
 </head>
 
 
@@ -7920,11 +7926,60 @@ document.addEventListener('DOMContentLoaded',()=>{const field=document.getElemen
 <div id="customerRentalHistoryModal" role="dialog" aria-modal="true" aria-labelledby="customerRentalHistoryTitle" aria-hidden="true" onclick="if(event.target===this) closeCustomerRentalHistory()">
   <div class="customer-rental-history-panel" onclick="event.stopPropagation()">
     <div class="customer-rental-history-head"><div><h2 id="customerRentalHistoryTitle">Customer Rental History</h2><p id="customerRentalHistoryMeta">All recorded rentals for this customer</p></div><button type="button" class="customer-rental-history-close" onclick="closeCustomerRentalHistory()" aria-label="Close customer rental history">×</button></div>
+    <div class="customer-rental-history-actions"><button id="customerHistoryPdfButton" type="button" class="customer-history-pdf-button" onclick="shareCustomerRentalHistoryPdf()" disabled>Prepare PDF…</button></div>
     <div class="customer-rental-history-stats"><div class="customer-rental-history-stat"><span>Total rentals</span><strong id="customerHistoryCount">0</strong></div><div class="customer-rental-history-stat"><span>Completed rentals</span><strong id="customerHistoryCompleted">0</strong></div><div class="customer-rental-history-stat"><span>Total rental charges</span><strong id="customerHistoryTotal">MVR 0.00</strong></div></div>
     <div class="customer-rental-history-table-wrap"><table class="customer-rental-history-table"><thead><tr><th>Cycle</th><th>Rental day</th><th>Period start</th><th>Period end</th><th>Status</th><th>Booking total</th></tr></thead><tbody id="customerRentalHistoryRows"><tr><td colspan="6" class="customer-rental-history-empty">Loading history…</td></tr></tbody></table></div>
   </div>
 </div>
 <script id="saiku-customer-rental-history-script">
+let currentCustomerHistoryPdfData=null;
+function customerHistoryImageData(url){
+  return new Promise(resolve=>{
+    if(!url){resolve('');return;}
+    const image=new Image();image.crossOrigin='anonymous';
+    const timeout=setTimeout(()=>resolve(''),4000);
+    image.onload=()=>{try{const canvas=document.createElement('canvas');canvas.width=image.naturalWidth||1;canvas.height=image.naturalHeight||1;const ctx=canvas.getContext('2d');ctx.drawImage(image,0,0);resolve(canvas.toDataURL('image/jpeg',.92));}catch(error){resolve('');}finally{clearTimeout(timeout);}};
+    image.onerror=()=>{clearTimeout(timeout);resolve('');};image.src=url;
+    if(image.complete&&image.naturalWidth)image.onload();
+  });
+}
+const customerHistoryLogoPromise=customerHistoryImageData(new URL('assets/saiku-rentals-logo.jpg',document.baseURI).href);
+function shareCustomerRentalHistoryPdf(){
+  const data=currentCustomerHistoryPdfData;
+  if(!data){alert('Customer rental history is still loading. Please try again in a moment.');return;}
+  if(!window.jspdf||!window.jspdf.jsPDF){alert('PDF tools did not load. Check your internet connection and refresh the page.');return;}
+  try{
+    const pdf=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const pageW=pdf.internal.pageSize.getWidth(),pageH=pdf.internal.pageSize.getHeight(),margin=12;
+    const clean=value=>String(value??'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^\x20-\x7E]/g,' ');
+    if(data.logo){try{pdf.addImage(data.logo,'JPEG',margin,8,43,12,'brand','FAST');}catch(error){}}
+    pdf.setTextColor(25,54,91);pdf.setFont('helvetica','bold');pdf.setFontSize(19);pdf.text('Customer Rental History',margin,31);
+    pdf.setFont('helvetica','bold');pdf.setFontSize(10);pdf.setTextColor(43,67,99);pdf.text('Customer: '+clean(data.customerName),margin,38);
+    pdf.setFont('helvetica','normal');pdf.setFontSize(8);pdf.setTextColor(91,110,134);
+    const meta=[data.phone,data.identity].filter(Boolean).map(clean).join('   |   ');if(meta)pdf.text(meta,margin,43);
+    if(data.photo){try{pdf.addImage(data.photo,'JPEG',pageW-43,9,29,29,'customer','FAST');}catch(error){}}
+    const cardsY=48,cardGap=4,cardW=(pageW-margin*2-cardGap*2)/3,cardH=17;
+    const stats=[['TOTAL RENTALS',String(data.rentalsCount)],['COMPLETED',String(data.completedCount)],['TOTAL RENTAL CHARGES',clean(data.total)]];
+    stats.forEach((item,index)=>{const x=margin+index*(cardW+cardGap);pdf.setFillColor(242,247,253);pdf.setDrawColor(220,231,245);pdf.roundedRect(x,cardsY,cardW,cardH,2,2,'FD');pdf.setFont('helvetica','bold');pdf.setFontSize(7);pdf.setTextColor(105,125,151);pdf.text(item[0],x+4,cardsY+6);pdf.setFontSize(10);pdf.setTextColor(32,61,99);pdf.text(item[1],x+4,cardsY+13);});
+    const headers=['Cycle','Rental day','Period start','Period end','Status','Booking total'];
+    const widths=[50,34,44,44,32,69],tableW=widths.reduce((sum,value)=>sum+value,0);let y=cardsY+cardH+7;
+    const drawHeader=()=>{pdf.setFillColor(232,241,251);pdf.rect(margin,y,tableW,9,'F');pdf.setFont('helvetica','bold');pdf.setFontSize(8);pdf.setTextColor(48,73,105);let x=margin;headers.forEach((header,index)=>{pdf.text(header,x+3,y+6);x+=widths[index];});y+=9;};
+    drawHeader();pdf.setFont('helvetica','normal');pdf.setFontSize(7.5);pdf.setTextColor(37,57,81);
+    data.rows.forEach(row=>{
+      const wrapped=row.map((value,index)=>pdf.splitTextToSize(clean(value),widths[index]-6));
+      const lineCount=Math.max(...wrapped.map(lines=>lines.length),1),rowH=Math.max(8,lineCount*3.7+3);
+      if(y+rowH>pageH-14){pdf.addPage();y=14;drawHeader();pdf.setFont('helvetica','normal');pdf.setFontSize(7.5);pdf.setTextColor(37,57,81);}
+      if(Math.floor((y-(cardsY+cardH+7))/8)%2===1){pdf.setFillColor(249,251,254);pdf.rect(margin,y,tableW,rowH,'F');}
+      pdf.setDrawColor(229,237,246);pdf.line(margin,y+rowH,margin+tableW,y+rowH);let x=margin;
+      wrapped.forEach((lines,index)=>{pdf.text(lines,x+3,y+4.7);x+=widths[index];});y+=rowH;
+    });
+    const filename='saiku-rentals-'+clean(data.customerName).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-rental-history.pdf';
+    const blob=pdf.output('blob'),file=new File([blob],filename,{type:'application/pdf'});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]}))navigator.share({files:[file],title:'Customer Rental History',text:'Rental history from Saiku Rentals'}).catch(error=>{if(error.name!=='AbortError')downloadCustomerHistoryPdf(blob,filename);});
+    else downloadCustomerHistoryPdf(blob,filename);
+  }catch(error){console.error('Could not create customer rental history PDF:',error);alert('Could not create the PDF. Please try again.');}
+}
+function downloadCustomerHistoryPdf(blob,filename){const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=filename;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);}
 function closeCustomerRentalHistory(){const modal=document.getElementById('customerRentalHistoryModal');if(modal){modal.classList.remove('show');modal.setAttribute('aria-hidden','true');}}
 async function openCustomerRentalHistory(customerId){
   const id=String(customerId||'');
@@ -7932,7 +7987,12 @@ async function openCustomerRentalHistory(customerId){
   const records=allRentals.filter(r=>String(r.customers?.id||r.customer_id||'')===id)
     .sort((a,b)=>new Date(b.start_date||0)-new Date(a.start_date||0));
   const sourceRental=records[0];
-  const customer=(sourceRental&&sourceRental.customers)||((allCustomers||[]).find(c=>String(c.id)===id))||{};
+  const savedCustomer=(allCustomers||[]).find(c=>String(c.id)===id)||{};
+  const customer={...savedCustomer,...((sourceRental&&sourceRental.customers)||{})};
+  currentCustomerHistoryPdfData=null;
+  const pdfButton=document.getElementById('customerHistoryPdfButton');pdfButton.disabled=true;pdfButton.textContent='Prepare PDF…';
+  const photoUrl=customer.photo_url||customer.customer_photo_url||customer.profile_photo_url||customer.image_url||customer.avatar_url||'';
+  const customerImagesPromise=Promise.all([customerHistoryLogoPromise,customerHistoryImageData(photoUrl)]);
   const modal=document.getElementById('customerRentalHistoryModal');
   if(modal.parentElement!==document.body)document.body.appendChild(modal);
   document.getElementById('customerRentalHistoryTitle').textContent=(customer.name||'Customer')+' · Rental History';
@@ -7996,9 +8056,13 @@ async function openCustomerRentalHistory(customerId){
     dailyRows.sort((a,b)=>b.from-a.from);
     rows.innerHTML=dailyRows.map(x=>x.html).join('')||'<tr><td colspan="6" class="customer-rental-history-empty">No valid rental dates found.</td></tr>';
     document.getElementById('customerHistoryTotal').textContent=formatMoney(totalCharges);
+    const [logo,photo]=await customerImagesPromise;
+    currentCustomerHistoryPdfData={customerName:customer.name||'Customer',phone:customer.phone||customer.phone_number||'',identity:customer.id_number||customer.nid||'',rentalsCount:records.length,completedCount:records.filter(r=>String(r.status||'').toLowerCase()==='returned').length,total:formatMoney(totalCharges),logo,photo,rows:[...rows.querySelectorAll('tr')].filter(row=>!row.querySelector('.customer-rental-history-empty')).map(row=>[...row.cells].map(cell=>cell.textContent.trim()))};
+    pdfButton.disabled=false;pdfButton.textContent='Share PDF';
   }catch(error){
     console.error('Unable to load customer rental history:',error);
     rows.innerHTML='<tr><td colspan="6" class="customer-rental-history-empty">Could not load rental history. Please refresh and try again.</td></tr>';
+    pdfButton.disabled=true;pdfButton.textContent='PDF unavailable';
   }
 }
 document.addEventListener('keydown',event=>{if(event.key==='Escape')closeCustomerRentalHistory();});

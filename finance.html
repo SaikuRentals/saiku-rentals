@@ -582,6 +582,67 @@
 </style>
 
   <link rel="stylesheet" href="css/unified-liquid-glass.css">
+  <link rel="stylesheet" href="css/saiku-sidebar.css?v=20261103">
+  <style id="finance-four-card-layout">
+    html body .main-area > header.topbar {
+      position:relative !important;
+      min-height:66px !important;
+      height:auto !important;
+      padding:10px 20px !important;
+      gap:12px !important;
+      justify-content:center !important;
+    }
+    html body .main-area > header.topbar > .menu-button { position:absolute !important; left:20px !important; }
+    html body .main-area > header.topbar > .topbar-title { flex:0 1 auto !important; justify-content:center !important; text-align:center !important; }
+    #financeOverview > .finance-section-heading {
+      display:grid !important;
+      grid-template-columns:minmax(0,1fr) auto !important;
+      align-items:center !important;
+      gap:12px 18px !important;
+      margin-bottom:12px !important;
+    }
+    #financeOverview > .finance-section-heading > div:first-child { min-width:0; }
+    #financeOverview > .finance-section-heading > div:first-child p { max-width:760px; line-height:1.4; }
+    #financeOverview > .finance-section-heading .section-actions { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:8px; }
+    #financeOverview > .finance-section-heading .section-actions button { min-height:36px; padding:8px 11px; font-size:.82rem; white-space:nowrap; }
+    #financeOverview > .finance-grid,
+    #cashManagement > .cash-metrics-grid {
+      display:grid !important;
+      grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+      gap:14px !important;
+    }
+    #financeOverview .finance-card,
+    #cashManagement .cash-metrics-grid .finance-card { border-width:1px !important; }
+    #financeOverview .finance-card:nth-child(4n+1),
+    #cashManagement .cash-metrics-grid .finance-card:nth-child(4n+1) { background:linear-gradient(145deg,#eaf5ff,#f8fbff) !important; border-color:#c6e0f5 !important; }
+    #financeOverview .finance-card:nth-child(4n+1) strong,
+    #cashManagement .cash-metrics-grid .finance-card:nth-child(4n+1) strong { color:#17649b !important; }
+    #financeOverview .finance-card:nth-child(4n+2),
+    #cashManagement .cash-metrics-grid .finance-card:nth-child(4n+2) { background:linear-gradient(145deg,#eaf8f1,#f8fcf9) !important; border-color:#c7e8d5 !important; }
+    #financeOverview .finance-card:nth-child(4n+2) strong,
+    #cashManagement .cash-metrics-grid .finance-card:nth-child(4n+2) strong { color:#19734b !important; }
+    #financeOverview .finance-card:nth-child(4n+3),
+    #cashManagement .cash-metrics-grid .finance-card:nth-child(4n+3) { background:linear-gradient(145deg,#f1edff,#fbfaff) !important; border-color:#d9cff6 !important; }
+    #financeOverview .finance-card:nth-child(4n+3) strong,
+    #cashManagement .cash-metrics-grid .finance-card:nth-child(4n+3) strong { color:#6345a5 !important; }
+    #financeOverview .finance-card:nth-child(4n),
+    #cashManagement .cash-metrics-grid .finance-card:nth-child(4n) { background:linear-gradient(145deg,#fff4e5,#fffaf3) !important; border-color:#f0ddbd !important; }
+    #financeOverview .finance-card:nth-child(4n) strong,
+    #cashManagement .cash-metrics-grid .finance-card:nth-child(4n) strong { color:#a76516 !important; }
+    @media(max-width:1100px) {
+      #financeOverview > .finance-grid,
+      #cashManagement > .cash-metrics-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+    }
+    @media(max-width:600px) {
+      html body .main-area > header.topbar { padding:9px 12px !important; gap:8px !important; }
+      html body .main-area > header.topbar > .menu-button { left:12px !important; }
+      #financeOverview > .finance-section-heading { grid-template-columns:minmax(0,1fr) !important; gap:9px !important; }
+      #financeOverview > .finance-section-heading .section-actions { width:100%; justify-content:stretch; }
+      #financeOverview > .finance-section-heading .section-actions button { flex:1 1 0; min-width:0; white-space:normal; }
+      #financeOverview > .finance-grid,
+      #cashManagement > .cash-metrics-grid { grid-template-columns:repeat(2,minmax(0,1fr)) !important; gap:10px !important; }
+    }
+  </style>
 </head>
 <body>
   <div class="app-layout">
@@ -608,11 +669,7 @@
     <div class="main-area">
       <header class="topbar">
         <button class="menu-button" type="button" onclick="toggleSidebar()" aria-label="Toggle navigation">☰</button>
-        <div class="topbar-title"><h2>Finance Overview</h2><p>Business financial position, expenses, income and loan repayments</p></div>
-        <div class="topbar-right">
-          <button class="secondary-action" id="refreshButton" type="button" onclick="loadDashboard()">↻ Refresh</button>
-          <div class="user-avatar">A</div>
-        </div>
+        <div class="topbar-title"><h2>Finance Overview</h2></div>
       </header>
 
       <main class="dashboard-content">
@@ -1186,7 +1243,7 @@
 
     async function loadDashboard() {
       const refreshButton = document.getElementById('refreshButton');
-      refreshButton.disabled = true;
+      if (refreshButton) refreshButton.disabled = true;
       setText('lastUpdated', 'Loading data…');
       const warnings = [];
 
@@ -1477,7 +1534,7 @@
         showNotice(['The dashboard could not finish loading. Open Developer Tools Console for details, or refresh the page.']);
         setText('lastUpdated', 'Update failed');
       } finally {
-        refreshButton.disabled = false;
+        if (refreshButton) refreshButton.disabled = false;
       }
     }
 

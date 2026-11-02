@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Expenses | Saiku Rentals</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
   <script src="js/config.js"></script>
   <style>
     :root{--navy:#172238;--navy2:#25334b;--page:#f3f6fb;--white:#fff;--text:#172238;--muted:#66758f;--line:#e1e7f0;--blue:#315fe8;--red:#b93838;--green:#16805d;--shadow:0 8px 24px rgba(24,39,75,.06)}
     *{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}
     .layout{min-height:100vh;display:grid;grid-template-columns:246px minmax(0,1fr)}.sidebar{background:var(--navy);color:#fff;padding:22px 14px;display:flex;flex-direction:column;gap:26px}.brand{display:flex;align-items:center;gap:12px;padding:0 8px 22px;border-bottom:1px solid rgba(255,255,255,.12)}.brand-icon{height:42px;width:42px;border-radius:12px;background:#fff;color:var(--navy);display:grid;place-items:center;font-weight:800}.brand h2{font-size:17px;margin:0}.brand p{font-size:12px;color:#b6c2d5;margin:4px 0 0}.nav{display:grid;gap:7px}.nav a{display:flex;align-items:center;gap:12px;text-decoration:none;color:#dce4f1;padding:12px;border-radius:10px;font-size:14px}.nav a:hover,.nav a.active{background:var(--navy2);color:#fff}.side-note{margin-top:auto;padding:12px;color:#b6c2d5;font-size:12px;line-height:1.6}.main{min-width:0}.topbar{height:78px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px;gap:15px}.topbar h1{font-size:22px;margin:0}.topbar p{font-size:13px;color:var(--muted);margin:5px 0 0}.top-actions{display:flex;gap:10px;align-items:center}.content{max-width:1500px;margin:auto;padding:28px 30px 42px}.pagehead{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}.page-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.category-list{display:grid;gap:8px}.category-item{padding:11px 12px;border:1px solid var(--line);border-radius:9px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px}.category-list-empty{color:var(--muted);font-size:13px;padding:14px 2px}.pagehead h2{margin:0;font-size:27px}.pagehead p{margin:7px 0 0;color:var(--muted);font-size:14px}.btn{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:10px;padding:10px 14px;font-weight:600;font-size:13px}.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}.btn.danger{color:var(--red);border-color:#f0caca}.btn.small{padding:7px 10px;font-size:12px}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:22px}.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);min-width:0}.card .label{font-size:13px;color:var(--muted)}.card .value{font-size:26px;font-weight:800;letter-spacing:-.4px;margin:12px 0 6px;overflow-wrap:anywhere}.card small{color:var(--muted);font-size:12px}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px;border-bottom:1px solid var(--line)}.panel-head h3{margin:0;font-size:17px}.panel-head p{margin:5px 0 0;color:var(--muted);font-size:12px}.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.filters select,.filters input{min-height:38px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fff;color:var(--text)}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{text-align:left;padding:14px 18px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}th{background:#f9fbfe;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}tbody tr:hover{background:#fafcff}td.amount{font-weight:750;white-space:nowrap}td.actions{white-space:nowrap}.pill{display:inline-flex;background:#eef2ff;color:#384f9b;padding:5px 9px;border-radius:99px;font-size:11px;font-weight:700}.empty{text-align:center;color:var(--muted);padding:36px 20px}.notice{display:none;margin-bottom:18px;padding:13px 15px;border-radius:10px;background:#fff3df;border:1px solid #f0d8a8;color:#694b17;font-size:13px;line-height:1.5}.notice.show{display:block}.footnote{color:var(--muted);font-size:12px;margin:15px 2px 0;line-height:1.6}
+    .pagehead.expenses-actions-only{justify-content:flex-end}
     .modal{position:fixed;inset:0;z-index:99;background:rgba(16,24,40,.56);display:none;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.modal-box{background:#fff;width:min(520px,100%);border-radius:16px;box-shadow:0 20px 70px rgba(0,0,0,.25);max-height:92vh;overflow:auto}.modal-head{display:flex;align-items:center;justify-content:space-between;padding:20px 22px;border-bottom:1px solid var(--line)}.modal-head h3{margin:0;font-size:18px}.xbtn{border:0;background:#f1f4f9;border-radius:8px;width:34px;height:34px;font-size:20px}.form{padding:22px;display:grid;gap:15px}.field{display:grid;gap:7px}#expenseCycleField[hidden]{display:none}.field label{font-size:13px;font-weight:650}.field input,.field select,.field textarea{width:100%;border:1px solid #d8e0eb;border-radius:9px;padding:11px 12px;background:#fff;color:var(--text);min-height:42px}.field textarea{resize:vertical;min-height:80px}.form-help{font-size:12px;color:var(--muted);line-height:1.5}.form-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:4px}.busy{opacity:.65;pointer-events:none}
     @media(max-width:1000px){.layout{grid-template-columns:210px minmax(0,1fr)}.content{padding:22px 20px}.topbar{padding:0 20px}.cards{gap:12px}.card{padding:16px}.card .value{font-size:22px}}
     @media(max-width:720px){.layout{display:block}.sidebar{padding:12px;gap:12px}.brand{padding:0 5px 12px}.nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.nav a{justify-content:center;padding:10px 6px;font-size:11px;gap:5px;text-align:center;flex-direction:column}.side-note{display:none}.topbar{height:auto;padding:16px;align-items:flex-start}.topbar h1{font-size:19px}.top-actions{flex-shrink:0}.content{padding:18px 12px 30px}.pagehead{align-items:flex-start;flex-direction:column}.page-actions{width:100%}.page-actions .btn{flex:1}.pagehead h2{font-size:23px}.cards{grid-template-columns:1fr;gap:10px}.card .value{font-size:24px}.panel-head{align-items:flex-start;flex-direction:column;padding:17px}.filters{width:100%}.filters select,.filters input{flex:1;min-width:130px}th,td{padding:12px}.form{padding:18px}}
@@ -46,7 +48,6 @@
       .topbar h1{font-size:19px}
       .topbar p{font-size:11px;line-height:1.4}
       .top-actions{gap:6px}
-      #refreshButton{padding:9px 10px;font-size:12px}
       .content{padding:18px 12px 30px}
     }
     @media(min-width:721px){.sidebar{transform:none!important}}
@@ -142,6 +143,7 @@
     .filters { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px !important; }
     .filters select, .filters input { width: 100%; min-width: 0 !important; min-height: 42px; font-size: 13px; }
     #clearFilters { grid-column: 1 / -1; min-height: 40px; }
+    #shareMonthPdf { grid-column: 1 / -1; min-height: 42px; }
     .tablewrap { max-width: 100%; -webkit-overflow-scrolling: touch; }
     .footnote { font-size: 11px; }
   }
@@ -149,9 +151,10 @@
     .content { padding-right: 9px !important; padding-left: 9px !important; }
     .page-actions { grid-template-columns: minmax(0, 1fr); }
     .filters { grid-template-columns: minmax(0, 1fr); }
-    #clearFilters { grid-column: auto; }
+    #clearFilters, #shareMonthPdf { grid-column: auto; }
   }
 </style>
+  <link rel="stylesheet" href="css/saiku-sidebar.css?v=20261103">
 </head>
 <body>
 <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
@@ -176,9 +179,9 @@
       </nav>
     </aside>
   <div class="main">
-    <header class="topbar"><div class="topbar-title"><button id="sidebarToggle" class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button><div><h1>Expenses</h1><p>Record and manage Saiku Rentals business costs</p></div></div><div class="top-actions"><button class="btn" id="refreshButton" type="button">↻ Refresh</button></div></header>
+    <header class="topbar"><div class="topbar-title"><button id="sidebarToggle" class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">☰</button><div><h1>Expenses</h1><p>Record and manage Saiku Rentals business costs</p></div></div></header>
     <main class="content">
-      <div class="pagehead"><div><h2>Expense Tracking</h2><p>All expenses affect profit. Only expenses paid from the bank reduce the estimated bank balance.</p></div><div class="page-actions"><button class="btn" id="manageCategoriesButton" type="button">⚙ Manage Categories</button><button class="btn primary" id="addExpenseButton" type="button">+ Add Expense</button></div></div>
+      <div class="pagehead expenses-actions-only"><div class="page-actions"><button class="btn" id="manageCategoriesButton" type="button">⚙ Manage Categories</button><button class="btn primary" id="addExpenseButton" type="button">+ Add Expense</button></div></div>
       <div id="notice" class="notice" role="status"></div>
       <section class="cards">
         <div class="card"><div class="label">Expenses Today</div><div class="value" id="todayTotal">MVR 0.00</div><small>Expenses recorded today</small></div>
@@ -186,7 +189,7 @@
         <div class="card"><div class="label">Since System Start</div><div class="value" id="sinceStartTotal">MVR 0.00</div><small id="startDateLabel">From Company Settings</small></div>
       </section>
       <section class="panel">
-        <div class="panel-head"><div><h3>Expense Records</h3><p id="recordCount">Loading records…</p></div><div class="filters"><select id="categoryFilter" aria-label="Filter by category"><option value="">All categories</option></select><input id="monthFilter" type="month" aria-label="Filter by month"><button class="btn small" id="clearFilters" type="button">Clear filters</button></div></div>
+        <div class="panel-head"><div><h3>Expense Records</h3><p id="recordCount">Loading records…</p></div><div class="filters"><select id="categoryFilter" aria-label="Filter by category"><option value="">All categories</option></select><input id="monthFilter" type="month" aria-label="Filter by month"><button class="btn small primary" id="shareMonthPdf" type="button" disabled>Share monthly PDF</button><button class="btn small" id="clearFilters" type="button">Clear filters</button></div></div>
         <div class="tablewrap"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Payment Method</th><th>Amount</th><th>Actions</th></tr></thead><tbody id="expenseRows"><tr><td colspan="6" class="empty">Loading expenses…</td></tr></tbody></table></div>
       </section>
       <p class="footnote">Accounting note: record loan interest as a business expense. Record loan principal repayments on the Loans &amp; Finance page, not here, to avoid treating principal as a business expense.</p>
@@ -227,6 +230,23 @@
 <script>
   const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const $ = id => document.getElementById(id);
+  let saikuLogoData = '';
+  const saikuLogoReady = new Promise(resolve => {
+    const logo = new Image();
+    logo.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = logo.naturalWidth;
+        canvas.height = logo.naturalHeight;
+        canvas.getContext('2d').drawImage(logo, 0, 0);
+        saikuLogoData = canvas.toDataURL('image/png');
+      } catch (error) { console.warn('Could not prepare the Saiku Rentals logo for the PDF:', error); }
+      resolve();
+    };
+    logo.onerror = resolve;
+    // Use the clean, border-free logo artwork, then embed it in the PDF as PNG.
+    logo.src = new URL('assets/saiku-rentals-logo.jpg', document.baseURI).href;
+  });
   let allExpenses = [];
   let allCategories = [];
   let categoriesTableReady = false;
@@ -352,7 +372,6 @@
     return true;
   }
   async function loadExpenses() {
-    $('refreshButton').disabled = true;
     $('recordCount').textContent = 'Loading records…';
     showNotice('');
     try {
@@ -374,7 +393,7 @@
       showNotice(error.message || 'Unable to load expense records. Check the expenses table and its Supabase read policy.');
       $('recordCount').textContent = 'Records unavailable';
       $('expenseRows').innerHTML = `<tr><td colspan="6" class="empty">Unable to load expense records.</td></tr>`;
-    } finally { $('refreshButton').disabled = false; }
+    }
   }
   function updateSummary() {
     const today = localDateKey();
@@ -400,6 +419,121 @@
       const description = [row.description, cycle ? `Cycle: ${cycle.plate_number || 'Unregistered'}` : ''].filter(Boolean).join(' · ');
       return `<tr><td>${safe(date)}</td><td><span class="pill">${safe(row.category || 'Other')}</span></td><td>${safe(description || '—')}</td><td>${safe(row.payment_method ? (row.payment_method.toLowerCase() === 'cash' ? 'Cash' : row.payment_method.toLowerCase() === 'bank' ? 'Bank' : row.payment_method) : 'Not specified')}</td><td class="amount">${safe(money(row.amount))}</td><td class="actions"><button class="btn small" type="button" data-edit="${safe(row.id)}">Edit</button> <button class="btn small danger" type="button" data-delete="${safe(row.id)}">Delete</button></td></tr>`;
     }).join('');
+  }
+  async function shareMonthlyExpensePdf() {
+    const month = $('monthFilter').value;
+    if (!month) { showNotice('Select a month first to create its expense PDF.'); return; }
+    const rows = allExpenses.filter(row => {
+      const date = row.expense_date ? localDateKey(row.expense_date) : (row.created_at ? localDateKey(row.created_at) : '');
+      return date.startsWith(month);
+    });
+    if (!rows.length) { showNotice('There are no expense records for the selected month.'); return; }
+    const JsPDF = window.jspdf?.jsPDF;
+    if (!JsPDF) { showNotice('The PDF tool could not load. Check your internet connection and try again.'); return; }
+
+    const button = $('shareMonthPdf');
+    button.disabled = true;
+    button.textContent = 'Preparing PDF…';
+    showNotice('');
+    const monthLabel = new Date(`${month}-01T00:00:00`).toLocaleDateString(undefined, {month:'long', year:'numeric'});
+    const total = rows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+    const fileName = `Saiku-Rentals-Expenses-${month}.pdf`;
+    try {
+      const pdf = new JsPDF({orientation:'landscape', unit:'mm', format:'a4'});
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 14;
+      const widths = [27, 36, 132, 35, 39];
+      const xs = [margin];
+      widths.forEach((width, index) => { if (index < widths.length - 1) xs.push(xs[index] + width); });
+      const textValue = value => String(value ?? '').normalize('NFKD').replace(/[^\x20-\x7E]/g, ' ').replace(/\s+/g, ' ').trim();
+      const drawPageHeader = (pageNumber) => {
+        pdf.setFillColor(239, 75, 43);
+        pdf.rect(0, 0, pageWidth, 4, 'F');
+        if (saikuLogoData) pdf.addImage(saikuLogoData, 'PNG', margin, 7, 44, 12);
+        else {
+          pdf.setTextColor(239, 75, 43);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(18);
+          pdf.text('SAIKU RENTALS', margin, 17);
+        }
+        pdf.setTextColor(23, 34, 56);
+        pdf.setFontSize(13);
+        pdf.text('Monthly expense report', margin, 26);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(10);
+        pdf.setTextColor(102, 117, 143);
+        pdf.text(`${monthLabel}  |  ${rows.length} records`, margin, 32);
+        if (pageNumber === 1) {
+          pdf.setTextColor(23, 34, 56);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setFontSize(12);
+          pdf.text(`Total expenses: ${money(total)}`, pageWidth - margin, 19, {align:'right'});
+        }
+        let y = 45;
+        const headers = ['DATE', 'CATEGORY', 'DESCRIPTION / CYCLE', 'PAYMENT METHOD', 'AMOUNT'];
+        pdf.setFillColor(237, 243, 250);
+        pdf.rect(margin, y, pageWidth - margin * 2, 9, 'F');
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(8);
+        pdf.setTextColor(82, 97, 122);
+        headers.forEach((label, index) => pdf.text(label, xs[index] + 2, y + 6));
+        pdf.setDrawColor(220, 228, 239);
+        pdf.line(margin, y + 9, pageWidth - margin, y + 9);
+        return y + 9;
+      };
+      let pageNumber = 1;
+      let y = drawPageHeader(pageNumber);
+      rows.forEach(row => {
+        const dateValue = row.expense_date ? localDateKey(row.expense_date) : (row.created_at ? localDateKey(row.created_at) : '');
+        const date = dateValue ? new Date(`${dateValue}T00:00:00`).toLocaleDateString() : '—';
+        const cycle = expenseCycles.find(item => String(item.id) === String(row.cycle_id));
+        const description = [row.description, cycle ? `Cycle: ${cycle.plate_number || 'Unregistered'}` : ''].filter(Boolean).join(' · ') || '—';
+        const method = row.payment_method ? (row.payment_method.toLowerCase() === 'cash' ? 'Cash' : row.payment_method.toLowerCase() === 'bank' ? 'Bank' : row.payment_method) : 'Not specified';
+        const cells = [date, row.category || 'Other', description, method, money(row.amount)].map(textValue);
+        const wrapped = cells.map((value, index) => pdf.splitTextToSize(value || '—', widths[index] - 4));
+        const rowHeight = Math.max(9, ...wrapped.map(lines => lines.length * 4.2 + 4));
+        if (y + rowHeight > pageHeight - 13) {
+          pdf.setFontSize(8);
+          pdf.setTextColor(130, 144, 163);
+          pdf.text(`Saiku Rentals  |  Page ${pageNumber}`, pageWidth - margin, pageHeight - 7, {align:'right'});
+          pdf.addPage();
+          pageNumber += 1;
+          y = drawPageHeader(pageNumber);
+        }
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(8.5);
+        pdf.setTextColor(35, 49, 70);
+        wrapped.forEach((lines, index) => pdf.text(lines, xs[index] + 2, y + 5, {maxWidth:widths[index] - 4}));
+        pdf.setDrawColor(229, 234, 241);
+        pdf.line(margin, y + rowHeight, pageWidth - margin, y + rowHeight);
+        y += rowHeight;
+      });
+      pdf.setFontSize(8);
+      pdf.setTextColor(130, 144, 163);
+      pdf.text(`Saiku Rentals  |  Page ${pageNumber}`, pageWidth - margin, pageHeight - 7, {align:'right'});
+      const blob = pdf.output('blob');
+      const file = new File([blob], fileName, {type:'application/pdf'});
+      if (navigator.share && navigator.canShare && navigator.canShare({files:[file]})) {
+        await navigator.share({files:[file], title:`Saiku Rentals expenses — ${monthLabel}`, text:`Expense records for ${monthLabel}`});
+      } else {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        showNotice('Monthly expense PDF downloaded. You can attach it to a message to share it.');
+      }
+    } catch (error) {
+      if (error.name !== 'AbortError') {
+        console.error('Could not create monthly expense PDF:', error);
+        showNotice('Could not create the monthly PDF. Please try again.');
+      }
+    } finally {
+      button.disabled = false;
+      button.textContent = 'Share monthly PDF';
+    }
   }
   function startAdd() {
     $('expenseForm').reset(); $('expenseId').value = ''; $('expenseDate').value = localDateKey();
@@ -470,13 +604,14 @@
   $('newCategoryForm').addEventListener('submit', addCategory);
   $('closeCategoriesModal').addEventListener('click', closeCategoriesModal);
   $('cancelCategoriesModal').addEventListener('click', closeCategoriesModal);
-  $('refreshButton').addEventListener('click', loadExpenses);
   $('closeModal').addEventListener('click', closeModal);
   $('cancelModal').addEventListener('click', closeModal);
   $('expenseForm').addEventListener('submit', saveExpense);
   $('expenseCategory').addEventListener('change', updateCycleField);
   $('categoryFilter').addEventListener('change', renderExpenses);
   $('monthFilter').addEventListener('change', renderExpenses);
+  $('shareMonthPdf').addEventListener('click', shareMonthlyExpensePdf);
+  saikuLogoReady.then(() => { $('shareMonthPdf').disabled = false; });
   $('clearFilters').addEventListener('click', () => { $('categoryFilter').value = ''; $('monthFilter').value = ''; renderExpenses(); });
   $('expenseRows').addEventListener('click', event => {
     const edit = event.target.closest('[data-edit]');
